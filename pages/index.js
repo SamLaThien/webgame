@@ -40,6 +40,7 @@ const Home = () => {
         src={getCboxUrl()}
         width="100%"
         height="450"
+        
         allowTransparency="no"
         allow="autoplay"
         frameBorder="0"

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '../components/Layout';
 import { Container, Typography, Button } from '@mui/material';
+import Layout from '@/components/Layout';
 
 const AdminPage = () => {
   const [user, setUser] = useState(null);
