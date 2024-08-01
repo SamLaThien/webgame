@@ -5,9 +5,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { userId, username, bio, dateOfBirth, gender, image } = req.body;
+  const { userId, username, bio, dateOfBirth, gender, image, ngoai_hieu, danh_hao, tai_san } = req.body;
 
-  console.log('Received data:', { userId, username, bio, dateOfBirth, gender, image });
+  console.log('Received data:', { userId, username, bio, dateOfBirth, gender, image, ngoai_hieu, danh_hao, tai_san });
 
   if (!userId) {
     return res.status(400).json({ message: 'User ID is required' });
@@ -35,6 +35,18 @@ export default async function handler(req, res) {
   if (image !== undefined) {
     updates.push('image = ?');
     values.push(image);
+  }
+  if (ngoai_hieu !== undefined) {
+    updates.push('ngoai_hieu = ?');
+    values.push(ngoai_hieu);
+  }
+  if (danh_hao !== undefined) {
+    updates.push('danh_hao = ?');
+    values.push(danh_hao);
+  }
+  if (tai_san !== undefined) {
+    updates.push('tai_san = ?');
+    values.push(tai_san);
   }
 
   if (updates.length === 0) {

@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import crypto from 'crypto';
+import styled from 'styled-components';
+
+const StyledIframe = styled.iframe`
+  background: white;
+`;
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -36,18 +41,19 @@ const Home = () => {
 
   return (
     <Layout>
-      <iframe
-        src={getCboxUrl()}
-        width="100%"
-        height="450"
-        
-        allowTransparency="no"
-        allow="autoplay"
-        frameBorder="0"
-        marginHeight="0"
-        marginWidth="0"
-        scrolling="auto"
-      ></iframe>
+      {user && (
+        <StyledIframe
+          src={getCboxUrl()}
+          width="100%"
+          height="450"
+          allowTransparency="no"
+          allow="autoplay"
+          frameBorder="0"
+          marginHeight="0"
+          marginWidth="0"
+          scrolling="auto"
+        ></StyledIframe>
+      )}
     </Layout>
   );
 };

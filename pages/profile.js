@@ -1,157 +1,202 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import Layout from '../components/Layout';
-import { Container, TextField, Button, Typography, Avatar, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import { useState } from 'react';
+import styled from 'styled-components';
+import HoSo from '../components/user-components/HoSo'; 
+import TinNhan from '../components/user-components/TinNhan'; 
+import DoiMatKhau from '../components/user-components/DoiMatKhau'; 
+import RuongChuaDo from '../components/user-components/RuongChuaDo';
+import DotPha from '../components/user-components/DotPha';
+import QuyThi from '../components/user-components/QuyThi';
+import LuyenDanThat from '../components/user-components/LuyenDanThat';
+import NhiemVuDuong from '../components/user-components/NhiemVuDuong';
+import DaoKhoang from '../components/user-components/DaoKhoang';
+import XinVaoBang from '../components/user-components/XinVaoBang';
+import Layout from '@/components/Layout';
 
-const Profile = () => {
-  const [user, setUser] = useState(null);
-  const [username, setUsername] = useState('');
-  const [bio, setBio] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [gender, setGender] = useState('');
-  const [avatar, setAvatar] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const router = useRouter();
+const Container = styled.div`
+  display: flex;
+  width: 70vw;
+  height: calc(100vh - 100px);
+`;
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      setUsername(parsedUser.name);
-      setBio(parsedUser.bio || '');
-      setDateOfBirth(parsedUser.dateOfBirth || '');
-      setGender(parsedUser.gender || '');
-      setAvatarPreview(parsedUser.image);
-    } else {
-      router.push('/login');
-    }
-  }, [router]);
+const Sidebar = styled.div`
+  width: 250px;
+  background-color: none;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+`;
 
-  const handleSave = async () => {
-    const updatedUser = { ...user };
-    const updates = {};
+const SidebarSection = styled.div`
+  margin-bottom: 20px;
+`;
 
-    if (username !== user.name) {
-      updates.username = username;
-      updatedUser.name = username;
-    }
-    if (bio !== user.bio) {
-      updates.bio = bio;
-      updatedUser.bio = bio;
-    }
-    if (dateOfBirth !== user.dateOfBirth) {
-      updates.dateOfBirth = dateOfBirth;
-      updatedUser.dateOfBirth = dateOfBirth;
-    }
-    if (gender !== user.gender) {
-      updates.gender = gender;
-      updatedUser.gender = gender;
-    }
-    if (avatarPreview !== user.image) {
-      updates.image = avatarPreview;
-      updatedUser.image = avatarPreview;
-    }
+const SectionTitle = styled.div`
+  cursor: pointer;
+  font-weight: bold;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
 
-    console.log('Sending data:', { userId: user.id, ...updates });
+  &:hover {
+    background-color: #45a049;
+  }
+`;
 
-    try {
-      const response = await fetch('/api/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, ...updates }),
-      });
+const ButtonsContainer = styled.div`
+  display: ${props => (props.isOpen ? 'block' : 'none')};
+  background-color: none;
+  border-radius: 4px;
+  padding: 0;
+`;
 
-      if (response.ok) {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-        alert('Profile updated successfully');
-      } else {
-        const result = await response.json();
-        alert(result.message);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to update profile');
-    }
+const MainContent = styled.div`
+  flex: 1;
+  padding: 20px;
+  background-color: none;
+`;
+
+const Button = styled.button`
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: left;
+
+  &:hover {
+    background-color: #45a049;
+  }
+
+  &.active {
+    background-color: #2e7d32;
+  }
+`;
+
+const ProfilePage = () => {
+  const [selectedSection, setSelectedSection] = useState('hoso');
+  const [openSections, setOpenSections] = useState({
+    taikhoan: false,
+    taisan: false,
+    tulyen: false,
+    bangphai: false
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections(prevState => ({
+      ...prevState,
+      [section]: !prevState[section]
+    }));
   };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/');
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(file);
-        setAvatarPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  if (!user) return null;
 
   return (
     <Layout>
       <Container>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Edit Profile
-        </Typography>
-        <Avatar src={avatarPreview} alt={username} sx={{ width: 100, height: 100, mb: 2 }} />
-        <Button variant="contained" component="label">
-          Upload Avatar
-          <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
-        </Button>
-        <TextField
-          label="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Bio"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Date of Birth"
-          type="date"
-          value={dateOfBirth}
-          onChange={(e) => setDateOfBirth(e.target.value)}
-          fullWidth
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Gender</InputLabel>
-          <Select
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-          >
-            <MenuItem value="male">Male</MenuItem>
-            <MenuItem value="female">Female</MenuItem>
-            <MenuItem value="other">Other</MenuItem>
-          </Select>
-        </FormControl>
-        <Button variant="contained" color="primary" onClick={handleSave} sx={{ mt: 2 }}>
-          Save
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={handleLogout} sx={{ mt: 2, ml: 2 }}>
-          Logout
-        </Button>
+        <Sidebar>
+          <SidebarSection>
+            <SectionTitle onClick={() => toggleSection('taikhoan')}>Tài khoản</SectionTitle>
+            <ButtonsContainer isOpen={openSections.taikhoan}>
+              <Button
+                className={selectedSection === 'hoso' ? 'active' : ''}
+                onClick={() => setSelectedSection('hoso')}
+              >
+                Hồ sơ
+              </Button>
+              <Button
+                className={selectedSection === 'tinnhan' ? 'active' : ''}
+                onClick={() => setSelectedSection('tinnhan')}
+              >
+                Tin nhắn
+              </Button>
+              <Button
+                className={selectedSection === 'doimatkhau' ? 'active' : ''}
+                onClick={() => setSelectedSection('doimatkhau')}
+              >
+                Đổi mật khẩu
+              </Button>
+            </ButtonsContainer>
+          </SidebarSection>
+          <SidebarSection>
+            <SectionTitle onClick={() => toggleSection('taisan')}>Tài sản</SectionTitle>
+            <ButtonsContainer isOpen={openSections.taisan}>
+              <Button
+                className={selectedSection === 'ruongchuado' ? 'active' : ''}
+                onClick={() => setSelectedSection('ruongchuado')}
+              >
+                Rương chứa đồ
+              </Button>
+            </ButtonsContainer>
+          </SidebarSection>
+          <SidebarSection>
+            <SectionTitle onClick={() => toggleSection('tulyen')}>Tu luyện</SectionTitle>
+            <ButtonsContainer isOpen={openSections.tulyen}>
+              <Button
+                className={selectedSection === 'dotpha' ? 'active' : ''}
+                onClick={() => setSelectedSection('dotpha')}
+              >
+                Đột phá
+              </Button>
+              <Button
+                className={selectedSection === 'quythi' ? 'active' : ''}
+                onClick={() => setSelectedSection('quythi')}
+              >
+                Quỷ thị
+              </Button>
+              <Button
+                className={selectedSection === 'luyendanthat' ? 'active' : ''}
+                onClick={() => setSelectedSection('luyendanthat')}
+              >
+                Luyện đan thất
+              </Button>
+              <Button
+                className={selectedSection === 'nhiemvuduong' ? 'active' : ''}
+                onClick={() => setSelectedSection('nhiemvuduong')}
+              >
+                Nhiệm vụ đường
+              </Button>
+              <Button
+                className={selectedSection === 'daokhoang' ? 'active' : ''}
+                onClick={() => setSelectedSection('daokhoang')}
+              >
+                Đào khoáng
+              </Button>
+            </ButtonsContainer>
+          </SidebarSection>
+          <SidebarSection>
+            <SectionTitle onClick={() => toggleSection('bangphai')}>Bang phái</SectionTitle>
+            <ButtonsContainer isOpen={openSections.bangphai}>
+              <Button
+                className={selectedSection === 'xinvaobang' ? 'active' : ''}
+                onClick={() => setSelectedSection('xinvaobang')}
+              >
+                Xin vào bang
+              </Button>
+            </ButtonsContainer>
+          </SidebarSection>
+        </Sidebar>
+        <MainContent>
+          {selectedSection === 'hoso' && <HoSo />}
+          {selectedSection === 'tinnhan' && <TinNhan />}
+          {selectedSection === 'doimatkhau' && <DoiMatKhau />}
+          {selectedSection === 'ruongchuado' && <RuongChuaDo />}
+          {selectedSection === 'dotpha' && <DotPha />}
+          {selectedSection === 'quythi' && <QuyThi />}
+          {selectedSection === 'luyendanthat' && <LuyenDanThat />}
+          {selectedSection === 'nhiemvuduong' && <NhiemVuDuong />}
+          {selectedSection === 'daokhoang' && <DaoKhoang />}
+          {selectedSection === 'xinvaobang' && <XinVaoBang />}
+        </MainContent>
       </Container>
     </Layout>
   );
 };
 
-export default Profile;
+export default ProfilePage;

@@ -1,10 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Container, Typography, Button } from '@mui/material';
+import { Container, Typography, Button, Box } from '@mui/material';
 import Layout from '@/components/Layout';
+import UserManagement from '@/components/admin-components/UserManagement';
+import styled from 'styled-components';
+
+const Sidebar = styled.div`
+  width: 250px;
+  height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px;
+  position: fixed;
+`;
+
+const MainSection = styled.div`
+  margin-left: 250px;
+  padding: 20px;
+`;
 
 const AdminPage = () => {
   const [user, setUser] = useState(null);
+  const [activeComponent, setActiveComponent] = useState('UserManagement');
   const router = useRouter();
 
   useEffect(() => {
@@ -31,17 +47,22 @@ const AdminPage = () => {
 
   return (
     <Layout>
-      <Container>
-        <Typography variant="h2" component="h1" gutterBottom>
-          Admin Dashboard
-        </Typography>
-        <Typography variant="h6" component="h2" gutterBottom>
-          Welcome, {user.name}
-        </Typography>
-        <Button variant="contained" color="primary" onClick={handleLogout}>
-          Logout
-        </Button>
-      </Container>
+      <Box display="flex">
+        <Sidebar>
+          <Typography variant="h6" component="div" gutterBottom>
+            Admin Dashboard
+          </Typography>
+          <Button variant="contained" fullWidth onClick={() => setActiveComponent('UserManagement')}>
+            Users
+          </Button>
+          <Button variant="contained" color="secondary" fullWidth onClick={handleLogout} style={{ marginTop: '20px' }}>
+            Logout
+          </Button>
+        </Sidebar>
+        <MainSection>
+          {activeComponent === 'UserManagement' && <UserManagement />}
+        </MainSection>
+      </Box>
     </Layout>
   );
 };
