@@ -9,7 +9,7 @@ const Container = styled.div`
 
 const Main = styled.main`
   flex: 1;
-  background-image: url('/home-bg-2.jpg');
+  background-image: url('/home-bg-2.jfif');
   background-size: cover;
   display: flex;
   justify-content: center;

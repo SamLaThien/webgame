@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 const HeaderContainer = styled.header`
   width: calc(100% - 40px);
   height: calc(100px + 1vh);
-  background-color: #6B8F71;
+  background-color: #610f24;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -84,7 +84,7 @@ const Header = () => {
 
   return (
     <HeaderContainer>
-      <Logo src="/logo.png" alt="Logo" />
+      <Logo src="/logo.jfif" alt="Logo" />
       <NavLinks>
         {user ? (
           <>
