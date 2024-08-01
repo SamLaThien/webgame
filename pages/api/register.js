@@ -15,14 +15,22 @@ export default async function handler(req, res) {
 
   try {
     const response = await axios.post(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`
+      `https://www.google.com/recaptcha/api/siteverify`,
+      null,
+      {
+        params: {
+          secret: process.env.RECAPTCHA_SECRET_KEY,
+          response: recaptchaToken
+        }
+      }
     );
 
     if (!response.data.success) {
       return res.status(400).json({ message: 'reCAPTCHA verification failed' });
     }
   } catch (error) {
-    return res.status(500).json({ message: 'Error verifying reCAPTCHA', error });
+    console.error('Error verifying reCAPTCHA:', error.message);
+    return res.status(500).json({ message: 'Error verifying reCAPTCHA', error: error.message });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -36,7 +44,8 @@ export default async function handler(req, res) {
       [startingId],
       (error, results) => {
         if (error) {
-          return res.status(500).json({ message: 'Internal server error', error });
+          console.error('Error querying database:', error.message);
+          return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
 
         const newId = results[0].maxId ? results[0].maxId + 1 : startingId;
@@ -49,7 +58,8 @@ export default async function handler(req, res) {
               if (error.code === 'ER_DUP_ENTRY') {
                 return res.status(409).json({ message: 'Email already in use' });
               } else {
-                return res.status(500).json({ message: 'Internal server error', error });
+                console.error('Error inserting into database:', error.message);
+                return res.status(500).json({ message: 'Internal server error', error: error.message });
               }
             }
 
@@ -59,6 +69,7 @@ export default async function handler(req, res) {
       }
     );
   } catch (error) {
-    return res.status(500).json({ message: 'Internal server error', error });
+    console.error('Error during database operation:', error.message);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 }

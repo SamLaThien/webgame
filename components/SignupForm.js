@@ -68,7 +68,7 @@ const SignupForm = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...formData, recaptchaToken }),
+        body: JSON.stringify({ ...formData, recaptchaToken, role: 2 }), // Assuming role 2 for a regular user
       });
 
       const result = await response.json();
@@ -87,14 +87,16 @@ const SignupForm = () => {
     <FormContainer>
       <Title>ĐĂNG KÝ</Title>
       <p>Hãy tham gia vào trò chơi cùng với chúng tôi</p>
-      <Input type="text" name="username" placeholder="Nhập username" onChange={handleChange} />
-      <Input type="email" name="email" placeholder="Nhập email" onChange={handleChange} />
-      <Input type="password" name="password" placeholder="Nhập mật khẩu" onChange={handleChange} />
-      <ReCAPTCHA
-        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY} // Replace with your site key
-        onChange={handleRecaptchaChange}
-      />
-      <Button onClick={handleSubmit}>Đăng ký</Button>
+      <form onSubmit={handleSubmit}>
+        <Input type="text" name="username" placeholder="Nhập username" onChange={handleChange} />
+        <Input type="email" name="email" placeholder="Nhập email" onChange={handleChange} />
+        <Input type="password" name="password" placeholder="Nhập mật khẩu" onChange={handleChange} />
+        <ReCAPTCHA
+          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+          onChange={handleRecaptchaChange}
+        />
+        <Button type="submit">Đăng ký</Button>
+      </form>
     </FormContainer>
   );
 };

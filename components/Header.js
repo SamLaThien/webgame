@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import { useRouter } from 'next/router';
 
 const HeaderContainer = styled.header`
-  width: 100%;
-  height: 150px;
+  width: calc(100% - 40px);
+  height: calc(100px + 1vh);
   background-color: #6B8F71;
   display: flex;
   justify-content: space-between;
