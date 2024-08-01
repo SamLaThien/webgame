@@ -37,7 +37,7 @@ const UserManagement = () => {
 
   const handleSaveUser = (updatedUser) => {
     fetch(`/api/admin/user/${updatedUser.id}`, {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -46,10 +46,25 @@ const UserManagement = () => {
     .then(response => response.json())
     .then(data => {
       setUsers(users.map(user => (user.id === updatedUser.id ? updatedUser : user)));
+      handleCloseModal();
     })
     .catch(error => console.error('Error updating user:', error));
   };
 
+  const handleBanUser = (user) => {
+    fetch(`/api/admin/user/${user.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ban: user.ban === 1 ? 0 : 1 })
+    })
+    .then(response => response.json())
+    .then(data => {
+      setUsers(users.map(u => u.id === user.id ? { ...u, ban: user.ban === 1 ? 0 : 1 } : u));
+    })
+    .catch(error => console.error('Error banning user:', error));
+  };
 
   if (loading) {
     return <CircularProgress />;
@@ -66,6 +81,7 @@ const UserManagement = () => {
               <TableCell>Username</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Ban Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -76,10 +92,11 @@ const UserManagement = () => {
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
+                <TableCell>{user.ban === 1 ? 'Banned' : 'Active'}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleOpenModal(user, 'details')}>Details</Button>
                   <Button onClick={() => handleOpenModal(user, 'edit')}>Edit</Button>
-                  <Button onClick={() => handleOpenModal(user, 'ban')}>Ban</Button>
+                  <Button onClick={() => handleBanUser(user)}>{user.ban === 1 ? 'Unban' : 'Ban'}</Button>
                   <Button onClick={() => handleOpenModal(user, 'delete')}>Delete</Button>
                 </TableCell>
               </TableRow>
@@ -92,7 +109,7 @@ const UserManagement = () => {
       )}
       {selectedUser && modalType === 'edit' && (
         <UserEditModal user={selectedUser} onClose={handleCloseModal} onSave={handleSaveUser} />
-        )}
+      )}
       {selectedUser && modalType === 'ban' && (
         <UserBanModal user={selectedUser} onClose={handleCloseModal} />
       )}

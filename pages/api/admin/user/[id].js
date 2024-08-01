@@ -1,10 +1,26 @@
-// pages/api/admin/user/[id].js
 import db from '@/lib/db';
 
 export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'PUT') {
+    const { ban } = req.body;
+
+    if (ban === undefined) {
+      return res.status(400).json({ message: 'Ban field is required' });
+    }
+
+    try {
+      db.query('UPDATE users SET ban = ? WHERE id = ?', [ban, id], (error, results) => {
+        if (error) {
+          return res.status(500).json({ message: 'Internal server error', error: error.message });
+        }
+        res.status(200).json({ message: 'User ban status updated successfully' });
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+  } else if (req.method === 'POST') {
     const { id: newId, username, email, role, ...rest } = req.body;
 
     if (!newId || !username || !email || !role) {
@@ -41,7 +57,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   } else {
-    res.setHeader('Allow', ['PUT']);
+    res.setHeader('Allow', ['PUT', 'POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

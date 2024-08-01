@@ -1,18 +1,29 @@
+import React from 'react';
 import { Modal, Box, Typography, Button } from '@mui/material';
 
-const UserBanModal = ({ user, onClose }) => {
+const UserBanModal = ({ user, onClose, onSave }) => {
   const handleBan = () => {
-    // Ban logic here
+    onSave({ ...user, ban: user.ban === 1 ? 0 : 1 });
     onClose();
   };
 
   return (
-    <Modal open onClose={onClose}>
-      <Box sx={{ padding: 2, backgroundColor: 'white', margin: 'auto', maxWidth: 500 }}>
-        <Typography variant="h6">Ban User</Typography>
-        <Typography>Are you sure you want to ban {user.username}?</Typography>
-        <Button onClick={handleBan}>Ban</Button>
-        <Button onClick={onClose}>Cancel</Button>
+    <Modal open={true} onClose={onClose}>
+      <Box p={3} bgcolor="white" borderRadius={3} maxWidth={500} mx="auto" mt={10}>
+        <Typography variant="h6" gutterBottom>
+          {user.ban === 1 ? 'Unban User' : 'Ban User'}
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Are you sure you want to {user.ban === 1 ? 'unban' : 'ban'} {user.username}?
+        </Typography>
+        <Box mt={2} display="flex" justifyContent="space-between">
+          <Button variant="contained" color="primary" onClick={handleBan}>
+            {user.ban === 1 ? 'Unban' : 'Ban'}
+          </Button>
+          <Button variant="contained" color="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );
