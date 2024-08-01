@@ -8,9 +8,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { email, password, recaptchaToken } = req.body;
+  const { username, password, recaptchaToken } = req.body;
 
-  if (!email || !password || !recaptchaToken) {
+  if (!username || !password || !recaptchaToken) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
@@ -27,25 +27,29 @@ export default async function handler(req, res) {
   }
 
   try {
-    db.query('SELECT * FROM users WHERE email = ?', [email], async (error, results) => {
+    db.query('SELECT * FROM users WHERE username = ?', [username], async (error, results) => {
       if (error) {
         return res.status(500).json({ message: 'Internal server error', error });
       }
 
       if (results.length === 0) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: 'Invalid username or password' });
       }
 
       const user = results[0];
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: 'Invalid username or password' });
       }
 
       const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      res.status(200).json({ message: 'Login successful', token, user: { name: user.username, image: user.image } });
+      res.status(200).json({ 
+        message: 'Login successful', 
+        token, 
+        user: { id: user.id, name: user.username, image: user.image, role: user.role } 
+      });
     });
   } catch (error) {
     return res.status(500).json({ message: 'Internal server error', error });

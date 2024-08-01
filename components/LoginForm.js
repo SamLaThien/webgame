@@ -11,6 +11,7 @@ const FormContainer = styled.div`
   max-width: 400px;
   width: 100%;
   text-align: center;
+  margin: 0 auto; /* Center the form */
 `;
 
 const Title = styled.h2`
@@ -18,7 +19,7 @@ const Title = styled.h2`
 `;
 
 const Input = styled.input`
-  width: 100%;
+  width: calc(100% - 20px); /* Adjust width to prevent overflow */
   padding: 10px;
   margin: 10px 0;
   border: 1px solid #ddd;
@@ -42,7 +43,7 @@ const Button = styled.button`
 
 const LoginForm = () => {
   const [recaptchaToken, setRecaptchaToken] = useState(null);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', password: '' });
   const router = useRouter();
 
   const handleRecaptchaChange = (token) => {
@@ -86,13 +87,15 @@ const LoginForm = () => {
     <FormContainer>
       <Title>ĐĂNG NHẬP</Title>
       <p>Hãy đăng nhập để có một trải nghiệm tốt hơn</p>
-      <Input type="email" name="email" placeholder="Nhập email" onChange={handleChange} />
-      <Input type="password" name="password" placeholder="Nhập mật khẩu" onChange={handleChange} />
-      <ReCAPTCHA
-        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-        onChange={handleRecaptchaChange}
-      />
-      <Button onClick={handleSubmit}>Đăng nhập</Button>
+      <form onSubmit={handleSubmit}>
+        <Input type="text" name="username" placeholder="Nhập tên đăng nhập" onChange={handleChange} />
+        <Input type="password" name="password" placeholder="Nhập mật khẩu" onChange={handleChange} />
+        <ReCAPTCHA
+          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+          onChange={handleRecaptchaChange}
+        />
+        <Button type="submit">Đăng nhập</Button>
+      </form>
     </FormContainer>
   );
 };

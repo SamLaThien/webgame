@@ -88,10 +88,11 @@ const Header = () => {
       <NavLinks>
         {user ? (
           <>
-            <UserImage src={user.image} alt={user.name} onClick={() => setMenuOpen(!menuOpen)} />
+            <UserImage src={user.image || '/default-user.png'} alt={user.name} onClick={() => setMenuOpen(!menuOpen)} />
             <DropdownMenu open={menuOpen}>
               <MenuItem onClick={() => router.push('/profile')}>Profile</MenuItem>
               {user.role === 1 && <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
+              {user.role === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </DropdownMenu>
           </>
