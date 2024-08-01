@@ -1,28 +1,48 @@
-import { useEffect, useState } from 'react';
-import { Container, Typography, Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@mui/material';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress } from '@mui/material';
+import UserDetailModal from './user-modals/UserDetailModal';
+import UserEditModal from './user-modals/UserEditModal';
+import UserBanModal from './user-modals/UserBanModal';
+import UserDeleteModal from './user-modals/UserDeleteModal';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [modalType, setModalType] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get('/api/users');
-        setUsers(response.data);
-      } catch (error) {
+    fetch('/api/admin/user')
+      .then(response => response.json())
+      .then(data => {
+        console.log('Fetched users:', data);
+        setUsers(data);
+        setLoading(false);
+      })
+      .catch(error => {
         console.error('Error fetching users:', error);
-      }
-    };
-    fetchUsers();
+        setLoading(false);
+      });
   }, []);
 
+  const handleOpenModal = (user, type) => {
+    setSelectedUser(user);
+    setModalType(type);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedUser(null);
+    setModalType(null);
+  };
+
+  if (loading) {
+    return <CircularProgress />;
+  }
+
   return (
-    <Container>
-      <Typography variant="h4" component="h2" gutterBottom>
-        User Management
-      </Typography>
-      <Paper>
+    <div>
+      <h1>User Management</h1>
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
@@ -30,6 +50,7 @@ const UserManagement = () => {
               <TableCell>Username</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -38,13 +59,31 @@ const UserManagement = () => {
                 <TableCell>{user.id}</TableCell>
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role === 1 ? 'Admin' : 'User'}</TableCell>
+                <TableCell>{user.role}</TableCell>
+                <TableCell>
+                  <Button onClick={() => handleOpenModal(user, 'details')}>Details</Button>
+                  <Button onClick={() => handleOpenModal(user, 'edit')}>Edit</Button>
+                  <Button onClick={() => handleOpenModal(user, 'ban')}>Ban</Button>
+                  <Button onClick={() => handleOpenModal(user, 'delete')}>Delete</Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </Paper>
-    </Container>
+      </TableContainer>
+      {selectedUser && modalType === 'details' && (
+        <UserDetailModal user={selectedUser} onClose={handleCloseModal} />
+      )}
+      {selectedUser && modalType === 'edit' && (
+        <UserEditModal user={selectedUser} onClose={handleCloseModal} />
+      )}
+      {selectedUser && modalType === 'ban' && (
+        <UserBanModal user={selectedUser} onClose={handleCloseModal} />
+      )}
+      {selectedUser && modalType === 'delete' && (
+        <UserDeleteModal user={selectedUser} onClose={handleCloseModal} />
+      )}
+    </div>
   );
 };
 

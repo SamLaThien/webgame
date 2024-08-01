@@ -1,26 +1,71 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import { useRouter } from 'next/router';
-import { Container, Typography, Button, Box } from '@mui/material';
 import Layout from '@/components/Layout';
 import UserManagement from '@/components/admin-components/UserManagement';
-import styled from 'styled-components';
+
+const Container = styled.div`
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 100px);
+`;
 
 const Sidebar = styled.div`
   width: 250px;
-  height: 100vh;
   background-color: #f5f5f5;
   padding: 20px;
-  position: fixed;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ddd;
 `;
 
-const MainSection = styled.div`
-  margin-left: 250px;
+const SidebarSection = styled.div`
+  margin-bottom: 20px;
+`;
+
+const SectionTitle = styled.div`
+  cursor: pointer;
+  font-weight: bold;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+const MainContent = styled.div`
+  flex: 1;
   padding: 20px;
+  background-color: white;
+`;
+
+const Button = styled.button`
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: left;
+
+  &:hover {
+    background-color: #45a049;
+  }
+
+  &.active {
+    background-color: #2e7d32;
+  }
 `;
 
 const AdminPage = () => {
+  const [selectedSection, setSelectedSection] = useState('userManagement');
   const [user, setUser] = useState(null);
-  const [activeComponent, setActiveComponent] = useState('UserManagement');
   const router = useRouter();
 
   useEffect(() => {
@@ -47,22 +92,17 @@ const AdminPage = () => {
 
   return (
     <Layout>
-      <Box display="flex">
+      <Container>
         <Sidebar>
-          <Typography variant="h6" component="div" gutterBottom>
-            Admin Dashboard
-          </Typography>
-          <Button variant="contained" fullWidth onClick={() => setActiveComponent('UserManagement')}>
-            Users
-          </Button>
-          <Button variant="contained" color="secondary" fullWidth onClick={handleLogout} style={{ marginTop: '20px' }}>
-            Logout
-          </Button>
+          <SidebarSection>
+            <SectionTitle onClick={() => setSelectedSection('userManagement')}>User Management</SectionTitle>
+          </SidebarSection>
+          <Button onClick={handleLogout}>Logout</Button>
         </Sidebar>
-        <MainSection>
-          {activeComponent === 'UserManagement' && <UserManagement />}
-        </MainSection>
-      </Box>
+        <MainContent>
+          {selectedSection === 'userManagement' && <UserManagement />}
+        </MainContent>
+      </Container>
     </Layout>
   );
 };
