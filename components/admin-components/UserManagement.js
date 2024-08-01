@@ -35,6 +35,22 @@ const UserManagement = () => {
     setModalType(null);
   };
 
+  const handleSaveUser = (updatedUser) => {
+    fetch(`/api/admin/user/${updatedUser.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatedUser)
+    })
+    .then(response => response.json())
+    .then(data => {
+      setUsers(users.map(user => (user.id === updatedUser.id ? updatedUser : user)));
+    })
+    .catch(error => console.error('Error updating user:', error));
+  };
+
+
   if (loading) {
     return <CircularProgress />;
   }
@@ -75,8 +91,8 @@ const UserManagement = () => {
         <UserDetailModal user={selectedUser} onClose={handleCloseModal} />
       )}
       {selectedUser && modalType === 'edit' && (
-        <UserEditModal user={selectedUser} onClose={handleCloseModal} />
-      )}
+        <UserEditModal user={selectedUser} onClose={handleCloseModal} onSave={handleSaveUser} />
+        )}
       {selectedUser && modalType === 'ban' && (
         <UserBanModal user={selectedUser} onClose={handleCloseModal} />
       )}
