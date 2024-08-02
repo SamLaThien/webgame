@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import HoSo from '../components/user-components/HoSo'; 
 import TinNhan from '../components/user-components/TinNhan'; 
@@ -10,6 +10,8 @@ import LuyenDanThat from '../components/user-components/LuyenDanThat';
 import NhiemVuDuong from '../components/user-components/NhiemVuDuong';
 import DaoKhoang from '../components/user-components/DaoKhoang';
 import XinVaoBang from '../components/user-components/XinVaoBang';
+import NghiSuDien from '../components/user-components/NghiSuDien';
+import BaoKhoPhong from '../components/user-components/BaoKhoPhong';
 import Layout from '@/components/Layout';
 
 const Container = styled.div`
@@ -34,23 +36,22 @@ const SectionTitle = styled.div`
   cursor: pointer;
   font-weight: bold;
   padding: 10px;
-  background-color: #4CAF50;
+  background-color: #610f24;
   color: white;
-  border-radius: 4px;
+  border-radius: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 5px;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #510f1f;
   }
 `;
 
 const ButtonsContainer = styled.div`
   display: ${props => (props.isOpen ? 'block' : 'none')};
   background-color: none;
-  border-radius: 4px;
   padding: 0;
 `;
 
@@ -61,23 +62,23 @@ const MainContent = styled.div`
 `;
 
 const Button = styled.button`
-  width: 100%;
+  width: calc(100% - 20px);
   padding: 10px;
   margin: 5px 0;
   border: none;
-  background-color: #4CAF50;
-  color: white;
-  border-radius: 4px;
+  background-color: white;
+  color: black;
+  border-radius: 0;
   cursor: pointer;
   font-size: 16px;
   text-align: left;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #f0f0f0;
   }
 
   &.active {
-    background-color: #2e7d32;
+    background-color: #e0e0e0;
   }
 `;
 
@@ -87,8 +88,22 @@ const ProfilePage = () => {
     taikhoan: false,
     taisan: false,
     tulyen: false,
-    bangphai: false
+    bangphai: false,
   });
+  const [isInClan, setIsInClan] = useState(false);
+
+  useEffect(() => {
+    const checkClanStatus = async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        const response = await fetch(`/api/user/clan/check-clan-status?userId=${user.id}`);
+        const data = await response.json();
+        setIsInClan(data.isInClan);
+      }
+    };
+
+    checkClanStatus();
+  }, []);
 
   const toggleSection = (section) => {
     setOpenSections(prevState => ({
@@ -179,6 +194,22 @@ const ProfilePage = () => {
               >
                 Xin vào bang
               </Button>
+              {isInClan && (
+                <>
+                  <Button
+                    className={selectedSection === 'nghisudien' ? 'active' : ''}
+                    onClick={() => setSelectedSection('nghisudien')}
+                  >
+                    Nghị sự điện
+                  </Button>
+                  <Button
+                    className={selectedSection === 'baokhophong' ? 'active' : ''}
+                    onClick={() => setSelectedSection('baokhophong')}
+                  >
+                    Bảo khố phòng
+                  </Button>
+                </>
+              )}
             </ButtonsContainer>
           </SidebarSection>
         </Sidebar>
@@ -193,6 +224,8 @@ const ProfilePage = () => {
           {selectedSection === 'nhiemvuduong' && <NhiemVuDuong />}
           {selectedSection === 'daokhoang' && <DaoKhoang />}
           {selectedSection === 'xinvaobang' && <XinVaoBang />}
+          {selectedSection === 'nghisudien' && <NghiSuDien />}
+          {selectedSection === 'baokhophong' && <BaoKhoPhong />}
         </MainContent>
       </Container>
     </Layout>
