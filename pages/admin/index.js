@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import UserManagement from '@/components/admin-components/UserManagement';
 import ClanManagement from '@/components/admin-components/ClanManagement';
 import ClanPermissionManagement from '@/components/admin-components/ClanPremissionManagement';
+import LevelManagement from '@/components/admin-components/LevelManagement';
 
 const Container = styled.div`
   display: flex;
@@ -29,9 +30,10 @@ const SectionTitle = styled.div`
   cursor: pointer;
   font-weight: bold;
   padding: 10px;
-  background-color: #4CAF50;
-  color: white;
-  border-radius: 4px;
+  background-color: none;
+  color: black;
+  border-radius: none;
+  border: solid gray 1px;
 
   &:hover {
     background-color: #45a049;
@@ -100,6 +102,7 @@ const AdminPage = () => {
             <SectionTitle onClick={() => setSelectedSection('userManagement')}>User Management</SectionTitle>
             <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Clan Management</SectionTitle>
             <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Clan Permission Management</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('levelManagement')}>Level Management</SectionTitle>
           </SidebarSection>
           <Button onClick={handleLogout}>Logout</Button>
         </Sidebar>
@@ -107,6 +110,7 @@ const AdminPage = () => {
           {selectedSection === 'userManagement' && <UserManagement />}
           {selectedSection === 'clanManagement' && <ClanManagement />}
           {selectedSection === 'clanPermissionManagement' && <ClanPermissionManagement />}
+          {selectedSection === 'levelManagement' && <LevelManagement />}
         </MainContent>
       </Container>
     </Layout>
