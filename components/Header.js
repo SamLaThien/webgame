@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 const HeaderContainer = styled.header`
   width: calc(100% - 40px);
@@ -84,9 +85,9 @@ const Header = () => {
 
   return (
     <HeaderContainer>
-      <a href='/'>
+      <Link href='/'>
       <Logo src="/logo.jfif" alt="Logo" />
-      </a>
+      </Link>
       <NavLinks>
         {user ? (
           <>
