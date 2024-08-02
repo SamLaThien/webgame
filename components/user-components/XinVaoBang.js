@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -13,56 +13,80 @@ const Title = styled.h2`
 `;
 
 const ClanCard = styled.div`
-  background: ${props => props.bgColor || '#f5f5f5'};
-  padding: 20px;
+  background: ${({ bgColor }) => bgColor || 'white'};
   border-radius: 8px;
-  margin-bottom: 10px;
-`;
-
-const Button = styled.button`
-  background-color: #4CAF50;
-  color: white;
-  border: none;
   padding: 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  &:hover {
-    background-color: #45a049;
-  }
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const XinVaoBang = () => {
   const [clans, setClans] = useState([]);
+  const [username, setUsername] = useState(null);
 
   useEffect(() => {
-    fetch('/api/clans')
+    console.log('Fetching clans...');
+    fetch('/api/admin/clan')
       .then(response => response.json())
-      .then(data => setClans(data.clans))
+      .then(data => {
+        console.log('Fetched clans:', data);
+        setClans(data);
+      })
       .catch(error => console.error('Error fetching clans:', error));
+
+    // Get username from local storage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      console.log('Fetched username from local storage:', user.name);
+      setUsername(user.name);
+    }
   }, []);
 
   const handleJoinClan = (clanId) => {
-    const userId = JSON.parse(localStorage.getItem('user')).id;
-    fetch('/api/clan_requests', {
+    if (!username) {
+      alert('Username not found');
+      return;
+    }
+
+    console.log('Sending clan request with:', { username, clan_id: clanId });
+    fetch('/api/user/clan/clan-requests', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ user_id: userId, clan_id: clanId })
+      body: JSON.stringify({ username, clan_id: clanId })
     })
-    .then(response => response.json())
-    .then(data => alert(data.message))
-    .catch(error => console.error('Error sending clan request:', error));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Clan request response:', data);
+        if (data.error) {
+          alert(data.error);
+        } else {
+          alert('Request sent successfully');
+        }
+      })
+      .catch(error => console.error('Error sending clan request:', error));
   };
 
   return (
     <Container>
       <Title>Xin vào bang</Title>
-      {clans.map(clan => (
-        <ClanCard key={clan.id} bgColor="#f0f8ff">
-          <p><strong>Bang chủ:</strong> {clan.owner}</p>
-          <p><strong>Điểm cống hiến:</strong> {clan.contributionPoints}</p>
-          <Button onClick={() => handleJoinClan(clan.id)}>Xin vào</Button>
+      {clans.map((clan, index) => (
+        <ClanCard key={clan.id} bgColor={index % 2 === 0 ? '#f0f0f0' : '#e0e0e0'}>
+          <div>
+            <p>Tên bang: {clan.name}</p>
+            <p>Bang chủ: {clan.owner}</p>
+            <p>Điểm cống hiến: {clan.contributionPoints}</p>
+          </div>
+          <button onClick={() => handleJoinClan(clan.id)}>Xin vào</button>
         </ClanCard>
       ))}
     </Container>

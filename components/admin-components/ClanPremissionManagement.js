@@ -1,36 +1,45 @@
+// components/admin-components/ClanPremissionManagement.js
 import { useState, useEffect } from 'react';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress } from '@mui/material';
 
-const ClanPermissionManagement = () => {
+const ClanPremissionManagement = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/clan_requests')
+    fetch('/api/admin/clan-requests')
       .then(response => response.json())
       .then(data => {
-        setRequests(data.requests);
+        if (Array.isArray(data)) {
+          setRequests(data);
+        } else {
+          console.error('Unexpected response format:', data);
+        }
         setLoading(false);
       })
       .catch(error => {
-        console.error('Error fetching clan requests:', error);
+        console.error('Error fetching requests:', error);
         setLoading(false);
       });
   }, []);
 
-  const handleRequestAction = (requestId, action) => {
-    fetch(`/api/admin/clan_requests/${requestId}`, {
+  const handleAction = (requestId, action, userId, clanId) => {
+    fetch(`/api/admin/clan-requests/${requestId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ action })
+      body: JSON.stringify({ action, user_id: userId, clan_id: clanId })
     })
-    .then(response => response.json())
-    .then(data => {
-      setRequests(requests.map(req => req.id === requestId ? { ...req, status: action } : req));
-    })
-    .catch(error => console.error('Error updating clan request:', error));
+      .then(response => response.json())
+      .then(data => {
+        if (data.message.includes('Request')) {
+          setRequests(requests.map(req => req.id === requestId ? { ...req, status: action } : req));
+        } else {
+          console.error('Error updating request:', data.message);
+        }
+      })
+      .catch(error => console.error('Error updating request:', error));
   };
 
   if (loading) {
@@ -45,8 +54,8 @@ const ClanPermissionManagement = () => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>User ID</TableCell>
-              <TableCell>Clan ID</TableCell>
+              <TableCell>Username</TableCell>
+              <TableCell>Clan Name</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -55,12 +64,22 @@ const ClanPermissionManagement = () => {
             {requests.map((request) => (
               <TableRow key={request.id}>
                 <TableCell>{request.id}</TableCell>
-                <TableCell>{request.user_id}</TableCell>
-                <TableCell>{request.clan_id}</TableCell>
+                <TableCell>{request.username}</TableCell>
+                <TableCell>{request.clan_name}</TableCell>
                 <TableCell>{request.status}</TableCell>
                 <TableCell>
-                  <Button onClick={() => handleRequestAction(request.id, 'approved')} disabled={request.status !== 'pending'}>Approve</Button>
-                  <Button onClick={() => handleRequestAction(request.id, 'rejected')} disabled={request.status !== 'pending'}>Reject</Button>
+                  <Button
+                    onClick={() => handleAction(request.id, 'approved', request.user_id, request.clan_id)}
+                    disabled={request.status !== 'pending'}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    onClick={() => handleAction(request.id, 'rejected', request.user_id, request.clan_id)}
+                    disabled={request.status !== 'pending'}
+                  >
+                    Reject
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -71,4 +90,4 @@ const ClanPermissionManagement = () => {
   );
 };
 
-export default ClanPermissionManagement;
+export default ClanPremissionManagement;

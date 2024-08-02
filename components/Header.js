@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import styled from 'styled-components';
+import { Button, Menu, MenuItem, IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const HeaderContainer = styled.header`
   width: calc(100% - 40px);
@@ -23,20 +25,6 @@ const NavLinks = styled.div`
   align-items: center;
 `;
 
-const NavButton = styled.button`
-  margin-left: 20px;
-  color: white;
-  background: none;
-  border: none;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 16px;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
 const UserImage = styled.img`
   height: 50px;
   width: 50px;
@@ -54,18 +42,22 @@ const DropdownMenu = styled.div`
   display: ${({ open }) => (open ? 'block' : 'none')};
 `;
 
-const MenuItem = styled.div`
-  padding: 10px 20px;
-  cursor: pointer;
-
-  &:hover {
-    background: #f0f0f0;
+const CustomButton = styled(Button)`
+  && {
+    color: white;
+    border: 2px solid white;
+    font-size: 1.5rem;
+    text-transform: none;
+    margin-left: 20px;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
   }
 `;
 
 const Header = () => {
   const [user, setUser] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -83,26 +75,57 @@ const Header = () => {
     router.push('/');
   };
 
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
   return (
     <HeaderContainer>
       <Link href='/'>
-      <Logo src="/logo.jfif" alt="Logo" />
+        <Logo src="/logo.jfif" alt="Logo" />
       </Link>
       <NavLinks>
+        <CustomButton
+          startIcon={<MenuIcon fontSize="large" />}
+          aria-controls="simple-menu"
+          aria-haspopup="true"
+          onClick={handleMenuOpen}
+        >
+          MENU
+        </CustomButton>
+        <Menu
+          id="simple-menu"
+          anchorEl={menuAnchor}
+          keepMounted
+          open={Boolean(menuAnchor)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem onClick={() => router.push('/game1')}>Game 1</MenuItem>
+          <MenuItem onClick={() => router.push('/game2')}>Game 2</MenuItem>
+          <MenuItem onClick={() => router.push('/game3')}>Game 3</MenuItem>
+        </Menu>
         {user ? (
           <>
-            <UserImage src={user.image || '/default-user.png'} alt={user.name} onClick={() => setMenuOpen(!menuOpen)} />
-            <DropdownMenu open={menuOpen}>
+            {/* <UserImage src={user.image || '/default-user.png'} alt={user.name} onClick={handleMenuOpen} /> */}
+            <Menu
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={handleMenuClose}
+            >
               <MenuItem onClick={() => router.push('/profile')}>Profile</MenuItem>
               {user.role === 1 && <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
               {user.role === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            </DropdownMenu>
+            </Menu>
           </>
         ) : (
           <>
-            <NavButton onClick={() => router.push('/login')}>Đăng nhập</NavButton>
-            <NavButton onClick={() => router.push('/register')}>Đăng ký</NavButton>
+            <CustomButton onClick={() => router.push('/login')}>Đăng nhập</CustomButton>
+            <CustomButton onClick={() => router.push('/register')}>Đăng ký</CustomButton>
           </>
         )}
       </NavLinks>

@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import UserManagement from '@/components/admin-components/UserManagement';
 import ClanManagement from '@/components/admin-components/ClanManagement';
+import ClanPermissionManagement from '@/components/admin-components/ClanPremissionManagement';
 
 const Container = styled.div`
   display: flex;
@@ -98,12 +99,14 @@ const AdminPage = () => {
           <SidebarSection>
             <SectionTitle onClick={() => setSelectedSection('userManagement')}>User Management</SectionTitle>
             <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Clan Management</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Clan Permission Management</SectionTitle>
           </SidebarSection>
           <Button onClick={handleLogout}>Logout</Button>
         </Sidebar>
         <MainContent>
           {selectedSection === 'userManagement' && <UserManagement />}
           {selectedSection === 'clanManagement' && <ClanManagement />}
+          {selectedSection === 'clanPermissionManagement' && <ClanPermissionManagement />}
         </MainContent>
       </Container>
     </Layout>
