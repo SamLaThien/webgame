@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import UserManagement from '@/components/admin-components/UserManagement';
+import ClanManagement from '@/components/admin-components/ClanManagement';
 
 const Container = styled.div`
   display: flex;
@@ -96,11 +97,13 @@ const AdminPage = () => {
         <Sidebar>
           <SidebarSection>
             <SectionTitle onClick={() => setSelectedSection('userManagement')}>User Management</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Clan Management</SectionTitle>
           </SidebarSection>
           <Button onClick={handleLogout}>Logout</Button>
         </Sidebar>
         <MainContent>
           {selectedSection === 'userManagement' && <UserManagement />}
+          {selectedSection === 'clanManagement' && <ClanManagement />}
         </MainContent>
       </Container>
     </Layout>

@@ -84,7 +84,9 @@ const Header = () => {
 
   return (
     <HeaderContainer>
+      <a href='/'>
       <Logo src="/logo.jfif" alt="Logo" />
+      </a>
       <NavLinks>
         {user ? (
           <>
