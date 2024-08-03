@@ -97,17 +97,7 @@ const Header = () => {
         >
           MENU
         </CustomButton>
-        <Menu
-          id="simple-menu"
-          anchorEl={menuAnchor}
-          keepMounted
-          open={Boolean(menuAnchor)}
-          onClose={handleMenuClose}
-        >
-          <MenuItem onClick={() => router.push('/game1')}>Game 1</MenuItem>
-          <MenuItem onClick={() => router.push('/game2')}>Game 2</MenuItem>
-          <MenuItem onClick={() => router.push('/game3')}>Game 3</MenuItem>
-        </Menu>
+        
         {user ? (
           <>
             {/* <UserImage src={user.image || '/default-user.png'} alt={user.name} onClick={handleMenuOpen} /> */}
