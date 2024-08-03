@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
 const Container = styled.div`
   display: flex;
@@ -66,21 +67,44 @@ const ActivityItem = styled.div`
 const NghiSuDien = () => {
   const [selectedChannel, setSelectedChannel] = useState('kenhMonPhai');
   const [activities, setActivities] = useState([]);
+  const [cboxThreadId, setCboxThreadId] = useState(null);
+  const [cboxThreadKey, setCboxThreadKey] = useState(null);
 
   useEffect(() => {
-    // Fetch activities here
-    // For now, using hardcoded data
     setActivities([
       { id: 1, text: 'Đạo hữu Tôn Nợ 10k Bái vừa nộp bang 1 Tỉ Lôi Châu (còn 0) vào bảo khố (còn 16) (9 giờ trước)', color: '#a8dadc' },
       { id: 2, text: 'Đạo hữu Tôn Nợ 10k Bái vừa nộp bang 14 Khai Thiên Thần Thạch (còn 0) vào bảo khố (còn 14) (9 giờ trước)', color: '#f4a261' },
       { id: 3, text: 'Đạo hữu Tôn Nợ 10k Bái vừa nộp bang 14 Vạn Thiết CP (còn 0) vào bảo khố (còn 15) (9 giờ trước)', color: '#e9c46a' },
-      // Add more activities as needed
     ]);
+
+    const fetchClanChatInfo = async () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) {
+          const response = await axios.get(`/api/user/clan/cbox?userId=${storedUser.id}`);
+          const { cbox_thread_id, cbox_thread_key } = response.data;
+          setCboxThreadId(cbox_thread_id);
+          setCboxThreadKey(cbox_thread_key);
+        }
+      } catch (error) {
+        console.error('Error fetching clan chat info:', error);
+      }
+    };
+
+    fetchClanChatInfo();
   }, []);
 
-  const cboxBaseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
-  const cboxBoxId = process.env.NEXT_PUBLIC_CBOX_BOXID;
-  const cboxBoxTag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
+  const getChatBoxUrl = () => {
+    const baseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
+    const cboxBoxId = process.env.NEXT_PUBLIC_CBOX_BOXID;
+    const cboxBoxTag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
+
+    if (selectedChannel === 'kenhMonPhai' && cboxThreadId && cboxThreadKey) {
+      return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}&tid=${cboxThreadId}&tkey=${cboxThreadKey}`;
+    } else {
+      return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}`;
+    }
+  };
 
   return (
     <Container>
@@ -101,7 +125,7 @@ const NghiSuDien = () => {
           </ChannelButton>
         </ChannelSelector>
         <ChatBox
-          src={`${cboxBaseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}`}
+          src={getChatBoxUrl()}
           title="Chat Box"
         />
       </ChatSection>
@@ -116,7 +140,6 @@ const NghiSuDien = () => {
         </ActivityList>
         <SectionTitle>Kho Bạc</SectionTitle>
         <ActivityList>
-          {/* Add Kho Bạc activities here */}
           {activities.map(activity => (
             <ActivityItem key={activity.id} color={activity.color}>
               {activity.text}
