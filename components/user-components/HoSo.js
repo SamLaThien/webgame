@@ -48,7 +48,7 @@ const ChangeLabel = styled.div`
   position: absolute;
   bottom: 0;
   right: 0;
-  background: #4CAF50;
+  background: #93B6C8;
   color: white;
   padding: 5px;
   border-radius: 4px;
@@ -84,7 +84,7 @@ const Input = styled.input`
 
 const Button = styled.button`
   padding: 10px 20px;
-  background-color: #4CAF50;
+  background-color: #93B6C8;
   color: white;
   border: none;
   border-radius: 4px;
