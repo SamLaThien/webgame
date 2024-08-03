@@ -15,35 +15,65 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     const { id, name, owner, clan_money } = req.body;
 
-    if (!id || !name || !owner) {
-      return res.status(400).json({ message: 'ID, Name, and Owner are required' });
+    if (!name || !owner) {
+      return res.status(400).json({ message: 'Name and owner are required' });
     }
 
     try {
-      db.query(
-        'INSERT INTO clans (id, name, owner, clan_money) VALUES (?, ?, ?, ?)',
-        [id, name, owner, clan_money],
-        (error, results) => {
-          if (error) {
-            if (error.code === 'ER_DUP_ENTRY') {
-              return res.status(409).json({ message: 'Duplicate entry for id' });
-            }
-            return res.status(500).json({ message: 'Internal server error', error: error.message });
-          }
+      const newId = id || null;
 
-          // Add the owner to the clan_members table
-          db.query(
-            'INSERT INTO clan_members (member_id, clan_id) VALUES (?, ?)',
-            [owner, id],
-            (memberError) => {
-              if (memberError) {
-                return res.status(500).json({ message: 'Internal server error', error: memberError.message });
-              }
-              res.status(201).json({ id, name, owner, clan_money });
-            }
-          );
+      // Start transaction
+      db.query('START TRANSACTION', (startError) => {
+        if (startError) {
+          return res.status(500).json({ message: 'Internal server error', error: startError.message });
         }
-      );
+
+        db.query(
+          'INSERT INTO clans (id, name, owner, clan_money) VALUES (?, ?, ?, ?)',
+          [newId, name, owner, clan_money],
+          (clanError, clanResults) => {
+            if (clanError) {
+              db.query('ROLLBACK', () => {});
+              if (clanError.code === 'ER_DUP_ENTRY') {
+                return res.status(409).json({ message: 'Duplicate entry for id' });
+              }
+              return res.status(500).json({ message: 'Internal server error', error: clanError.message });
+            }
+
+            const clanId = clanResults.insertId;
+
+            db.query(
+              'INSERT INTO clan_members (clan_id, member_id) VALUES (?, ?)',
+              [clanId, owner],
+              (memberError) => {
+                if (memberError) {
+                  db.query('ROLLBACK', () => {});
+                  return res.status(500).json({ message: 'Internal server error', error: memberError.message });
+                }
+
+                db.query(
+                  'UPDATE users SET clan_role = 7, bang_hoi = ? WHERE id = ?',
+                  [clanId, owner],
+                  (userError) => {
+                    if (userError) {
+                      db.query('ROLLBACK', () => {});
+                      return res.status(500).json({ message: 'Internal server error', error: userError.message });
+                    }
+
+                    db.query('COMMIT', (commitError) => {
+                      if (commitError) {
+                        return res.status(500).json({ message: 'Internal server error', error: commitError.message });
+                      }
+
+                      res.status(201).json({ id: clanId, name, owner, clan_money });
+                    });
+                  }
+                );
+              }
+            );
+          }
+        );
+      });
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }

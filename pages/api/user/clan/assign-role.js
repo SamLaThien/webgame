@@ -8,37 +8,44 @@ export default async function handler(req, res) {
   const { userId, targetUserId, newRole } = req.body;
 
   if (!userId || !targetUserId || !newRole) {
-    return res.status(400).json({ message: 'User ID, Target User ID, and New Role are required' });
+    return res.status(400).json({ message: 'All fields are required' });
   }
 
   try {
-    // Get the user's current role
-    const [userResult] = await db.query('SELECT clan_role FROM users WHERE id = ?', [userId]);
+    // Get the current user's role
+    const [user] = await new Promise((resolve, reject) => {
+      db.query('SELECT * FROM users WHERE id = ?', [userId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
 
-    if (!userResult || userResult.length === 0) {
+    // Get the target user's role
+    const [targetUser] = await new Promise((resolve, reject) => {
+      db.query('SELECT * FROM users WHERE id = ?', [targetUserId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
+
+    if (!user || !targetUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userRole = userResult[0].clan_role || 0;
-
-    // Get the target user's current role
-    const [targetUserResult] = await db.query('SELECT clan_role FROM users WHERE id = ?', [targetUserId]);
-
-    if (!targetUserResult || targetUserResult.length === 0) {
-      return res.status(404).json({ message: 'Target user not found' });
+    // Ensure the user has a higher role than the target user and the new role
+    if (parseInt(user.clan_role) <= parseInt(targetUser.clan_role) || parseInt(user.clan_role) <= parseInt(newRole)) {
+      return res.status(403).json({ message: 'Insufficient privileges to assign this role' });
     }
 
-    const targetUserRole = targetUserResult[0].clan_role || 0;
+    // Update the target user's role
+    await new Promise((resolve, reject) => {
+      db.query('UPDATE users SET clan_role = ? WHERE id = ?', [newRole, targetUserId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
 
-    // Check if the user has permission to assign the new role
-    if (userRole <= targetUserRole || userRole <= newRole) {
-      return res.status(403).json({ message: 'You do not have permission to assign this role' });
-    }
-
-    // Assign the new role to the target user
-    await db.query('UPDATE users SET clan_role = ? WHERE id = ?', [newRole, targetUserId]);
-
-    res.status(200).json({ message: 'Role assigned successfully' });
+    return res.status(200).json({ message: 'Role assigned successfully' });
   } catch (error) {
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }

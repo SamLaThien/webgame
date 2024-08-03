@@ -103,7 +103,6 @@ const LanhSuDuong = () => {
         newRole,
       });
       alert('Phân vai trò thành công');
-      // Refresh members list
       const membersInfo = await axios.get(`/api/user/clan/members?userId=${user.id}`);
       setMembers(membersInfo.data);
     } catch (error) {
@@ -151,8 +150,6 @@ const LanhSuDuong = () => {
   };
 
   if (!user) return null;
-
-  const currentUserRoleLevel = user.clan_role || 0;
 
   return (
     <Container>

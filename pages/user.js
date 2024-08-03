@@ -43,7 +43,7 @@ const SectionTitle = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 0;
 
   &:hover {
     background-color: #510f1f;
@@ -63,9 +63,9 @@ const MainContent = styled.div`
 `;
 
 const Button = styled.button`
-  width: calc(100% - 20px);
+  width: 100%;
   padding: 10px;
-  margin: 5px 0;
+  margin: 0;
   border: none;
   background-color: white;
   color: black;
@@ -73,6 +73,8 @@ const Button = styled.button`
   cursor: pointer;
   font-size: 16px;
   text-align: left;
+  border: gray 1px solid;
+  border-top: none;
 
   &:hover {
     background-color: #f0f0f0;
