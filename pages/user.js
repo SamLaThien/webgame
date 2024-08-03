@@ -12,6 +12,7 @@ import DaoKhoang from '../components/user-components/DaoKhoang';
 import XinVaoBang from '../components/user-components/XinVaoBang';
 import NghiSuDien from '../components/user-components/NghiSuDien';
 import BaoKhoPhong from '../components/user-components/BaoKhoPhong';
+import LanhSuDuong from '../components/user-components/LanhSuDuong';
 import Layout from '@/components/Layout';
 
 const Container = styled.div`
@@ -96,7 +97,7 @@ const ProfilePage = () => {
     const checkClanStatus = async () => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (user) {
-        const response = await fetch(`/api/user/clan/check-clan-status?userId=${user.id}`);
+        const response = await fetch(`/api/user/clan/check-if-clan-member?userId=${user.id}`);
         const data = await response.json();
         setIsInClan(data.isInClan);
       }
@@ -208,6 +209,12 @@ const ProfilePage = () => {
                   >
                     Bảo khố phòng
                   </Button>
+                  <Button
+                    className={selectedSection === 'lanhsuduong' ? 'active' : ''}
+                    onClick={() => setSelectedSection('lanhsuduong')}
+                  >
+                    Lãnh Sự Đường
+                  </Button>
                 </>
               )}
             </ButtonsContainer>
@@ -226,6 +233,7 @@ const ProfilePage = () => {
           {selectedSection === 'xinvaobang' && <XinVaoBang />}
           {selectedSection === 'nghisudien' && <NghiSuDien />}
           {selectedSection === 'baokhophong' && <BaoKhoPhong />}
+          {selectedSection === 'lanhsuduong' && <LanhSuDuong />}
         </MainContent>
       </Container>
     </Layout>

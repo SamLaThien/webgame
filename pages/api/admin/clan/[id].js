@@ -4,30 +4,21 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'PUT') {
-    const { id: newId, name, owner } = req.body;
+    const { name, owner, clan_money } = req.body;
 
-    if (!newId || !name || !owner) {
-      return res.status(400).json({ message: 'ID, Name, and Owner are required' });
+    if (!name || !owner) {
+      return res.status(400).json({ message: 'Name and Owner are required' });
     }
 
     try {
-      const clanData = { id: newId, name, owner };
+      const query = `UPDATE clans SET name = ?, owner = ?, clan_money = ? WHERE id = ?`;
+      const values = [name, owner, clan_money, id];
 
-      db.query('DELETE FROM clans WHERE id = ?', [id], (deleteError) => {
-        if (deleteError) {
-          return res.status(500).json({ message: 'Internal server error', error: deleteError.message });
+      db.query(query, values, (error, results) => {
+        if (error) {
+          return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
-
-        db.query('INSERT INTO clans SET ?', clanData, (insertError, insertResults) => {
-          if (insertError) {
-            if (insertError.code === 'ER_DUP_ENTRY') {
-              return res.status(409).json({ message: 'Duplicate entry for id' });
-            }
-            return res.status(500).json({ message: 'Internal server error', error: insertError.message });
-          }
-
-          res.status(200).json({ message: 'Clan updated successfully' });
-        });
+        res.status(200).json({ message: 'Clan updated successfully' });
       });
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });

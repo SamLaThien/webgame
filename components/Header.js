@@ -116,7 +116,7 @@ const Header = () => {
               open={Boolean(menuAnchor)}
               onClose={handleMenuClose}
             >
-              <MenuItem onClick={() => router.push('/profile')}>Profile</MenuItem>
+              <MenuItem onClick={() => router.push('/user')}>Profile</MenuItem>
               {user.role === 1 && <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
               {user.role === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
               <MenuItem onClick={handleLogout}>Logout</MenuItem>

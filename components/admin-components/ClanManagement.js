@@ -80,10 +80,6 @@ const ClanManagement = () => {
     .catch(error => console.error('Error deleting clan:', error));
   };
 
-  if (loading) {
-    return <CircularProgress />;
-  }
-
   return (
     <div>
       <h1>Clan Management</h1>
@@ -95,6 +91,7 @@ const ClanManagement = () => {
               <TableCell>ID</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Owner</TableCell>
+              <TableCell>Money</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -104,6 +101,7 @@ const ClanManagement = () => {
                 <TableCell>{clan.id}</TableCell>
                 <TableCell>{clan.name}</TableCell>
                 <TableCell>{clan.owner}</TableCell>
+                <TableCell>{clan.clan_money}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleOpenModal(clan, 'details')}>Details</Button>
                   <Button onClick={() => handleOpenModal(clan, 'edit')}>Edit</Button>
