@@ -1,19 +1,40 @@
 import { Modal, Box, Typography, Button } from '@mui/material';
+import styled from 'styled-components';
+
+const StyledBox = styled(Box)`
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+`;
+
+const StyledButton = styled(Button)`
+  && {
+    background-color: #93B6C8;
+    color: white;
+    &:hover {
+      background-color: #45a049;
+    }
+  }
+`;
 
 const ClanDetailModal = ({ clan, onClose }) => {
   return (
     <Modal open onClose={onClose}>
-      <Box p={3} bgcolor="white" borderRadius={4}>
-        <h2>Clan Details</h2>
+      <StyledBox>
+        <Typography variant="h5" gutterBottom>
+          Chi tiết Bang hội
+        </Typography>
         <Typography>ID: {clan.id}</Typography>
-        <Typography>Name: {clan.name}</Typography>
-        <Typography>Owner: {clan.owner}</Typography>
+        <Typography>Tên: {clan.name}</Typography>
+        <Typography>Chủ sở hữu: {clan.owner}</Typography>
         <Box mt={2}>
-          <Button onClick={onClose} variant="contained" color="secondary">
-            Close
-          </Button>
+          <StyledButton onClick={onClose} variant="contained">
+            Đóng
+          </StyledButton>
         </Box>
-      </Box>
+      </StyledBox>
     </Modal>
   );
 };

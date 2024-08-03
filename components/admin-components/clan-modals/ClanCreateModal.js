@@ -1,6 +1,43 @@
-// components/admin-components/clan-modals/ClanCreateModal.js
 import { useState, useEffect } from 'react';
 import { Modal, Button, TextField, CircularProgress, MenuItem, ListItemText } from '@mui/material';
+import styled from 'styled-components';
+
+const ModalContent = styled.div`
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #333;
+`;
+
+const Title = styled.h2`
+  margin-bottom: 20px;
+  color: #333;
+`;
+
+const StyledTextField = styled(TextField)`
+  && {
+    margin-bottom: 20px;
+    width: 100%;
+  }
+`;
+
+const StyledButton = styled(Button)`
+  && {
+    margin: 10px;
+    background-color: #93B6C8;
+    color: white;
+    &:hover {
+      background-color: #45a049;
+    }
+  }
+`;
 
 const ClanCreateModal = ({ onClose, onSave }) => {
   const [name, setName] = useState('');
@@ -21,7 +58,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
           setLoading(false);
         })
         .catch(error => {
-          console.error('Error fetching members:', error);
+          console.error('Lỗi khi tìm kiếm thành viên:', error);
           setLoading(false);
         });
     }
@@ -29,7 +66,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
 
   const handleSave = () => {
     if (!name || !ownerId || !clanId) {
-      alert('Clan ID, Name, and Owner are required');
+      alert('ID bang hội, tên và chủ sở hữu là bắt buộc');
       return;
     }
 
@@ -38,24 +75,24 @@ const ClanCreateModal = ({ onClose, onSave }) => {
 
   return (
     <Modal open onClose={onClose}>
-      <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', maxWidth: '500px', margin: '0 auto' }}>
-        <h2>Create Clan</h2>
-        <TextField
-          label="Clan ID"
+      <ModalContent>
+        <Title>Tạo bang hội</Title>
+        <StyledTextField
+          label="ID bang hội"
           value={clanId}
           onChange={(e) => setClanId(e.target.value)}
           fullWidth
           margin="normal"
         />
-        <TextField
-          label="Clan Name"
+        <StyledTextField
+          label="Tên bang hội"
           value={name}
           onChange={(e) => setName(e.target.value)}
           fullWidth
           margin="normal"
         />
-        <TextField
-          label="Owner Username"
+        <StyledTextField
+          label="Tên tài khoản chủ sở hữu"
           value={ownerUsername}
           onChange={(e) => setOwnerUsername(e.target.value)}
           fullWidth
@@ -70,21 +107,21 @@ const ClanCreateModal = ({ onClose, onSave }) => {
             </MenuItem>
           ))
         )}
-        <TextField
-          label="Clan Money"
+        <StyledTextField
+          label="Ngân quỹ bang hội"
           type="number"
           value={money}
           onChange={(e) => setMoney(e.target.value)}
           fullWidth
           margin="normal"
         />
-        <Button onClick={handleSave} variant="contained" color="primary" style={{ marginTop: '20px' }}>
-          Save
-        </Button>
-        <Button onClick={onClose} variant="outlined" color="secondary" style={{ marginTop: '10px' }}>
-          Cancel
-        </Button>
-      </div>
+        <StyledButton onClick={handleSave} variant="contained">
+          Lưu
+        </StyledButton>
+        <StyledButton onClick={onClose} variant="outlined" color="secondary">
+          Hủy
+        </StyledButton>
+      </ModalContent>
     </Modal>
   );
 };

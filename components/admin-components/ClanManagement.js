@@ -1,10 +1,33 @@
-// components/admin-components/ClanManagement.js
 import { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress } from '@mui/material';
 import ClanDetailModal from './clan-modals/ClanDetailModal';
 import ClanEditModal from './clan-modals/ClanEditModal';
 import ClanDeleteModal from './clan-modals/ClanDeleteModal';
 import ClanCreateModal from './clan-modals/ClanCreateModal';
+
+const Container = styled.div`
+  padding: 20px;
+  background-color: none;
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const Title = styled.h1`
+  color: #333;
+`;
+
+const StyledButton = styled(Button)`
+  && {
+    margin: 10px 0;
+    background-color: #93B6C8;
+    color: white;
+    &:hover {
+      background-color: #45a049;
+    }
+  }
+`;
 
 const ClanManagement = () => {
   const [clans, setClans] = useState([]);
@@ -20,7 +43,7 @@ const ClanManagement = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.error('Error fetching clans:', error);
+        console.error('Lỗi khi lấy danh sách bang hội:', error);
         setLoading(false);
       });
   }, []);
@@ -43,12 +66,12 @@ const ClanManagement = () => {
       },
       body: JSON.stringify(updatedClan)
     })
-    .then(response => response.json())
-    .then(data => {
-      setClans(clans.map(clan => (clan.id === updatedClan.id ? updatedClan : clan)));
-      handleCloseModal();
-    })
-    .catch(error => console.error('Error updating clan:', error));
+      .then(response => response.json())
+      .then(data => {
+        setClans(clans.map(clan => (clan.id === updatedClan.id ? updatedClan : clan)));
+        handleCloseModal();
+      })
+      .catch(error => console.error('Lỗi khi cập nhật bang hội:', error));
   };
 
   const handleCreateClan = (newClan) => {
@@ -59,12 +82,12 @@ const ClanManagement = () => {
       },
       body: JSON.stringify(newClan)
     })
-    .then(response => response.json())
-    .then(data => {
-      setClans([...clans, data]);
-      handleCloseModal();
-    })
-    .catch(error => console.error('Error creating clan:', error));
+      .then(response => response.json())
+      .then(data => {
+        setClans([...clans, data]);
+        handleCloseModal();
+      })
+      .catch(error => console.error('Lỗi khi tạo bang hội:', error));
   };
 
   const handleDeleteClan = (clanId) => {
@@ -74,26 +97,30 @@ const ClanManagement = () => {
         'Content-Type': 'application/json'
       }
     })
-    .then(response => response.json())
-    .then(() => {
-      setClans(clans.filter(clan => clan.id !== clanId));
-    })
-    .catch(error => console.error('Error deleting clan:', error));
+      .then(response => response.json())
+      .then(() => {
+        setClans(clans.filter(clan => clan.id !== clanId));
+      })
+      .catch(error => console.error('Lỗi khi xóa bang hội:', error));
   };
 
+  if (loading) {
+    return <CircularProgress />;
+  }
+
   return (
-    <div>
-      <h1>Clan Management</h1>
-      <Button onClick={() => handleOpenModal({}, 'create')}>Create Clan</Button>
+    <Container>
+      <Title>Quản lý Bang hội</Title>
+      <StyledButton onClick={() => handleOpenModal({}, 'create')}>Tạo Bang hội</StyledButton>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Owner</TableCell>
-              <TableCell>Money</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Tên Bang hội</TableCell>
+              <TableCell>Chủ sở hữu</TableCell>
+              <TableCell>Ngân quỹ</TableCell>
+              <TableCell>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -104,9 +131,9 @@ const ClanManagement = () => {
                 <TableCell>{clan.owner}</TableCell>
                 <TableCell>{clan.clan_money}</TableCell>
                 <TableCell>
-                  <Button onClick={() => handleOpenModal(clan, 'details')}>Details</Button>
-                  <Button onClick={() => handleOpenModal(clan, 'edit')}>Edit</Button>
-                  <Button onClick={() => handleOpenModal(clan, 'delete')}>Delete</Button>
+                  <Button onClick={() => handleOpenModal(clan, 'details')}>Chi tiết</Button>
+                  <Button onClick={() => handleOpenModal(clan, 'edit')}>Chỉnh sửa</Button>
+                  <Button onClick={() => handleOpenModal(clan, 'delete')}>Xóa</Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -125,7 +152,7 @@ const ClanManagement = () => {
       {selectedClan && modalType === 'delete' && (
         <ClanDeleteModal clan={selectedClan} onClose={handleCloseModal} onDelete={() => handleDeleteClan(selectedClan.id)} />
       )}
-    </div>
+    </Container>
   );
 };
 

@@ -1,5 +1,24 @@
 import { useState } from 'react';
-import { Modal, Box, TextField, Button } from '@mui/material';
+import { Modal, Box, TextField, Button, Typography } from '@mui/material';
+import styled from 'styled-components';
+
+const StyledBox = styled(Box)`
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+`;
+
+const StyledButton = styled(Button)`
+  && {
+    background-color: #93B6C8;
+    color: white;
+    &:hover {
+      background-color: #45a049;
+    }
+  }
+`;
 
 const ClanEditModal = ({ clan, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -19,8 +38,10 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
 
   return (
     <Modal open onClose={onClose}>
-      <Box p={3} bgcolor="white" borderRadius={4}>
-        <h2>Edit Clan</h2>
+      <StyledBox>
+        <Typography variant="h5" gutterBottom>
+          Chỉnh sửa Bang hội
+        </Typography>
         <TextField
           label="ID"
           name="id"
@@ -30,7 +51,7 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
           margin="normal"
         />
         <TextField
-          label="Name"
+          label="Tên"
           name="name"
           value={formData.name}
           onChange={handleChange}
@@ -38,7 +59,7 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
           margin="normal"
         />
         <TextField
-          label="Owner"
+          label="Chủ sở hữu"
           name="owner"
           value={formData.owner}
           onChange={handleChange}
@@ -46,14 +67,14 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
           margin="normal"
         />
         <Box mt={2}>
-          <Button onClick={handleSave} variant="contained" color="primary">
-            Save
-          </Button>
+          <StyledButton onClick={handleSave} variant="contained">
+            Lưu
+          </StyledButton>
           <Button onClick={onClose} variant="contained" color="secondary" style={{ marginLeft: '10px' }}>
-            Cancel
+            Hủy
           </Button>
         </Box>
-      </Box>
+      </StyledBox>
     </Modal>
   );
 };
