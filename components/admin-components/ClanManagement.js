@@ -1,3 +1,4 @@
+// components/admin-components/ClanManagement.js
 import { useState, useEffect } from 'react';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress } from '@mui/material';
 import ClanDetailModal from './clan-modals/ClanDetailModal';

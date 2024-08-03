@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import UserManagement from '@/components/admin-components/UserManagement';
 import ClanManagement from '@/components/admin-components/ClanManagement';
-import ClanPermissionManagement from '@/components/admin-components/ClanPremissionManagement';
 import LevelManagement from '@/components/admin-components/LevelManagement';
+import ClanPremissionManagement from '@/components/admin-components/ClanPremissionManagement';
 
 const Container = styled.div`
   display: flex;
@@ -15,7 +15,7 @@ const Container = styled.div`
 
 const Sidebar = styled.div`
   width: 250px;
-  background-color: #f5f5f5;
+  background-color: #B3D7E8;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -30,10 +30,11 @@ const SectionTitle = styled.div`
   cursor: pointer;
   font-weight: bold;
   padding: 10px;
-  background-color: none;
+  background-color: #93B6C8;
   color: black;
-  border-radius: none;
+  border-radius: 4px;
   border: solid gray 1px;
+  margin-bottom: 5px;
 
   &:hover {
     background-color: #45a049;
@@ -99,17 +100,17 @@ const AdminPage = () => {
       <Container>
         <Sidebar>
           <SidebarSection>
-            <SectionTitle onClick={() => setSelectedSection('userManagement')}>User Management</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Clan Management</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Clan Permission Management</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('levelManagement')}>Level Management</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('userManagement')}>Quản lý người dùng</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Quản lý bang hội</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Quản lý quyền hạn bang</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('levelManagement')}>Quản lý cấp độ</SectionTitle>
           </SidebarSection>
-          <Button onClick={handleLogout}>Logout</Button>
+          <Button onClick={handleLogout}>Đăng xuất</Button>
         </Sidebar>
         <MainContent>
           {selectedSection === 'userManagement' && <UserManagement />}
           {selectedSection === 'clanManagement' && <ClanManagement />}
-          {selectedSection === 'clanPermissionManagement' && <ClanPermissionManagement />}
+          {selectedSection === 'clanPermissionManagement' && <ClanPremissionManagement />}
           {selectedSection === 'levelManagement' && <LevelManagement />}
         </MainContent>
       </Container>

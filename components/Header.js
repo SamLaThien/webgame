@@ -8,7 +8,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 const HeaderContainer = styled.header`
   width: calc(100% - 40px);
   height: calc(100px + 1vh);
-  background-color: #610f24;
+  background-color: #B3D7E8;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -86,7 +86,7 @@ const Header = () => {
   return (
     <HeaderContainer>
       <Link href='/'>
-        <Logo src="/logo.jfif" alt="Logo" />
+        <Logo src="/logo (2).png" alt="Logo" />
       </Link>
       <NavLinks>
         <CustomButton

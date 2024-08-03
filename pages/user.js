@@ -37,16 +37,17 @@ const SectionTitle = styled.div`
   cursor: pointer;
   font-weight: bold;
   padding: 10px;
-  background-color: #610f24;
+  background-color: #B3D7E8;
   color: white;
   border-radius: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0;
+  border: 1px solid #93B6C8;
 
   &:hover {
-    background-color: #510f1f;
+    background-color: #93B6C8;
   }
 `;
 
@@ -73,7 +74,7 @@ const Button = styled.button`
   cursor: pointer;
   font-size: 16px;
   text-align: left;
-  border: gray 1px solid;
+  border: #B3D7E8 1px solid;
   border-top: none;
 
   &:hover {
