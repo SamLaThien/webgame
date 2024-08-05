@@ -19,14 +19,25 @@ const Container = styled.div`
   display: flex;
   width: 70vw;
   height: calc(100vh - 100px);
+  padding-top: 20px;
+  flex-direction: row;
+  @media(max-width: 749px) {
+    flex-direction: column;
+    width: 90vw;
+
+  }
 `;
 
 const Sidebar = styled.div`
   width: 250px;
   background-color: none;
-  padding: 20px;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  padding-right: 20px;
+  @media(max-width: 749px) {  
+    width: 100%;
+  }
 `;
 
 const SidebarSection = styled.div`
@@ -36,7 +47,7 @@ const SidebarSection = styled.div`
 const SectionTitle = styled.div`
   cursor: pointer;
   font-weight: bold;
-  padding: 10px;
+  padding: 12px;
   background-color: #B3D7E8;
   color: white;
   border-radius: 0;
@@ -59,7 +70,7 @@ const ButtonsContainer = styled.div`
 
 const MainContent = styled.div`
   flex: 1;
-  padding: 20px;
+  padding: 0;
   background-color: none;
 `;
 

@@ -1,35 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import { useRouter } from 'next/router';
-import Modal from 'react-modal';
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+import { useRouter } from "next/router";
+import Modal from "react-modal";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
 
 const Container = styled.div`
-  background: rgba(255, 255, 255, 0.5); /* semi-transparent background */
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: white;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 0;
   margin-bottom: 20px;
   width: 100%;
+  border: 1px solid #93b6c8;
+  box-sizing: border-box;
+  font-size: 16px;
 `;
 
 const SectionTitle = styled.h2`
   margin-bottom: 20px;
+  margin-top: 0;
   display: flex;
   align-items: center;
   font-weight: bold;
   font-size: 18px;
-  &:before {
-    content: '';
-    flex-grow: 1;
-    border-bottom: 2px solid #ccc;
-    margin-right: 10px;
-  }
-  &:after {
-    content: '';
-    flex-grow: 1;
-    border-bottom: 2px solid #ccc;
-    margin-left: 10px;
-  }
+  background-color: white;
+  width: 100%;
+  padding: 11px 20px;
+  border: 1px solid #93b6c8;
+  box-sizing: border-box;
+  flex-direction: row;
+  gap: 5px;
 `;
 
 const AvatarContainer = styled.div`
@@ -38,21 +43,21 @@ const AvatarContainer = styled.div`
 `;
 
 const Avatar = styled.img`
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
-  border: 2px solid #000;
+  width: calc(9rem + 1vw);
+  height: calc(9rem + 1vw);
+  border: 3px solid #93b6c8;
 `;
 
 const ChangeLabel = styled.div`
   position: absolute;
-  bottom: 0;
-  right: 0;
-  background: #93B6C8;
+  top: 0;
+  left: 0;
+  background: #93b6c8;
   color: white;
-  padding: 5px;
+  padding: 8px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
 `;
 
 const UserInfo = styled.div`
@@ -68,50 +73,86 @@ const UserInfoItem = styled.p`
 const Section = styled.div`
   background: rgba(255, 255, 255, 0.9);
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
   width: 100%;
+  border: 1px solid #93b6c8;
+  box-sizing: border-box;
 `;
 
 const Input = styled.input`
-  width: calc(100% - 20px); /* Adjust width to prevent overflow */
-  padding: 10px;
+  width: 80%;
+  padding: 11px;
   margin: 10px 0;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  box-sizing: border-box;
+  height: 100%;
+  font-size: 16px;
+  margin-right: 10px;
+`;
+const Input1 = styled.input`
+  width: 100%;
+  padding: 11px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  height: 100%;
+  font-size: 16px;
+  margin-right: 10px;
 `;
 
 const Button = styled.button`
-  padding: 10px 20px;
-  background-color: #93B6C8;
+  padding: 12px 20px;
+  background-color: #B3D7E8;
   color: white;
   border: none;
-  border-radius: 4px;
+  font-size: 16px;
   cursor: pointer;
+  margin-right: 10px;
   &:hover {
-    background-color: #45a049;
+    background-color: #93B6C8;
   }
+`;
+
+const BottomLayout = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 0;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Card = styled.div`
+  padding: 0;
+  width: 100%;
+  overflow: hidden;
+`;
+
+const SectionP = styled.div`
+  margin-bottom: 10px;
 `;
 
 const HoSo = () => {
   const [user, setUser] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
-  const [changeNgoaiHieu, setChangeNgoaiHieu] = useState('');
-  const [changeDanhHao, setChangeDanhHao] = useState('');
+  const [changeNgoaiHieu, setChangeNgoaiHieu] = useState("");
+  const [changeDanhHao, setChangeDanhHao] = useState("");
   const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
-  const [confirmType, setConfirmType] = useState('');
+  const [confirmType, setConfirmType] = useState("");
 
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      router.push('/login');
+      router.push("/login");
     }
   }, [router]);
 
@@ -130,15 +171,15 @@ const HoSo = () => {
 
   const handleAvatarSave = async () => {
     if (user.tai_san < 1000) {
-      alert('Bạn không có đủ tiền');
+      alert("Bạn không có đủ tiền");
       setModalIsOpen(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
           image: avatarPreview,
@@ -147,41 +188,46 @@ const HoSo = () => {
       });
 
       if (response.ok) {
-        const updatedUser = { ...user, image: avatarPreview, tai_san: user.tai_san - 1000 };
+        const updatedUser = {
+          ...user,
+          image: avatarPreview,
+          tai_san: user.tai_san - 1000,
+        };
         setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        alert('Avatar updated successfully');
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        alert("Avatar updated successfully");
       } else {
         const result = await response.json();
         alert(result.message);
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to update avatar');
+      console.error("Error:", error);
+      alert("Failed to update avatar");
     }
 
     setModalIsOpen(false);
   };
 
   const handleConfirmSave = async () => {
-    if (confirmType === 'ngoai_hieu' && user.tai_san < 25000) {
-      alert('Bạn không có đủ tiền');
+    if (confirmType === "ngoai_hieu" && user.tai_san < 25000) {
+      alert("Bạn không có đủ tiền");
       setConfirmModalIsOpen(false);
       return;
     }
 
     let newTaiSan = user.tai_san;
-    if (confirmType === 'ngoai_hieu') {
+    if (confirmType === "ngoai_hieu") {
       newTaiSan -= 25000;
     }
 
     try {
-      const response = await fetch('/api/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          [confirmType]: confirmType === 'ngoai_hieu' ? changeNgoaiHieu : changeDanhHao,
+          [confirmType]:
+            confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
           tai_san: newTaiSan,
         }),
       });
@@ -189,31 +235,32 @@ const HoSo = () => {
       if (response.ok) {
         const updatedUser = {
           ...user,
-          [confirmType]: confirmType === 'ngoai_hieu' ? changeNgoaiHieu : changeDanhHao,
+          [confirmType]:
+            confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
           tai_san: newTaiSan,
         };
         setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        alert('Update successful');
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        alert("Update successful");
       } else {
         const result = await response.json();
         alert(result.message);
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to update');
+      console.error("Error:", error);
+      alert("Failed to update");
     }
 
     setConfirmModalIsOpen(false);
   };
 
   const handleNgoaiHieuChange = () => {
-    setConfirmType('ngoai_hieu');
+    setConfirmType("ngoai_hieu");
     setConfirmModalIsOpen(true);
   };
 
   const handleDanhHaoChange = () => {
-    setConfirmType('danh_hao');
+    setConfirmType("danh_hao");
     setConfirmModalIsOpen(true);
   };
 
@@ -221,60 +268,147 @@ const HoSo = () => {
 
   return (
     <>
+      <SectionTitle>
+        <AccountCircleOutlinedIcon />
+        THÔNG TIN CÁ NHÂN
+      </SectionTitle>
       <Container>
-        <SectionTitle>THÔNG TIN CÁ NHÂN</SectionTitle>
         <AvatarContainer>
-          <Avatar src={user.image || '/path/to/default-avatar.jpg'} alt="User Avatar" />
-          <ChangeLabel onClick={() => document.getElementById('avatarInput').click()}>Đổi</ChangeLabel>
-          <input type="file" id="avatarInput" style={{ display: 'none' }} onChange={handleAvatarChange} />
+          <Avatar
+            src={user.image || "/path/to/default-avatar.jpg"}
+            alt="User Avatar"
+          />
+          <ChangeLabel
+            onClick={() => document.getElementById("avatarInput").click()}
+          >
+            Đổi
+          </ChangeLabel>
+          <input
+            type="file"
+            id="avatarInput"
+            style={{ display: "none" }}
+            onChange={handleAvatarChange}
+          />
         </AvatarContainer>
         <UserInfo>
-          <UserInfoItem>Ngọa hiệu: {user.ngoai_hieu || 'N/A'}</UserInfoItem>
-          <UserInfoItem>ID: {user.id}</UserInfoItem>
-          <UserInfoItem>Danh hiệu: {user.danh_hao || 'Chưa có danh hiệu'}</UserInfoItem>
-          <UserInfoItem>Bang hội: {user.bang_hoi || 'Chưa có bang hội'}</UserInfoItem>
-          <UserInfoItem>Tài sản: {user.tai_san || 0} bạc</UserInfoItem>
-          <UserInfoItem>Đổi avatar sẽ tốn 1000 bạc</UserInfoItem>
+          <UserInfoItem>
+            Ngoại hiệu: <b>{user.ngoai_hieu}</b>
+          </UserInfoItem>
+          <UserInfoItem>
+            ID: <b>{user.id}</b>
+          </UserInfoItem>
+          <UserInfoItem>
+            Danh hiệu: <b>{user.danh_hao || "Chưa có danh hiệu"}</b>
+          </UserInfoItem>
+          <UserInfoItem>
+            Bang hội: <b>{user.bang_hoi || "Chưa có bang hội"}</b>
+          </UserInfoItem>
+          <UserInfoItem>
+            Tài sản: <b>{user.tai_san || 0}</b> bạc
+          </UserInfoItem>
+          <UserInfoItem>
+            Đổi avatar sẽ tốn <b>1000</b> bạc
+          </UserInfoItem>
         </UserInfo>
       </Container>
-      <Section>
-        <SectionTitle>ĐỔI NGOẠI HIỆU</SectionTitle>
-        <p>Ngọa hiệu hiện tại: {user.ngoai_hieu || 'N/A'}</p>
-        <Input type="text" placeholder="Nhập ngoại hiệu mà bạn muốn đổi" onChange={(e) => setChangeNgoaiHieu(e.target.value)} />
-        <Button onClick={handleNgoaiHieuChange}>Đổi</Button>
-      </Section>
-      <Section>
-        <SectionTitle>ĐỔI DANH HÀO</SectionTitle>
-        <p>Danh hiệu hiện tại: {user.danh_hao || 'Chưa có danh hiệu'}</p>
-        <Input type="text" placeholder="Nhập danh hiệu mà bạn muốn đổi" onChange={(e) => setChangeDanhHao(e.target.value)} />
-        <Button onClick={handleDanhHaoChange}>Đổi</Button>
-      </Section>
-      <Section>
-        <SectionTitle>MUA DANH HÀO</SectionTitle>
-        <div>
-          <label>
-            <input type="radio" name="danhHaoOption" value="Mẫu sẵn" defaultChecked /> Mẫu sẵn
-          </label>
-          <label>
-            <input type="radio" name="danhHaoOption" value="Tự nhập" /> Tự nhập
-          </label>
-        </div>
-        <Input type="text" placeholder="Danh hào" />
-        <Button>Mua</Button>
-        <Button>Đổi màu danh hào</Button>
-      </Section>
-      <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} contentLabel="Change Avatar">
+      <BottomLayout>
+        <Card>
+          <SectionTitle>
+            <LocalOfferOutlinedIcon />
+            ĐỔI NGOẠI HIỆU
+          </SectionTitle>
+          <Section>
+            <SectionP>Ngoại hiệu hiện tại: {user.ngoai_hieu}</SectionP>
+            <SectionP>
+              Hãy nhập một Ngoại Hiệu bên dưới để đổi, nếu bạn chưa nghĩ ra
+              Ngoại Hiệu nào mời bạn vào vòng quay may mắn để thử vận may
+            </SectionP>
+            <Input
+              type="text"
+              placeholder="Nhập ngoại hiệu mà bạn muốn đổi"
+              onChange={(e) => setChangeNgoaiHieu(e.target.value)}
+            />
+            <Button onClick={handleNgoaiHieuChange}>Đổi</Button>
+          </Section>
+        </Card>
+        <Card>
+          <SectionTitle>
+            <PersonOutlineOutlinedIcon /> ĐỔI DANH HÀO
+          </SectionTitle>
+          <Section>
+            <SectionP>
+              Danh hiệu hiện tại: {user.danh_hao || "Chưa có danh hiệu"}
+            </SectionP>
+            <SectionP>
+              Chọn một Danh hào bên dưới để đổi, nếu chưa có danh hào nào mời
+              bạn vào vòng quay may mắn để thử vận may
+            </SectionP>
+            <Input
+              type="text"
+              placeholder="Nhập danh hiệu mà bạn muốn đổi"
+              onChange={(e) => setChangeDanhHao(e.target.value)}
+            />
+            <Button onClick={handleDanhHaoChange}>Đổi</Button>
+          </Section>
+        </Card>
+        <Card>
+          <SectionTitle>
+            <LocalFireDepartmentOutlinedIcon />
+            MUA DANH HÀO
+          </SectionTitle>
+
+          <Section>
+            <SectionP>
+              Chọn theo mẫu có sẳn hoặc nhập theo ý muốn của bạn
+            </SectionP>
+            <div>
+              <label>
+                <input
+                  type="radio"
+                  name="danhHaoOption"
+                  value="Mẫu sẵn"
+                  defaultChecked
+                />{" "}
+                Mẫu sẵn
+              </label>
+              <label>
+                <input type="radio" name="danhHaoOption" value="Tự nhập" /> Tự
+                nhập
+              </label>
+            </div>
+            <Input1 type="text" placeholder="Danh hào" />
+            <Button>Mua</Button>
+            <Button>Đổi màu danh hào</Button>
+          </Section>
+        </Card>
+      </BottomLayout>
+
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        contentLabel="Change Avatar"
+      >
         <h2>Change Avatar</h2>
-        <img src={avatarPreview} alt="Avatar Preview" style={{ width: '100px', height: '100px' }} />
+        <img
+          src={avatarPreview}
+          alt="Avatar Preview"
+          style={{ width: "100px", height: "100px" }}
+        />
         <div>
           <Button onClick={handleAvatarSave}>Đổi</Button>
           <Button onClick={() => setModalIsOpen(false)}>Cancel</Button>
         </div>
       </Modal>
-      <Modal isOpen={confirmModalIsOpen} onRequestClose={() => setConfirmModalIsOpen(false)} contentLabel="Confirm Change">
+      <Modal
+        isOpen={confirmModalIsOpen}
+        onRequestClose={() => setConfirmModalIsOpen(false)}
+        contentLabel="Confirm Change"
+      >
         <h2>Confirm Change</h2>
-        {confirmType === 'ngoai_hieu' ? (
-          <p>Bạn có chắc chắn muốn đổi ngoại hiệu? Điều này sẽ tốn 25000 bạc.</p>
+        {confirmType === "ngoai_hieu" ? (
+          <p>
+            Bạn có chắc chắn muốn đổi ngoại hiệu? Điều này sẽ tốn 25000 bạc.
+          </p>
         ) : (
           <p>Bạn có chắc chắn muốn đổi danh hiệu?</p>
         )}
