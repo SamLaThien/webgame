@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import HoSo from '../components/user-components/HoSo'; 
-import TinNhan from '../components/user-components/TinNhan'; 
-import DoiMatKhau from '../components/user-components/DoiMatKhau'; 
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import HoSo from '../components/user-components/HoSo';
+import TinNhan from '../components/user-components/TinNhan';
+import DoiMatKhau from '../components/user-components/DoiMatKhau';
 import RuongChuaDo from '../components/user-components/RuongChuaDo';
 import DotPha from '../components/user-components/DotPha';
 import QuyThi from '../components/user-components/QuyThi';
@@ -24,7 +26,6 @@ const Container = styled.div`
   @media(max-width: 749px) {
     flex-direction: column;
     width: 90vw;
-
   }
 `;
 
@@ -41,7 +42,7 @@ const Sidebar = styled.div`
 `;
 
 const SidebarSection = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 0;
 `;
 
 const SectionTitle = styled.div`
@@ -66,6 +67,7 @@ const ButtonsContainer = styled.div`
   display: ${props => (props.isOpen ? 'block' : 'none')};
   background-color: none;
   padding: 0;
+  
 `;
 
 const MainContent = styled.div`
@@ -74,7 +76,7 @@ const MainContent = styled.div`
   background-color: none;
 `;
 
-const Button = styled.button`
+const Button = styled.a`
   width: 100%;
   padding: 10px;
   margin: 0;
@@ -87,18 +89,22 @@ const Button = styled.button`
   text-align: left;
   border: #B3D7E8 1px solid;
   border-top: none;
+  text-decoration: none !important;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: #93B6C8;
   }
 
   &.active {
-    background-color: #e0e0e0;
+    background-color: #B3D7E8;
   }
 `;
 
 const ProfilePage = () => {
-  const [selectedSection, setSelectedSection] = useState('hoso');
+  const router = useRouter();
   const [openSections, setOpenSections] = useState({
     taikhoan: false,
     taisan: false,
@@ -127,6 +133,39 @@ const ProfilePage = () => {
     }));
   };
 
+  const getCurrentComponent = () => {
+    switch (router.query.section) {
+      case 'hoso':
+        return <HoSo />;
+      case 'tinnhan':
+        return <TinNhan />;
+      case 'doimatkhau':
+        return <DoiMatKhau />;
+      case 'ruongchuado':
+        return <RuongChuaDo />;
+      case 'dotpha':
+        return <DotPha />;
+      case 'quythi':
+        return <QuyThi />;
+      case 'luyendanthat':
+        return <LuyenDanThat />;
+      case 'nhiemvuduong':
+        return <NhiemVuDuong />;
+      case 'daokhoang':
+        return <DaoKhoang />;
+      case 'xinvaobang':
+        return <XinVaoBang />;
+      case 'nghisudien':
+        return <NghiSuDien />;
+      case 'baokhophong':
+        return <BaoKhoPhong />;
+      case 'lanhsuduong':
+        return <LanhSuDuong />;
+      default:
+        return <HoSo />;
+    }
+  };
+
   return (
     <Layout>
       <Container>
@@ -134,121 +173,68 @@ const ProfilePage = () => {
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('taikhoan')}>Tài khoản</SectionTitle>
             <ButtonsContainer isOpen={openSections.taikhoan}>
-              <Button
-                className={selectedSection === 'hoso' ? 'active' : ''}
-                onClick={() => setSelectedSection('hoso')}
-              >
-                Hồ sơ
-              </Button>
-              <Button
-                className={selectedSection === 'tinnhan' ? 'active' : ''}
-                onClick={() => setSelectedSection('tinnhan')}
-              >
-                Tin nhắn
-              </Button>
-              <Button
-                className={selectedSection === 'doimatkhau' ? 'active' : ''}
-                onClick={() => setSelectedSection('doimatkhau')}
-              >
-                Đổi mật khẩu
-              </Button>
+              <Link href="/user?section=hoso" passHref>
+                <Button className={router.query.section === 'hoso' ? 'active' : ''}>Hồ sơ</Button>
+              </Link>
+              <Link href="/user?section=tinnhan" passHref>
+                <Button className={router.query.section === 'tinnhan' ? 'active' : ''}>Tin nhắn</Button>
+              </Link>
+              <Link href="/user?section=doimatkhau" passHref>
+                <Button className={router.query.section === 'doimatkhau' ? 'active' : ''}>Đổi mật khẩu</Button>
+              </Link>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('taisan')}>Tài sản</SectionTitle>
             <ButtonsContainer isOpen={openSections.taisan}>
-              <Button
-                className={selectedSection === 'ruongchuado' ? 'active' : ''}
-                onClick={() => setSelectedSection('ruongchuado')}
-              >
-                Rương chứa đồ
-              </Button>
+              <Link href="/user?section=ruongchuado" passHref>
+                <Button className={router.query.section === 'ruongchuado' ? 'active' : ''}>Rương chứa đồ</Button>
+              </Link>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('tulyen')}>Tu luyện</SectionTitle>
             <ButtonsContainer isOpen={openSections.tulyen}>
-              <Button
-                className={selectedSection === 'dotpha' ? 'active' : ''}
-                onClick={() => setSelectedSection('dotpha')}
-              >
-                Đột phá
-              </Button>
-              <Button
-                className={selectedSection === 'quythi' ? 'active' : ''}
-                onClick={() => setSelectedSection('quythi')}
-              >
-                Hắc Điếm
-              </Button>
-              <Button
-                className={selectedSection === 'luyendanthat' ? 'active' : ''}
-                onClick={() => setSelectedSection('luyendanthat')}
-              >
-                Luyện đan thất
-              </Button>
-              <Button
-                className={selectedSection === 'nhiemvuduong' ? 'active' : ''}
-                onClick={() => setSelectedSection('nhiemvuduong')}
-              >
-                Nhiệm vụ đường
-              </Button>
-              <Button
-                className={selectedSection === 'daokhoang' ? 'active' : ''}
-                onClick={() => setSelectedSection('daokhoang')}
-              >
-                Đào khoáng
-              </Button>
+              <Link href="/user?section=dotpha" passHref>
+                <Button className={router.query.section === 'dotpha' ? 'active' : ''}>Đột phá</Button>
+              </Link>
+              <Link href="/user?section=quythi" passHref>
+                <Button className={router.query.section === 'quythi' ? 'active' : ''}>Hắc Điếm</Button>
+              </Link>
+              <Link href="/user?section=luyendanthat" passHref>
+                <Button className={router.query.section === 'luyendanthat' ? 'active' : ''}>Luyện đan thất</Button>
+              </Link>
+              <Link href="/user?section=nhiemvuduong" passHref>
+                <Button className={router.query.section === 'nhiemvuduong' ? 'active' : ''}>Nhiệm vụ đường</Button>
+              </Link>
+              <Link href="/user?section=daokhoang" passHref>
+                <Button className={router.query.section === 'daokhoang' ? 'active' : ''}>Đào khoáng</Button>
+              </Link>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('bangphai')}>Bang phái</SectionTitle>
             <ButtonsContainer isOpen={openSections.bangphai}>
-              <Button
-                className={selectedSection === 'xinvaobang' ? 'active' : ''}
-                onClick={() => setSelectedSection('xinvaobang')}
-              >
-                Xin vào bang
-              </Button>
+              <Link href="/user?section=xinvaobang" passHref>
+                <Button className={router.query.section === 'xinvaobang' ? 'active' : ''}>Xin vào bang</Button>
+              </Link>
               {isInClan && (
                 <>
-                  <Button
-                    className={selectedSection === 'nghisudien' ? 'active' : ''}
-                    onClick={() => setSelectedSection('nghisudien')}
-                  >
-                    Nghị sự điện
-                  </Button>
-                  <Button
-                    className={selectedSection === 'baokhophong' ? 'active' : ''}
-                    onClick={() => setSelectedSection('baokhophong')}
-                  >
-                    Bảo khố phòng
-                  </Button>
-                  <Button
-                    className={selectedSection === 'lanhsuduong' ? 'active' : ''}
-                    onClick={() => setSelectedSection('lanhsuduong')}
-                  >
-                    Lãnh Sự Đường
-                  </Button>
+                  <Link href="/user?section=nghisudien" passHref>
+                    <Button className={router.query.section === 'nghisudien' ? 'active' : ''}>Nghị sự điện</Button>
+                  </Link>
+                  <Link href="/user?section=baokhophong" passHref>
+                    <Button className={router.query.section === 'baokhophong' ? 'active' : ''}>Bảo khố phòng</Button>
+                  </Link>
+                  <Link href="/user?section=lanhsuduong" passHref>
+                    <Button className={router.query.section === 'lanhsuduong' ? 'active' : ''}>Lãnh Sự Đường</Button>
+                  </Link>
                 </>
               )}
             </ButtonsContainer>
           </SidebarSection>
         </Sidebar>
-        <MainContent>
-          {selectedSection === 'hoso' && <HoSo />}
-          {selectedSection === 'tinnhan' && <TinNhan />}
-          {selectedSection === 'doimatkhau' && <DoiMatKhau />}
-          {selectedSection === 'ruongchuado' && <RuongChuaDo />}
-          {selectedSection === 'dotpha' && <DotPha />}
-          {selectedSection === 'quythi' && <QuyThi />}
-          {selectedSection === 'luyendanthat' && <LuyenDanThat />}
-          {selectedSection === 'nhiemvuduong' && <NhiemVuDuong />}
-          {selectedSection === 'daokhoang' && <DaoKhoang />}
-          {selectedSection === 'xinvaobang' && <XinVaoBang />}
-          {selectedSection === 'nghisudien' && <NghiSuDien />}
-          {selectedSection === 'baokhophong' && <BaoKhoPhong />}
-          {selectedSection === 'lanhsuduong' && <LanhSuDuong />}
-        </MainContent>
+        <MainContent>{getCurrentComponent()}</MainContent>
       </Container>
     </Layout>
   );

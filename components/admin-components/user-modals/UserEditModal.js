@@ -11,6 +11,7 @@ const UserEditModal = ({ user, onClose, onSave }) => {
     bio: '',
     tai_san: 0,
     ban: 0,
+    danh_hao: ''
   });
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -97,6 +98,14 @@ const UserEditModal = ({ user, onClose, onSave }) => {
             name="ban"
             type="number"
             value={formData.ban}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Danh Hào"
+            name="danh_hao"
+            value={formData.danh_hao}
             onChange={handleChange}
             fullWidth
             margin="normal"
