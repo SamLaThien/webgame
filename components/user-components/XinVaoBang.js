@@ -178,7 +178,6 @@ const XinVaoBang = () => {
 
   return (
     <Container>
-      <Title>Xin vào bang</Title>
       {role === '6' || role === '7' ? (
         <>
           <Title>Yêu cầu tham gia bang hội</Title>

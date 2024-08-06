@@ -8,12 +8,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 const HeaderContainer = styled.header`
   width: calc(100% - 40px);
   height: calc(100px + 1vh);
-  background-color: #B3D7E8;
+  background-color: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const Logo = styled.img`
