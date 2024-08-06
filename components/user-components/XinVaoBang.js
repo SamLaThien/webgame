@@ -65,23 +65,26 @@ const RequestList = styled.ul`
 `;
 
 const RequestItem = styled.li`
-  background: #fff;
+    background: white;
   padding: 10px;
   margin-bottom: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border: solid 1px #93b6c8;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const RequestButton = styled.button`
-  padding: 5px 10px;
   background-color: ${({ reject }) => (reject ? '#f44336' : '#93B6C8')};
+  padding: 12px 20px;
+  background-color: #B3D7E8;
   color: white;
   border: none;
-  border-radius: 4px;
+  font-size: 16px;
   cursor: pointer;
+  margin-right: 10px;
   &:hover {
     background-color: ${({ reject }) => (reject ? '#d32f2f' : '#45a049')};
   }
@@ -92,6 +95,7 @@ const XinVaoBang = () => {
   const [username, setUsername] = useState(null);
   const [role, setRole] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [currentClanId, setCurrentClanId] = useState(null);
 
   useEffect(() => {
     console.log('Fetching clans...');
@@ -115,16 +119,23 @@ const XinVaoBang = () => {
           console.log('Fetched role:', response.data);
           setRole(response.data.role_id);
 
-          // Fetch requests if the user is a clan leader or elder
-          if (response.data.role_id === '6' || response.data.role_id === '7') {
-            fetch('/api/user/clan/requests')
-              .then(response => response.json())
-              .then(data => {
-                console.log('Fetched requests:', data);
-                setRequests(Array.isArray(data) ? data : []);
-              })
-              .catch(error => console.error('Error fetching requests:', error));
-          }
+          // Get the clan ID of the current user
+          axios.get(`/api/user/clan-id?userId=${user.id}`)
+            .then(clanResponse => {
+              const userClanId = clanResponse.data.clan_id;
+              setCurrentClanId(userClanId);
+
+              // Fetch requests if the user is a clan leader or elder
+              if (response.data.role_id === '6' || response.data.role_id === '7') {
+                axios.get('/api/admin/clan-requests')
+                  .then(requestResponse => {
+                    console.log('Fetched requests:', requestResponse.data);
+                    setRequests(Array.isArray(requestResponse.data) ? requestResponse.data : []);
+                  })
+                  .catch(error => console.error('Error fetching requests:', error));
+              }
+            })
+            .catch(error => console.error('Error fetching user clan:', error));
         })
         .catch(error => console.error('Error fetching role:', error));
     }
@@ -161,15 +172,15 @@ const XinVaoBang = () => {
       .catch(error => console.error('Error sending clan request:', error));
   };
 
-  const handleRequest = async (requestId, approve) => {
+  const handleRequest = async (requestId, action, userId, clanId) => {
     try {
-      await axios.post('/api/user/clan/requests', {
-        requestId,
-        approve,
+      await axios.put(`/api/admin/clan-requests/${requestId}`, {
+        action,
+        user_id: userId,
+        clan_id: clanId
       });
-      alert(approve ? 'Yêu cầu đã được chấp nhận' : 'Yêu cầu đã bị từ chối');
-      const requestsInfo = await axios.get('/api/user/clan/requests');
-      setRequests(Array.isArray(requestsInfo.data) ? requestsInfo.data : []);
+      alert(action === 'approved' ? 'Yêu cầu đã được chấp nhận' : 'Yêu cầu đã bị từ chối');
+      setRequests(prevRequests => prevRequests.filter(request => request.id !== requestId));
     } catch (error) {
       console.error('Error handling request:', error);
       alert('Lỗi khi xử lý yêu cầu');
@@ -182,15 +193,19 @@ const XinVaoBang = () => {
         <>
           <Title>Yêu cầu tham gia bang hội</Title>
           <RequestList>
-            {requests.map(request => (
-              <RequestItem key={request.id}>
-                <span>{request.username} yêu cầu tham gia bang hội {request.clan_name}</span>
-                <div>
-                  <RequestButton onClick={() => handleRequest(request.id, true)}>Chấp nhận</RequestButton>
-                  <RequestButton reject onClick={() => handleRequest(request.id, false)}>Từ chối</RequestButton>
-                </div>
-              </RequestItem>
-            ))}
+            {requests.filter(request => request.status === 'pending' && request.clan_id !== currentClanId).length > 0 ? (
+              requests.filter(request => request.status === 'pending' && request.clan_id !== currentClanId).map(request => (
+                <RequestItem key={request.id}>
+                  <span>{request.username} yêu cầu tham gia bang hội {request.clan_name}</span>
+                  <div>
+                    <RequestButton onClick={() => handleRequest(request.id, 'approved', request.user_id, request.clan_id)}>Chấp nhận</RequestButton>
+                    <RequestButton reject onClick={() => handleRequest(request.id, 'rejected', request.user_id, request.clan_id)}>Từ chối</RequestButton>
+                  </div>
+                </RequestItem>
+              ))
+            ) : (
+              <p>Khoong cos yeu cau nao</p>
+            )}
           </RequestList>
         </>
       ) : (
