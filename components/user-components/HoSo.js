@@ -170,12 +170,6 @@ const HoSo = () => {
   };
 
   const handleAvatarSave = async () => {
-    if (user.tai_san < 1000) {
-      alert("Bạn không có đủ tiền");
-      setModalIsOpen(false);
-      return;
-    }
-
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
@@ -183,7 +177,6 @@ const HoSo = () => {
         body: JSON.stringify({
           userId: user.id,
           image: avatarPreview,
-          tai_san: user.tai_san - 1000,
         }),
       });
 
@@ -191,7 +184,6 @@ const HoSo = () => {
         const updatedUser = {
           ...user,
           image: avatarPreview,
-          tai_san: user.tai_san - 1000,
         };
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -209,35 +201,20 @@ const HoSo = () => {
   };
 
   const handleConfirmSave = async () => {
-    if (confirmType === "ngoai_hieu" && user.tai_san < 25000) {
-      alert("Bạn không có đủ tiền");
-      setConfirmModalIsOpen(false);
-      return;
-    }
-
-    let newTaiSan = user.tai_san;
-    if (confirmType === "ngoai_hieu") {
-      newTaiSan -= 25000;
-    }
-
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          [confirmType]:
-            confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
-          tai_san: newTaiSan,
+          [confirmType]: confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
         }),
       });
 
       if (response.ok) {
         const updatedUser = {
           ...user,
-          [confirmType]:
-            confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
-          tai_san: newTaiSan,
+          [confirmType]: confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
         };
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -305,9 +282,6 @@ const HoSo = () => {
           </UserInfoItem>
           <UserInfoItem>
             Tài sản: <b>{user.tai_san || 0}</b> bạc
-          </UserInfoItem>
-          <UserInfoItem>
-            Đổi avatar sẽ tốn <b>1000</b> bạc
           </UserInfoItem>
         </UserInfo>
       </Container>
@@ -407,7 +381,7 @@ const HoSo = () => {
         <h2>Confirm Change</h2>
         {confirmType === "ngoai_hieu" ? (
           <p>
-            Bạn có chắc chắn muốn đổi ngoại hiệu? Điều này sẽ tốn 25000 bạc.
+            Bạn có chắc chắn muốn đổi ngoại hiệu?
           </p>
         ) : (
           <p>Bạn có chắc chắn muốn đổi danh hiệu?</p>

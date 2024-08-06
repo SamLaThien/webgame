@@ -121,7 +121,7 @@ const XinVaoBang = () => {
               .then(response => response.json())
               .then(data => {
                 console.log('Fetched requests:', data);
-                setRequests(data);
+                setRequests(Array.isArray(data) ? data : []);
               })
               .catch(error => console.error('Error fetching requests:', error));
           }
@@ -168,15 +168,13 @@ const XinVaoBang = () => {
         approve,
       });
       alert(approve ? 'Yêu cầu đã được chấp nhận' : 'Yêu cầu đã bị từ chối');
-      const requestsInfo = await axios.get(`/api/user/clan/requests?userId=${username}`);
-      setRequests(requestsInfo.data);
+      const requestsInfo = await axios.get('/api/user/clan/requests');
+      setRequests(Array.isArray(requestsInfo.data) ? requestsInfo.data : []);
     } catch (error) {
       console.error('Error handling request:', error);
       alert('Lỗi khi xử lý yêu cầu');
     }
   };
-
-  if (role === null) return null;
 
   return (
     <Container>
@@ -202,20 +200,24 @@ const XinVaoBang = () => {
             - Người chơi có tham gia vào các bang hội để cùng nhau chiến đấu và hỗ trợ lẫn nhau. Mỗi người chơi chỉ được phép tham gia vào một bang hội duy nhất cùng một lúc. Tuy nhiên, người chơi có thể nộp đơn xin vào nhiều bang hội khác nhau. Để chính thức gia nhập một bang hội, đơn xin của người chơi cần được phê duyệt bởi bang chủ hoặc đại trưởng lão của bang hội đó. Sau khi được phê duyệt, người chơi mới có thể trở thành thành viên chính thức của bang hội
           </Banner>
           
-          {clans.map((clan, index) => (
-            <ClanCard key={clan.id} bgColor={index % 2 === 0 ? '#f0f0f0' : '#e0e0e0'}>
-              <div>
-                <p>Tên bang: {clan.name}</p>
-                <p>Bang chủ: {clan.owner}</p>
-                <p>Điểm cống hiến: {clan.contributionPoints}</p>
-              </div>
-              {clan.isMember ? (
-                <LeaveButton onClick={() => handleJoinClan(clan.id)}>Thoát bang</LeaveButton>
-              ) : (
-                <JoinButton onClick={() => handleJoinClan(clan.id)}>Xin vào</JoinButton>
-              )}
-            </ClanCard>
-          ))}
+          {clans.length > 0 ? (
+            clans.map((clan, index) => (
+              <ClanCard key={clan.id} bgColor={index % 2 === 0 ? '#f0f0f0' : '#e0e0e0'}>
+                <div>
+                  <p>Tên bang: {clan.name}</p>
+                  <p>Bang chủ: {clan.owner}</p>
+                  <p>Điểm cống hiến: {clan.contributionPoints}</p>
+                </div>
+                {clan.isMember ? (
+                  <LeaveButton onClick={() => handleJoinClan(clan.id)}>Thoát bang</LeaveButton>
+                ) : (
+                  <JoinButton onClick={() => handleJoinClan(clan.id)}>Xin vào</JoinButton>
+                )}
+              </ClanCard>
+            ))
+          ) : (
+            <p>Không có bang hội nào để hiển thị</p>
+          )}
         </>
       )}
     </Container>
