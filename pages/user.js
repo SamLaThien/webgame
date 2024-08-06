@@ -178,7 +178,7 @@ const ProfilePage = () => {
                 className={selectedSection === 'quythi' ? 'active' : ''}
                 onClick={() => setSelectedSection('quythi')}
               >
-                Quỷ thị
+                Hắc Điếm
               </Button>
               <Button
                 className={selectedSection === 'luyendanthat' ? 'active' : ''}

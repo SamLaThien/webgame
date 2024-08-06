@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    db.query('SELECT role_id FROM clan_roles WHERE user_id = ?', [userId], (error, results) => {
+    db.query('SELECT clan_role FROM users WHERE id = ?', [userId], (error, results) => {
       if (error) {
         return res.status(500).json({ message: 'Internal server error', error: error.message });
       }
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
         return res.status(404).json({ message: 'User not found in clan' });
       }
 
-      const userRole = results[0].role_id;
+      const userRole = results[0].clan_role;  // Changed from role_id to clan_role
       res.status(200).json({ role_id: userRole });
     });
   } catch (error) {

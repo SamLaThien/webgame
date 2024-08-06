@@ -19,17 +19,18 @@ const Tabs = styled.div`
 `;
 
 const Tab = styled.button`
-  flex: 1;
-  padding: 10px;
-  background: ${({ active }) => (active ? '#4caf50' : '#e0e0e0')};
-  color: ${({ active }) => (active ? 'white' : 'black')};
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px 8px 0 0;
+  background-color: transparent;
+  color: ${({ active }) => (active ? "#93B6C8" : "lightgray")};
+  font-weight: ${({ active }) => (active ? "700" : "300")};
+  border-bottom: ${({ active }) => (active ? "2px solid #93B6C8" : "none")};
+  font-size: 16px;
   cursor: pointer;
 
   &:hover {
-    background: #4caf50;
-    color: white;
+    background-color: lightgray;
+    color: #93b6c8;
   }
 `;
 
@@ -37,6 +38,7 @@ const Content = styled.div`
   background: #f5f5f5;
   padding: 20px;
   border-radius: 0 0 8px 8px;
+  border-top: 2px solid #93B6C8;
 `;
 
 const RoleSelect = styled.select`
@@ -49,41 +51,13 @@ const RoleSelect = styled.select`
 
 const Button = styled.button`
   padding: 10px 20px;
-  background-color: #4caf50;
+  background-color: #93B6C8;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   &:hover {
     background-color: #45a049;
-  }
-`;
-
-const RequestList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-`;
-
-const RequestItem = styled.li`
-  background: #fff;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const RequestButton = styled.button`
-  padding: 5px 10px;
-  background-color: ${({ reject }) => (reject ? '#f44336' : '#4caf50')};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  &:hover {
-    background-color: ${({ reject }) => (reject ? '#d32f2f' : '#45a049')};
   }
 `;
 
@@ -102,7 +76,6 @@ const LanhSuDuong = () => {
   const [activeTab, setActiveTab] = useState('info');
   const [user, setUser] = useState(null);
   const [members, setMembers] = useState([]);
-  const [requests, setRequests] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
   const [newRole, setNewRole] = useState('');
 
@@ -115,11 +88,6 @@ const LanhSuDuong = () => {
           setUser(userInfo.data);
           const membersInfo = await axios.get(`/api/user/clan/members?userId=${storedUser.id}`);
           setMembers(membersInfo.data);
-
-          if (userInfo.data.clan_role === '7') { // Ensure the role is compared as a string
-            const requestsInfo = await axios.get(`/api/user/clan/requests?userId=${storedUser.id}`);
-            setRequests(requestsInfo.data);
-          }
         }
       } catch (error) {
         console.error('Error fetching user info:', error);
@@ -142,21 +110,6 @@ const LanhSuDuong = () => {
     } catch (error) {
       console.error('Error assigning role:', error);
       alert('Phân vai trò thất bại');
-    }
-  };
-
-  const handleRequest = async (requestId, approve) => {
-    try {
-      await axios.post('/api/user/clan/requests', {
-        requestId,
-        approve,
-      });
-      alert(approve ? 'Yêu cầu đã được chấp nhận' : 'Yêu cầu đã bị từ chối');
-      const requestsInfo = await axios.get(`/api/user/clan/requests?userId=${user.id}`);
-      setRequests(requestsInfo.data);
-    } catch (error) {
-      console.error('Error handling request:', error);
-      alert('Lỗi khi xử lý yêu cầu');
     }
   };
 
@@ -193,23 +146,6 @@ const LanhSuDuong = () => {
             <Button onClick={handleAssignRole}>Phân vai trò</Button>
           </div>
         );
-      case 'requests':
-        return (
-          <div>
-            <h3>Yêu cầu tham gia bang hội</h3>
-            <RequestList>
-              {requests.map(request => (
-                <RequestItem key={request.id}>
-                  <span>{request.username} yêu cầu tham gia bang hội {request.clan_name}</span>
-                  <div>
-                    <RequestButton onClick={() => handleRequest(request.id, true)}>Chấp nhận</RequestButton>
-                    <RequestButton reject onClick={() => handleRequest(request.id, false)}>Từ chối</RequestButton>
-                  </div>
-                </RequestItem>
-              ))}
-            </RequestList>
-          </div>
-        );
       default:
         return null;
     }
@@ -223,9 +159,6 @@ const LanhSuDuong = () => {
       <Tabs>
         <Tab active={activeTab === 'info'} onClick={() => setActiveTab('info')}>Thông tin</Tab>
         <Tab active={activeTab === 'assign'} onClick={() => setActiveTab('assign')}>Phân vai trò</Tab>
-        {user?.clan_role === '7' && (
-          <Tab active={activeTab === 'requests'} onClick={() => setActiveTab('requests')}>Yêu cầu tham gia</Tab>
-        )}
       </Tabs>
       <Content>
         {renderTabContent()}
