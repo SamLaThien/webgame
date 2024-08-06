@@ -193,6 +193,11 @@ const HoSo = () => {
   };
 
   const handleAvatarSave = async () => {
+    if (user.tai_san < 1000) {
+      alert("Không đủ bạc để đổi avatar");
+      setModalIsOpen(false);
+      return;
+    }
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
@@ -200,6 +205,7 @@ const HoSo = () => {
         body: JSON.stringify({
           userId: user.id,
           image: avatarPreview,
+          tai_san: user.tai_san - 1000,
         }),
       });
 
@@ -207,6 +213,7 @@ const HoSo = () => {
         const updatedUser = {
           ...user,
           image: avatarPreview,
+          tai_san: user.tai_san - 1000,
         };
         setUser(updatedUser);
         alert("Avatar updated successfully");
@@ -223,6 +230,12 @@ const HoSo = () => {
   };
 
   const handleConfirmSave = async () => {
+    const cost = confirmType === "ngoai_hieu" ? 25000 : 0;
+    if (user.tai_san < cost) {
+      alert("Không đủ bạc để đổi ngoại hiệu");
+      setConfirmModalIsOpen(false);
+      return;
+    }
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
@@ -230,6 +243,7 @@ const HoSo = () => {
         body: JSON.stringify({
           userId: user.id,
           [confirmType]: confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
+          tai_san: user.tai_san - cost,
         }),
       });
 
@@ -237,6 +251,7 @@ const HoSo = () => {
         const updatedUser = {
           ...user,
           [confirmType]: confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
+          tai_san: user.tai_san - cost,
         };
         setUser(updatedUser);
         alert("Update successful");
@@ -417,4 +432,3 @@ const HoSo = () => {
 };
 
 export default HoSo;
-
