@@ -6,6 +6,7 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
+import axios from "axios";
 
 const Container = styled.div`
   background: white;
@@ -148,12 +149,34 @@ const HoSo = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      router.push("/login");
-    }
+    const fetchUser = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const userId = JSON.parse(storedUser).id;
+          console.log("Retrieved userId from localStorage:", userId);
+          if (!userId) {
+            console.error("User ID is not found in localStorage");
+            router.push("/login");
+            return;
+          }
+          const response = await axios.post('/api/user', { userId });
+          if (response.status === 200) {
+            setUser(response.data);
+            console.log("User data fetched successfully:", response.data);
+          } else {
+            console.error("Failed to fetch user data:", response.statusText);
+          }
+        } else {
+          console.error("No user found in localStorage, redirecting to login");
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
   }, [router]);
 
   const handleAvatarChange = (e) => {
@@ -186,7 +209,6 @@ const HoSo = () => {
           image: avatarPreview,
         };
         setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
         alert("Avatar updated successfully");
       } else {
         const result = await response.json();
@@ -217,7 +239,6 @@ const HoSo = () => {
           [confirmType]: confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
         };
         setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
         alert("Update successful");
       } else {
         const result = await response.json();
@@ -396,3 +417,4 @@ const HoSo = () => {
 };
 
 export default HoSo;
+
