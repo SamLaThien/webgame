@@ -11,9 +11,8 @@ const Background = styled.div`
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw;
   height: 100%;
-  background-image: url('/home-bg-2.jfif');
   background-size: cover;
   background-position: center;
   z-index: -1;
@@ -33,11 +32,13 @@ const ContentWrapper = styled.div`
   justify-content: center;
   align-items: center;
 `;
-
+const BackImage = styled.img`
+  width: 100vw;
+`
 const Layout = ({ children }) => (
   <Container>
     <Header />
-    <Background />
+    <Background><BackImage src="/home-bg-2.jfif"></BackImage></Background>
     <Main>
       <ContentWrapper>{children}</ContentWrapper>
     </Main>

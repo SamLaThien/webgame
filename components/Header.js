@@ -13,6 +13,7 @@ const HeaderContainer = styled.header`
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
+  z-index: 100;
 `;
 
 const Logo = styled.img`
@@ -22,23 +23,6 @@ const Logo = styled.img`
 const NavLinks = styled.div`
   display: flex;
   align-items: center;
-`;
-
-const UserImage = styled.img`
-  height: 50px;
-  width: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-`;
-
-const DropdownMenu = styled.div`
-  position: absolute;
-  top: 60px;
-  right: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: ${({ open }) => (open ? 'block' : 'none')};
 `;
 
 const CustomButton = styled(Button)`
@@ -99,11 +83,19 @@ const Header = () => {
         
         {user ? (
           <>
-            {/* <UserImage src={user.image || '/default-user.png'} alt={user.name} onClick={handleMenuOpen} /> */}
             <Menu
               anchorEl={menuAnchor}
               open={Boolean(menuAnchor)}
               onClose={handleMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              PaperProps={{
+                style: {
+                  position: 'fixed',
+                  top: 60,
+                  right: 20,
+                },
+              }}
             >
               <MenuItem onClick={() => router.push('/user')}>Profile</MenuItem>
               {user.role === 1 && <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
