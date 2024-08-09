@@ -31,11 +31,9 @@ const Container = styled.div`
 
 const Sidebar = styled.div`
   width: 250px;
-  background-color: none;
-  padding: 0;
+  padding-right: 20px;
   display: flex;
   flex-direction: column;
-  padding-right: 20px;
   @media(max-width: 749px) {  
     width: 100%;
   }
@@ -51,7 +49,6 @@ const SectionTitle = styled.div`
   padding: 12px;
   background-color: #B3D7E8;
   color: white;
-  border-radius: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -65,31 +62,24 @@ const SectionTitle = styled.div`
 
 const ButtonsContainer = styled.div`
   display: ${props => (props.isOpen ? 'block' : 'none')};
-  background-color: none;
-  padding: 0;
-  
 `;
 
 const MainContent = styled.div`
   flex: 1;
   padding: 0;
-  background-color: none;
 `;
 
 const Button = styled.a`
   width: 100%;
   padding: 10px;
-  margin: 0;
-  border: none;
   background-color: white;
   color: black;
-  border-radius: 0;
   cursor: pointer;
   font-size: 16px;
   text-align: left;
   border: #B3D7E8 1px solid;
   border-top: none;
-  text-decoration: none !important;
+  text-decoration: none;
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -112,8 +102,11 @@ const ProfilePage = () => {
     bangphai: false,
   });
   const [isInClan, setIsInClan] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // Track if the component is mounted
 
   useEffect(() => {
+    setIsMounted(true); // Set to true when the component mounts
+
     const checkClanStatus = async () => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (user) {
@@ -123,8 +116,10 @@ const ProfilePage = () => {
       }
     };
 
-    checkClanStatus();
-  }, []);
+    if (isMounted) {
+      checkClanStatus();
+    }
+  }, [isMounted]);
 
   const toggleSection = (section) => {
     setOpenSections(prevState => ({
@@ -134,6 +129,8 @@ const ProfilePage = () => {
   };
 
   const getCurrentComponent = () => {
+    if (!isMounted) return null; // Prevent rendering until the component is mounted
+
     switch (router.query.section) {
       case 'hoso':
         return <HoSo />;

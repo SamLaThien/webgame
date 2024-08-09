@@ -8,6 +8,7 @@ const Container = styled.div`
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  width: 500px;
 `;
 
 const Title = styled.h2`
@@ -28,6 +29,20 @@ const Progress = styled.div`
   height: 20px;
 `;
 
+const Info = styled.p`
+  margin: 10px 0;
+  span {
+    font-weight: bold;
+    color: #0070f3;
+  }
+`;
+
+const MandatoryItems = styled.p`
+  margin: 10px 0;
+  color: red;
+  font-weight: bold;
+`;
+
 const DotPhaButton = styled.button`
   background: #f44336;
   color: white;
@@ -35,81 +50,78 @@ const DotPhaButton = styled.button`
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+`;
+
+const Notice = styled.div`
+  margin-top: 20px;
+  font-size: 12px;
+  color: #555;
 `;
 
 const DotPha = () => {
   const [user, setUser] = useState(null);
-  const [level, setLevel] = useState(null);
-  const [expProgress, setExpProgress] = useState(0);
-  const [nextLevel, setNextLevel] = useState(null);
+  const [tuVi, setTuVi] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndLevel = async () => {
       try {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
-          const { data } = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
-          setUser(data);
+          const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
+          setUser(userData);
+
+          // const { data: levelData } = await axios.post(`/api/user/dot-pha/levels`, { level: userData.level });
+          // setTuVi(levelData.tu_vi);
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchLevels = async () => {
-      try {
-        const { data } = await axios.get('/api/levels');
-        if (user && data.length > 0) {
-          const userLevel = data.find(level => level.id === user.level);
-          const userNextLevel = data.find(level => level.id === user.level + 1);
-          setLevel(userLevel);
-          setNextLevel(userNextLevel);
-          setExpProgress((user.exp / userLevel.exp) * 100);
-        }
-      } catch (error) {
-        console.error('Error fetching levels:', error);
-      }
-    };
+    fetchUserAndLevel();
+  }, []);
 
-    fetchUser();
-    fetchLevels();
+  if (loading) {
+    return <Container>Loading...</Container>;
+  }
 
-    const interval = setInterval(() => {
-      if (user) {
-        axios.post('/api/user/dot-pha/update', { userId: user.id });
-      }
-    }, 30 * 60 * 1000);
+  if (!user) {
+    return <Container>Error loading user data.</Container>;
+  }
 
-    return () => clearInterval(interval);
-  }, [user]);
-
-  const handleDotPha = async () => {
-    try {
-      if (user && nextLevel) {
-        await axios.post('/api/user/dot-pha/level-up', { userId: user.id, levelId: nextLevel.id });
-        const { data } = await axios.get(`/api/user/clan/user-info?userId=${user.id}`);
-        setUser(data);
-        setLevel(nextLevel);
-        setNextLevel(levels => levels.find(level => level.id === nextLevel.id + 1));
-        setExpProgress((data.exp / nextLevel.exp) * 100);
-      }
-    } catch (error) {
-      console.error('Error handling dot pha:', error);
-    }
-  };
-
-  if (!user || !level) return null;
+  const expProgress = (user.exp / 38000) * 100; // Example calculation
 
   return (
     <Container>
-      <Title>Đột phá</Title>
-      <p>Cảnh giới hiện tại: {level.tu_vi}</p>
-      <p>Tiến độ tu luyện</p>
-      <ProgressBar>
+      <Title>ĐỘT PHÁ & ĐỘ KIẾP</Title>
+      <Info>
+        Cảnh giới hiện tại: <span>{user.level}</span>
+      </Info>
+      <Info>Tiến độ tu luyện</Info>
+      <ProgressBar> 
         <Progress width={expProgress} />
       </ProgressBar>
-      <p>Vật phẩm bắt buộc: {level.vatpham_bat_buoc}</p>
-      <DotPhaButton onClick={handleDotPha}>Đột phá</DotPhaButton>
+      <Info>{user.exp}/38000</Info>
+      <Info>0%</Info>
+      <MandatoryItems>Vật phẩm bắt buộc: Không cần vật phẩm phụ trợ</MandatoryItems>
+      <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
+      <ul>
+        <li>Đề Giai Thuấn (5%)</li>
+        <li>Tị Lôi Châu (10%)</li>
+      </ul>
+      <DotPhaButton onClick={() => alert('Đột phá button clicked!')}>Đột phá</DotPhaButton>
+      <Notice>
+        - Các vật phẩm dùng để đột phá cảnh giới có thể kiếm tại vòng quay may mắn hoặc mua tại Hắc Thị
+        <br />
+        - Nếu đẳng cấp vật phẩm phụ trợ đạo hữu sử dụng thấp hơn tu vi hiện tại thì tỉ lệ tăng kinh nghiệm sẽ bị giảm xuống, trừ công pháp Vô Cấp
+        <br />
+        - Nếu đột phá thất bại, đạo hữu sẽ bị mất 4560% kinh nghiệm
+      </Notice>
     </Container>
   );
 };
