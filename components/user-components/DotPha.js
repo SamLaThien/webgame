@@ -1,33 +1,47 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import BoltIcon from '@mui/icons-material/Bolt';
+import { Bolt, Error } from "@mui/icons-material";
+import ErrorIcon from '@mui/icons-material/Error';
 
 const Container = styled.div`
-  display: flex;
-  justify-content: space-between;
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 0;
+  margin-bottom: 20px;
   width: 100%;
+  border: 1px solid #93b6c8;
+  box-sizing: border-box;
+  font-size: 16px;
 `;
 
 const MainContent = styled.div`
   flex: 1;
-  margin-right: 20px;
 `;
 
 const InfoContent = styled.div`
-  flex: 0.4;
-  padding: 20px;
-  border: 1px solid #ddd;
+  padding: 0;
   border-radius: 8px;
-  background-color: #f9f9f9;
 `;
 
 const Title = styled.h2`
   margin-bottom: 20px;
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 18px;
+  background-color: white;
+  width: 100%;
+  padding: 11px 20px;
+  border: 1px solid #93b6c8;
+  box-sizing: border-box;
+  flex-direction: row;
+  gap: 5px;
 `;
 
 const ProgressBar = styled.div`
@@ -59,12 +73,12 @@ const MandatoryItems = styled.p`
 `;
 
 const DotPhaButton = styled.button`
-  background: #f44336;
+  background: ${({ disabled }) => (disabled ? '#ccc' : '#f44336')};
   color: white;
   padding: 10px 20px;
   border: none;
   border-radius: 8px;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   font-size: 16px;
   margin-top: 20px;
   width: 100%;
@@ -76,11 +90,19 @@ const Notice = styled.div`
   color: #555;
 `;
 
+const Wrapper = styled.div`
+  display: flex;
+  gap: 20px;
+  flex-direction: row;
+`;
+
+const ContainerWrapper = styled.div``;
+
 const DotPha = () => {
   const [user, setUser] = useState(null);
   const [levelData, setLevelData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [seconds, setSeconds] = useState(0); 
+  const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
     console.log("Fetching user and level data...");
@@ -123,13 +145,13 @@ const DotPha = () => {
           } second(s)`
         );
 
-        if (seconds !== 0 && seconds % 10 === 0) {
+        if (seconds !== 0 && seconds % 1800 === 0) {
           console.log("10 seconds reached. Preparing to update EXP...");
           updateExp();
         }
-      }, 1000); 
+      }, 1000);
 
-      return () => clearInterval(interval); 
+      return () => clearInterval(interval);
     }
   }, [user, seconds]);
 
@@ -146,6 +168,51 @@ const DotPha = () => {
     }
   };
 
+  const handleLevelUp = async () => {
+    if (user && levelData && user.exp >= levelData.exp) {
+      try {
+        // Generate a random number between 0 and 100
+        const randomChance = Math.random() * 100;
+  
+        if (randomChance <= levelData.ty_le_dot_pha_thanh_cong) {
+          // Success! User levels up and gains money
+          const nextLevel = user.level + 1;
+          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+  
+          await axios.post("/api/user/dot-pha/level-up", { userId: user.id, newLevel: nextLevel, newTaiSan });
+  
+          setUser((prevUser) => ({
+            ...prevUser,
+            level: nextLevel,
+            exp: 0, // Reset EXP after leveling up
+            tai_san: newTaiSan, // Update user's money
+          }));
+  
+          const { data: fetchedLevelData } = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: nextLevel }
+          );
+          setLevelData(fetchedLevelData);
+  
+          alert(`Đột phá thành công! Bạn đã lên cấp và nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc.`);
+        } else {
+          // Failure! Deduct a percentage of EXP
+          const expLoss = Math.floor(user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100));
+          const newExp = Math.max(0, user.exp - expLoss);
+  
+          setUser((prevUser) => ({
+            ...prevUser,
+            exp: newExp,
+          }));
+  
+          alert(`Đột phá thất bại! Bạn đã mất ${expLoss} kinh nghiệm.`);
+        }
+      } catch (error) {
+        console.error("Error handling Đột Phá:", error);
+      }
+    }
+  };
+
   if (loading) {
     return <Container>Loading...</Container>;
   }
@@ -155,72 +222,85 @@ const DotPha = () => {
   }
 
   const expProgress = (user.exp / levelData.exp) * 100;
+  const canLevelUp = user.exp >= levelData.exp;
 
   return (
     <>
-      <Container>
-      <Title>ĐỘT PHÁ & ĐỘ KIẾP</Title>
-        <MainContent>
-          <Info>
-            Cảnh giới hiện tại: <span>{levelData.tu_vi}</span>
-          </Info>
-          <Info>Tiến độ tu luyện</Info>
-          <ProgressBar>
-            <Progress width={expProgress} />
-          </ProgressBar>
-          <Info>
-            {user.exp}/{levelData.exp}
-          </Info>
-          <Info>0%</Info>
-          <MandatoryItems>
-            Vật phẩm bắt buộc: {levelData.vatpham_bat_buoc}
-          </MandatoryItems>
-          <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
-          <ul>
-            <li>Đề Giai Thuấn (5%)</li>
-            <li>Tị Lôi Châu (10%)</li>
-          </ul>
-          <DotPhaButton onClick={() => alert("Đột phá button clicked!")}>
-            Đột phá
-          </DotPhaButton>
-          <Notice>
-            - Các vật phẩm dùng để đột phá cảnh giới có thể kiếm tại vòng quay
-            may mắn hoặc mua tại Hắc Thị
-            <br />
-            - Nếu đẳng cấp vật phẩm phụ trợ đạo hữu sử dụng thấp hơn tu vi hiện
-            tại thì tỉ lệ tăng kinh nghiệm sẽ bị giảm xuống, trừ công pháp Vô
-            Cấp
-            <br />- Nếu đột phá thất bại, đạo hữu sẽ bị mất{" "}
-            {levelData.dot_pha_that_bai_mat_exp_percent}% kinh nghiệm
-          </Notice>
-        </MainContent>
-      </Container>
-      <Container>
-        <InfoContent>
-          <Title>CẦN BIẾT</Title>
-          <p>
-            Đạo hữu có thể tu luyện tăng kinh nghiệm bằng cách đọc truyện, bình
-            luận bằng tài khoản truyencv, chơi game, tặng đấu, ném đá hoặc cắn
-            thuốc.
-          </p>
-          <p>
-            Lưu ý không được spam comment để cày kinh nghiệm, spam sẽ bị ban
-            nick từ 1 tới 7 ngày tùy mức độ.
-          </p>
-          <p>
-            Đạo hữu đang nhận kinh nghiệm nhanh hơn 0% so với người thường khi
-            đọc truyện hoặc treo tài khoản tại Nghi Sự Đường.
-          </p>
-          <p>
-            Nếu đẳng cấp công pháp đạo hữu đang sử dụng thấp hơn tu vi hiện tại
-            thì tốc độ tăng kinh nghiệm sẽ bị giảm xuống, trừ công pháp Vô Cấp.
-          </p>
-          <p>
-            Đọc truyện trên Động Thiên Phúc Địa App dùng app để đọc truyện sẽ
-            được kinh nghiệm nhanh hơn tu luyện trên web.
-          </p>
-        </InfoContent>
-      </Container>
+      <Wrapper>
+        <ContainerWrapper>
+          <Title>
+            <Bolt /> ĐỘT PHÁ & ĐỘ KIẾP
+          </Title>
+          <Container>
+            <MainContent>
+              <Info>
+                Cảnh giới hiện tại: <span>{levelData.tu_vi}</span>
+              </Info>
+              <Info>Tiến độ tu luyện</Info>
+              <ProgressBar>
+                <Progress width={expProgress} />
+              </ProgressBar>
+              <Info>
+                {user.exp}/{levelData.exp}
+              </Info>
+              <MandatoryItems>
+                Vật phẩm bắt buộc: {levelData.vatpham_bat_buoc}
+              </MandatoryItems>
+              <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
+              <ul>
+                <li>Đề Giai Thuấn (5%)</li>
+                <li>Tị Lôi Châu (10%)</li>
+              </ul>
+              <DotPhaButton
+                onClick={handleLevelUp}
+                disabled={!canLevelUp}
+              >
+                Đột phá
+              </DotPhaButton>
+              <Notice>
+                - Các vật phẩm dùng để đột phá cảnh giới có thể kiếm tại vòng quay
+                may mắn hoặc mua tại Hắc Thị
+                <br />
+                - Nếu đẳng cấp vật phẩm phụ trợ đạo hữu sử dụng thấp hơn tu vi hiện
+                tại thì tỉ lệ tăng kinh nghiệm sẽ bị giảm xuống, trừ công pháp Vô
+                Cấp
+                <br />- Nếu đột phá thất bại, đạo hữu sẽ bị mất{" "}
+                {levelData.dot_pha_that_bai_mat_exp_percent}% kinh nghiệm
+              </Notice>
+            </MainContent>
+          </Container>
+        </ContainerWrapper>
+        <ContainerWrapper>
+          <Title>
+            <Error /> CẦN BIẾT
+          </Title>
+          <Container>
+            <InfoContent>
+              <p>
+                Đạo hữu có thể tu luyện tăng kinh nghiệm bằng cách đọc truyện, bình
+                luận bằng tài khoản truyencv, chơi game, tặng đấu, ném đá hoặc cắn
+                thuốc.
+              </p>
+              <p>
+                Lưu ý không được spam comment để cày kinh nghiệm, spam sẽ bị ban
+                nick từ 1 tới 7 ngày tùy mức độ.
+              </p>
+              <p>
+                Đạo hữu đang nhận kinh nghiệm nhanh hơn 0% so với người thường khi
+                đọc truyện hoặc treo tài khoản tại Nghi Sự Đường.
+              </p>
+              <p>
+                Nếu đẳng cấp công pháp đạo hữu đang sử dụng thấp hơn tu vi hiện tại
+                thì tốc độ tăng kinh nghiệm sẽ bị giảm xuống, trừ công pháp Vô Cấp.
+              </p>
+              <p>
+                Đọc truyện trên Động Thiên Phúc Địa App dùng app để đọc truyện sẽ
+                được kinh nghiệm nhanh hơn tu luyện trên web.
+              </p>
+            </InfoContent>
+          </Container>
+        </ContainerWrapper>
+      </Wrapper>
     </>
   );
 };
