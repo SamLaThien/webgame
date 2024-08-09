@@ -9,6 +9,9 @@ const Container = styled.div`
   gap: 20px;
   width: 100%;
   height: 110%;
+  @media (max-width: 749px) {
+      flex-direction: column;
+  }
 `;
 
 const ChatSection = styled.div`
@@ -142,6 +145,8 @@ const NghiSuDien = () => {
   const [cboxThreadId, setCboxThreadId] = useState(null);
   const [cboxThreadKey, setCboxThreadKey] = useState(null);
   const [activeTab, setActiveTab] = useState("hoatDong");
+  const [user, setUser] = useState(null);
+  const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
     setActivities([
@@ -181,17 +186,100 @@ const NghiSuDien = () => {
     fetchClanChatInfo();
   }, []);
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (storedUser) {
+          const { data: userData } = await axios.get(
+            `/api/user/clan/user-info?userId=${storedUser.id}`
+          );
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const interval = setInterval(() => {
+        setSeconds((prevSeconds) => prevSeconds + 1);
+
+        if (seconds !== 0 && seconds % 1 === 0) {
+          updateExp();
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [user, seconds]);
+
+  const updateExp = async () => {
+    try {
+      const cap = Math.floor(user.level / 10) + 1;
+      let tile = 1; 
+
+      switch (cap) {
+        case 1:
+          tile = 1.1;
+          break;
+        case 2:
+          tile = 1.2;
+          break;
+        case 3:
+          tile = 1.3;
+          break;
+        case 4:
+          tile = 2.6;
+          break;
+        case 5:
+          tile = 4.2;
+          break;
+        case 6:
+          tile = 10.5;
+          break;
+        case 7:
+          tile = 21;
+          break;
+        case 8:
+          tile = 70;
+          break;
+        case 9:
+          tile = 210;
+          break;
+        default:
+          tile = 1;
+      }
+
+      const expToAdd = 1 / (48 * tile);
+      const response = await axios.post("/api/user/dot-pha/update", {
+        userId: user.id,
+        expToAdd: expToAdd,
+      });
+
+      setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + expToAdd }));
+    } catch (error) {
+      console.error("Error updating exp:", error);
+    }
+  };
+
+
   const getChatBoxUrl = () => {
     const baseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
     const cboxBoxId = process.env.NEXT_PUBLIC_CBOX_BOXID;
     const cboxBoxTag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
+    const ngoaiHieu = user?.ngoai_hieu || '';
 
     if (selectedChannel === "kenhMonPhai" && cboxThreadId && cboxThreadKey) {
-      return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}&tid=${cboxThreadId}&tkey=${cboxThreadKey}`;
+        return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}&tid=${cboxThreadId}&tkey=${cboxThreadKey}&nme=${ngoaiHieu}`;
     } else {
-      return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}`;
+        return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}&nme=${ngoaiHieu}`;
     }
-  };
+};
 
   return (
     <>

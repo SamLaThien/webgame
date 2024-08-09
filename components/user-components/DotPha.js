@@ -94,7 +94,9 @@ const Wrapper = styled.div`
   display: flex;
   gap: 20px;
   flex-direction: row;
-  
+  @media (max-width: 749px) {
+      flex-direction: column;
+  }
 `;
 
 const ContainerWrapper = styled.div``;
@@ -146,7 +148,7 @@ const DotPha = () => {
           } second(s)`
         );
 
-        if (seconds !== 0 && seconds % 1800 === 0) {
+        if (seconds !== 0 && seconds % 1 === 0) {
           console.log("10 seconds reached. Preparing to update EXP...");
           updateExp();
         }
@@ -158,12 +160,53 @@ const DotPha = () => {
 
   const updateExp = async () => {
     try {
-      console.log("Calling API to update EXP...");
+      const cap = Math.floor(user.level / 10) + 1; 
+      let tile = 1; 
+
+      switch (cap) {
+        case 1:
+          tile = 1.1;
+          break;
+        case 2:
+          tile = 1.2;
+          break;
+        case 3:
+          tile = 1.3;
+          break;
+        case 4:
+          tile = 2.6;
+          break;
+        case 5:
+          tile = 4.2;
+          break;
+        case 6:
+          tile = 10.5;
+          break;
+        case 7:
+          tile = 21;
+          break;
+        case 8:
+          tile = 70;
+          break;
+        case 9:
+          tile = 210;
+          break;
+        default:
+          tile = 1;
+      }
+
+      const expToAdd = (1 / (48 * tile));
+
+      console.log(`Calculated EXP to add: ${expToAdd}`);
+      
       const response = await axios.post("/api/user/dot-pha/update", {
         userId: user.id,
+        expToAdd: expToAdd, 
       });
+      
       console.log("API response:", response.data);
-      setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + 1 }));
+      
+      setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + expToAdd }));
     } catch (error) {
       console.error("Error updating exp:", error);
     }
@@ -172,11 +215,9 @@ const DotPha = () => {
   const handleLevelUp = async () => {
     if (user && levelData && user.exp >= levelData.exp) {
       try {
-        // Generate a random number between 0 and 100
         const randomChance = Math.random() * 100;
   
         if (randomChance <= levelData.ty_le_dot_pha_thanh_cong) {
-          // Success! User levels up and gains money
           const nextLevel = user.level + 1;
           const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
   
@@ -185,8 +226,8 @@ const DotPha = () => {
           setUser((prevUser) => ({
             ...prevUser,
             level: nextLevel,
-            exp: 0, // Reset EXP after leveling up
-            tai_san: newTaiSan, // Update user's money
+            exp: 0, 
+            tai_san: newTaiSan, 
           }));
   
           const { data: fetchedLevelData } = await axios.post(
@@ -197,7 +238,6 @@ const DotPha = () => {
   
           alert(`Đột phá thành công! Bạn đã lên cấp và nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc.`);
         } else {
-          // Failure! Deduct a percentage of EXP
           const expLoss = Math.floor(user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100));
           const newExp = Math.max(0, user.exp - expLoss);
   
