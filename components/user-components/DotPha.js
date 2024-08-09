@@ -94,6 +94,7 @@ const Wrapper = styled.div`
   display: flex;
   gap: 20px;
   flex-direction: row;
+  
 `;
 
 const ContainerWrapper = styled.div``;

@@ -47,6 +47,7 @@ const Avatar = styled.img`
   width: calc(9rem + 1vw);
   height: calc(9rem + 1vw);
   border: 3px solid #93b6c8;
+  border-radius: 50%;
 `;
 
 const ChangeLabel = styled.div`
@@ -288,7 +289,7 @@ const HoSo = () => {
       <Container>
         <AvatarContainer>
           <Avatar
-            src={user.image || "/path/to/default-avatar.jpg"}
+            src={user.image || "/logo (2).png"}
             alt="User Avatar"
           />
           <ChangeLabel
