@@ -4,32 +4,36 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { useRouter } from 'next/router';
 
 const FormContainer = styled.div`
-  background: rgba(255, 255, 255, 0.9);
+  background-color: white;  
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #93B6C8; 
   max-width: 400px;
   width: 100%;
   text-align: center;
-  margin: 0 auto; /* Center the form */
+  margin: 0 auto;
 `;
 
 const Title = styled.h2`
-  margin-bottom: 20px;
+  margin: 0;
+  color: black; 
+  font-size: 20px;  
 `;
 
 const Input = styled.input`
-  width: calc(100% - 20px); /* Adjust width to prevent overflow */
+  width: calc(100% - 20px);
   padding: 10px;
   margin: 10px 0;
-  border: 1px solid #ddd;
+  border: 1px solid #93B6C8; 
   border-radius: 4px;
+  background-color: #ffffff; 
+  color: #333; 
 `;
 
 const Button = styled.button`
   width: 100%;
   padding: 10px;
-  background-color: #4CAF50;
+  background-color: #93B6C8;  
   color: white;
   border: none;
   border-radius: 4px;
@@ -37,8 +41,18 @@ const Button = styled.button`
   margin-top: 10px;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #76A9C2; 
   }
+`;
+
+const ErrorMessage = styled.p`
+  color: red;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const LoginForm = () => {
@@ -87,7 +101,7 @@ const LoginForm = () => {
     <FormContainer>
       <Title>ĐĂNG NHẬP</Title>
       <p>Hãy đăng nhập để có một trải nghiệm tốt hơn</p>
-      <form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit}>
         <Input type="text" name="username" placeholder="Nhập tên đăng nhập" onChange={handleChange} />
         <Input type="password" name="password" placeholder="Nhập mật khẩu" onChange={handleChange} />
         <ReCAPTCHA
@@ -95,7 +109,7 @@ const LoginForm = () => {
           onChange={handleRecaptchaChange}
         />
         <Button type="submit">Đăng nhập</Button>
-      </form>
+      </Form>
     </FormContainer>
   );
 };
