@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import ViewInArOutlinedIcon from '@mui/icons-material/ViewInArOutlined';
+import cryptoJs from "crypto-js";
 
 const Container = styled.div`
   display: flex;
@@ -268,17 +269,41 @@ const NghiSuDien = () => {
   };
 
 
-  const getChatBoxUrl = () => {
+const getChatBoxUrl = () => {
     const baseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
     const cboxBoxId = process.env.NEXT_PUBLIC_CBOX_BOXID;
     const cboxBoxTag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
-    const ngoaiHieu = user?.ngoai_hieu || '';
+    const ngoaiHieu = user?.ngoai_hieu || 'UserName'; // Default to 'UserName' if undefined
+    const secret = "Y5tLcYKb2VsVwXyJ";  // Your secret key
+
+    // Define the parameters
+    const params = {
+        boxid: cboxBoxId,
+        boxtag: cboxBoxTag,
+        nme: ngoaiHieu,
+        lnk: '',  // Profile URL (optional)
+        pic: ''   // Avatar URL (optional)
+    };
 
     if (selectedChannel === "kenhMonPhai" && cboxThreadId && cboxThreadKey) {
-        return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}&tid=${cboxThreadId}&tkey=${cboxThreadKey}&nme=${ngoaiHieu}`;
-    } else {
-        return `${baseUrl}/box/?boxid=${cboxBoxId}&boxtag=${cboxBoxTag}&nme=${ngoaiHieu}`;
+        params.tid = cboxThreadId;
+        params.tkey = cboxThreadKey;
     }
+
+    // Build the query string
+    const queryString = Object.keys(params)
+        .filter(key => params[key])
+        .map(key => `${key}=${encodeURIComponent(params[key])}`)
+        .join('&');
+
+    // Create the path
+    const path = `/box/?${queryString}`;
+
+    // Generate the signature using HMAC-SHA256
+    const sig = encodeURIComponent(cryptoJs.enc.Base64.stringify(cryptoJs.HmacSHA256(path, secret)));
+
+    // Construct the full URL with the signature
+    return `${baseUrl}${path}&sig=${sig}`;
 };
 
   return (
