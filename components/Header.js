@@ -25,20 +25,21 @@ const NavLinks = styled.div`
   display: flex;
   align-items: center;
   width: 100%;
-  justify-content: space-between;
+  justify-content: ${(props) => (props.isLoggedIn ? 'space-between' : 'flex-end')};
 `;
 
 const CustomButton = styled(Button)`
   && {
     color: white;
     border: 2px solid white;
-    font-size: 1.5rem;
+    font-size: calc(0.5rem + 1vw);
     text-transform: none;
     margin-left: 20px;
     &:hover {
       background-color: rgba(255, 255, 255, 0.1);
     }
   }
+  
 `;
 
 const GameMenuContainer = styled.div`
@@ -106,69 +107,73 @@ const Header = () => {
         <Logo src="/logo2.png" alt="Logo" />
       </Link>
       <NavLinks>
-        <CustomButton
-          startIcon={<SportsEsportsIcon fontSize="large" />}
-          aria-controls="game-menu"
-          aria-haspopup="true"
-          onClick={handleGameOpen}
-        >
-          GAME
-        </CustomButton>
-        <Menu
-          anchorEl={gameAnchor}
-          open={Boolean(gameAnchor)}
-          onClose={handleGameClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-          PaperProps={{
-            style: {
-              position: 'fixed',
-              top: 60,
-              left: 20,
-              backgroundColor: '#B3D7E8',
-              color: 'white',
-              padding: 0,
-            },
-          }}
-        >
-          <GameMenuContainer>
-            <GameMenuItem onClick={() => router.push('/game/oan-tu-ti')}>Oẳn Tù Tì</GameMenuItem>
-            <GameMenuItem onClick={() => router.push('/game/vong-quay-may-man')}>Vòng Quay May Mắn</GameMenuItem>
-            <GameMenuItem onClick={() => router.push('/game/do-phuong')}>Đổ Phương</GameMenuItem>
-            <GameMenuItem onClick={() => router.push('/game/lo-to')}>Lô Tô</GameMenuItem>
-          </GameMenuContainer>
-        </Menu>
-        <CustomButton
-          startIcon={<MenuIcon fontSize="large" />}
-          aria-controls="simple-menu"
-          aria-haspopup="true"
-          onClick={handleMenuOpen}
-        >
-          MENU
-        </CustomButton> 
-        <Menu
-          anchorEl={menuAnchor}
-          open={Boolean(menuAnchor)}
-          onClose={handleMenuClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          PaperProps={{
-            style: {
-              position: 'fixed',
-              top: 60,
-              right: 20,
-              backgroundColor: '#B3D7E8',
-              color: 'white',
-              padding: 10,
-            },
-          }}
-        >
-          <MenuItem onClick={() => router.push('/user')}>Profile</MenuItem>
-          {user && user.role === 1 && <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
-          {user && user.role === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        </Menu>
-        {user ? null : (
+        {user && (
+          <>
+            <CustomButton
+              startIcon={<SportsEsportsIcon fontSize="large" />}
+              aria-controls="game-menu"
+              aria-haspopup="true"
+              onClick={handleGameOpen}
+            >
+              GAME
+            </CustomButton>
+            <Menu
+              anchorEl={gameAnchor}
+              open={Boolean(gameAnchor)}
+              onClose={handleGameClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+              PaperProps={{
+                style: {
+                  position: 'fixed',
+                  top: 60,
+                  left: 20,
+                  backgroundColor: '#B3D7E8',
+                  color: 'white',
+                  padding: 0,
+                },
+              }}
+            >
+              <GameMenuContainer>
+                <GameMenuItem onClick={() => router.push('/game/oan-tu-ti')}>Oẳn Tù Tì</GameMenuItem>
+                <GameMenuItem onClick={() => router.push('/game/vong-quay-may-man')}>Vòng Quay May Mắn</GameMenuItem>
+                <GameMenuItem onClick={() => router.push('/game/do-phuong')}>Đổ Phương</GameMenuItem>
+                <GameMenuItem onClick={() => router.push('/game/lo-to')}>Lô Tô</GameMenuItem>
+              </GameMenuContainer>
+            </Menu>
+            <CustomButton
+              startIcon={<MenuIcon fontSize="large" />}
+              aria-controls="simple-menu"
+              aria-haspopup="true"
+              onClick={handleMenuOpen}
+            >
+              MENU
+            </CustomButton> 
+            <Menu
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              PaperProps={{
+                style: {
+                  position: 'fixed',
+                  top: 60,
+                  right: 20,
+                  backgroundColor: '#B3D7E8',
+                  color: 'white',
+                  padding: 10,
+                },
+              }}
+            >
+              <MenuItem onClick={() => router.push('/user')}>Profile</MenuItem>
+              {user.role === 1 && <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
+              {user.role === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
+          </>
+        )}
+        {!user && (
           <>
             <CustomButton onClick={() => router.push('/login')}>Đăng nhập</CustomButton>
             <CustomButton onClick={() => router.push('/register')}>Đăng ký</CustomButton>
