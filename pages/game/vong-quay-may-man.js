@@ -6,14 +6,14 @@ import Layout from '../../components/Layout';
 const Wheel = dynamic(() => import('react-custom-roulette').then(mod => mod.Wheel), { ssr: false });
 
 const prizes = [
-  { option: 'LdData', style: { backgroundColor: '#FFC300', textColor: '#000' } },
-  { option: 'LkData', style: { backgroundColor: '#FF5733', textColor: '#fff' } },
-  { option: 'TbData', style: { backgroundColor: '#C70039', textColor: '#fff' } },
+  // { option: 'LdData', style: { backgroundColor: '#FFC300', textColor: '#000' } },
+  // { option: 'LkData', style: { backgroundColor: '#FF5733', textColor: '#fff' } },
+  // { option: 'TbData', style: { backgroundColor: '#C70039', textColor: '#fff' } },
   { option: 'CongBac', style: { backgroundColor: '#900C3F', textColor: '#fff' } },
   { option: 'TruBac', style: { backgroundColor: '#581845', textColor: '#fff' } },
   { option: 'CongExp', style: { backgroundColor: '#DAF7A6', textColor: '#000' } },
   { option: 'TruExp', style: { backgroundColor: '#FFC300', textColor: '#000' } },
-  { option: 'Random Item', style: { backgroundColor: '#FF5733', textColor: '#fff' } },
+  // { option: 'Random Item', style: { backgroundColor: '#FF5733', textColor: '#fff' } },
 ];
 
 const Container = styled.div`
@@ -49,26 +49,21 @@ const VongQuayMayManPage = () => {
 
     let prizeData;
     switch (selectedPrize) {
-      case 'LdData':
-        prizeData = await getLdData();
-        break;
-      case 'LkData':
-        prizeData = await getLkData();
-        break;
-      case 'TbData':
-        prizeData = await getTbData();
-        break;
       case 'CongBac':
         prizeData = await getCongoBacData();
+        await updateUserGameResult('CongBac', prizeData);
         break;
       case 'TruBac':
         prizeData = await getTruBacData();
+        await updateUserGameResult('TruBac', prizeData);
         break;
       case 'CongExp':
         prizeData = await getCongExpData();
+        await updateUserGameResult('CongExp', prizeData);
         break;
       case 'TruExp':
         prizeData = await getTruExpData();
+        await updateUserGameResult('TruExp', prizeData);
         break;
       default:
         prizeData = 'No prize';
@@ -97,92 +92,31 @@ const VongQuayMayManPage = () => {
 
 export default VongQuayMayManPage;
 
-// Example parseRateArray function
-async function parseRateArray(rate) {
-  let totalWeight = 0;
-  for (let item in rate) {
-    totalWeight += rate[item];
-  }
-  let randomNum = Math.random() * totalWeight;
-  for (let item in rate) {
-    if (randomNum < rate[item]) {
-      return item;
+async function updateUserGameResult(prize, amount) {
+  try {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (!storedUser || !storedUser.id) {
+      throw new Error("User not found in local storage");
     }
-    randomNum -= rate[item];
+    
+    const userId = storedUser.id;
+
+    const response = await fetch('/api/user/game/vong-quay/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, prize, amount }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Something went wrong');
+    }
+    console.log('User updated successfully:', data);
+  } catch (error) {
+    console.error('Error updating user:', error);
   }
-}
-
-async function getLdData() {
-  const rate = {
-    "Trích Tinh Thảo": 3,
-    "Thiên Nguyên Thảo": 20,
-    "Hóa Long Thảo": 20,
-    "Ngọc Tủy Chi": 10,
-    "Uẩn Kim Thảo": 3,
-    "Thiên Linh Quả": 5,
-    "Huyết Tinh Thảo": 10,
-    "Đại Linh Thảo": 1,
-    "Luyện Thần Thảo": 1,
-    "Hợp Nguyên Thảo": 1,
-    "Hóa Nguyên Thảo": 2,
-    "Hư Linh Thảo": 1,
-    "Linh Thạch HP": 10,
-    "Linh Thạch TP": 5
-  };
-  return await parseRateArray(rate);
-}
-
-async function getLkData() {
-  const rate = {
-    "Vẫn Thiết CP": 1,
-    "Vẫn Thiết THP": 1,
-    "Vẫn Thiết TP": 1,
-    "Vẫn Thiết HP": 3,
-    "Tinh Thiết CP": 2,
-    "Tinh Thiết THP": 3,
-    "Tinh Thiết TP": 4,
-    "Tinh Thiết HP": 5,
-    "Khai Thiên Thần Thạch": 5,
-    "Vĩnh Hằng Thạch": 5,
-    "Hồng Hoang Thạch HP": 5,
-    "Hồng Hoang Thạch TP": 5,
-    "Hồng Hoang Thạch THP": 5,
-    "Hồng Hoang Thạch CP": 5,
-    "Cửu Thiên Thạch HP":5,
-    "Cửu Thiên Thạch TP":5,
-    "Cửu Thiên Thạch THP":5,
-    "Cửu Thiên Thạch CP":5,
-  };
-  return await parseRateArray(rate);
-}
-
-async function getTbData() {
-  const rate = {
-    "Tụ Bảo Bài": 17,
-    "Túi Sủng Vật": 2,
-    "Túi Thức Ăn":3,
-    "Túi Phân Bón": 3,
-    "Nội Đan C1": 1,
-    "Nội Đan C2": 1,
-    "Nội Đan C3": 1,
-    "Nội Đan C4": 1,
-    "Nội Đan C5": 1,
-    "Nội Đan C6": 1,
-    "Nội Đan C7": 1,
-    "Nội Đan C8": 1,
-    "Phụ Ma Thạch C1": 6,
-    "Phụ Ma Thạch C2": 6,
-    "Phụ Ma Thạch C3": 6,
-    "Phụ Ma Thạch C4": 6,
-    "Phụ Ma Thạch C5": 6,
-    "Phụ Ma Thạch C6": 3,
-    "Phụ Ma Thạch C7": 3,
-    "Phụ Ma Thạch C8": 3,
-    "Thời Gian Chi Thủy": 1,
-    "Băng Hỏa Ngọc": 1,
-    "Bái Thiếp": 5,
-  };
-  return await parseRateArray(rate);
 }
 
 async function getCongoBacData() {
@@ -218,4 +152,18 @@ async function getTruExpData() {
 
 function random(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+async function parseRateArray(rate) {
+  let totalWeight = 0;
+  for (let item in rate) {
+    totalWeight += rate[item];
+  }
+  let randomNum = Math.random() * totalWeight;
+  for (let item in rate) {
+    if (randomNum < rate[item]) {
+      return item;
+    }
+    randomNum -= rate[item];
+  }
 }
