@@ -200,20 +200,23 @@ const HoSo = () => {
       return;
     }
     try {
+      // Strip the prefix "data:image/jpeg;base64," or "data:image/png;base64," from the base64 string
+      const base64Image = avatarPreview.replace(/^data:image\/[a-z]+;base64,/, "");
+  
       const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          image: avatarPreview,
+          image: base64Image,
           tai_san: user.tai_san - 1000,
         }),
       });
-
+  
       if (response.ok) {
         const updatedUser = {
           ...user,
-          image: avatarPreview,
+          image: base64Image, // Update the user object with the new base64 string (without the prefix)
           tai_san: user.tai_san - 1000,
         };
         setUser(updatedUser);
@@ -226,9 +229,10 @@ const HoSo = () => {
       console.error("Error:", error);
       alert("Failed to update avatar");
     }
-
+  
     setModalIsOpen(false);
   };
+  
 
   const handleConfirmSave = async () => {
     const cost = confirmType === "ngoai_hieu" ? 25000 : 0;

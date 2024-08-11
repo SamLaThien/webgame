@@ -11,7 +11,7 @@ import VatPhamManagement from '@/components/admin-components/VatPhamManagement';
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: calc(100vh - 100px);
+  height: 100%;
 `;
 
 const Sidebar = styled.div`
@@ -29,16 +29,14 @@ const SidebarSection = styled.div`
 
 const SectionTitle = styled.div`
   cursor: pointer;
-  font-weight: bold;
   padding: 10px;
-  background-color: #93B6C8;
+  background-color: none;
   color: black;
   border-radius: 4px;
-  border: solid gray 1px;
   margin-bottom: 5px;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #93B6C8;
   }
 `;
 
@@ -53,15 +51,15 @@ const Button = styled.button`
   padding: 10px;
   margin: 5px 0;
   border: none;
-  background-color: #4CAF50;
-  color: white;
+  background-color: transparent;
+  color: black !important;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
   text-align: left;
 
   &:hover {
-    background-color: #45a049;
+    background-color: red;
   }
 
   &.active {
