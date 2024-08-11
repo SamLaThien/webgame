@@ -21,6 +21,10 @@ const ChatSection = styled.div`
   background-color: white;
   border: 1px solid #93b6c8;
   width: 20vw;
+  @media (max-width: 749px) {
+    width: 90vw;
+    box-sizing: border-box;
+  }
 `;
 
 const ActivitySection = styled.div`
@@ -29,6 +33,10 @@ const ActivitySection = styled.div`
   background-color: #fff;
   border: 1px solid #93b6c8;
   width: 25vw;
+  @media (max-width: 749px) {
+    width: 90vw;
+    box-sizing: border-box;
+  }
 `;
 
 const SectionTitle = styled.h2`
