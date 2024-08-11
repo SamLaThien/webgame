@@ -137,26 +137,26 @@ const DotPha = () => {
     fetchUserAndLevel();
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      console.log("Starting timer for EXP update...");
-      const interval = setInterval(() => {
-        setSeconds((prevSeconds) => prevSeconds + 1);
-        console.log(
-          `Timer: ${Math.floor(seconds / 60)} minute(s) and ${
-            seconds % 60
-          } second(s)`
-        );
+  // useEffect(() => {
+  //   if (user) {
+  //     console.log("Starting timer for EXP update...");
+  //     const interval = setInterval(() => {
+  //       setSeconds((prevSeconds) => prevSeconds + 1);
+  //       console.log(
+  //         `Timer: ${Math.floor(seconds / 60)} minute(s) and ${
+  //           seconds % 60
+  //         } second(s)`
+  //       );
 
-        if (seconds !== 0 && seconds % 1 === 0) {
-          console.log("10 seconds reached. Preparing to update EXP...");
-          updateExp();
-        }
-      }, 1000);
+  //       if (seconds !== 0 && seconds % 1 === 0) {
+  //         console.log("10 seconds reached. Preparing to update EXP...");
+  //         updateExp();
+  //       }
+  //     }, 1000);
 
-      return () => clearInterval(interval);
-    }
-  }, [user, seconds]);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [user, seconds]);
 
   const updateExp = async () => {
     try {
@@ -215,6 +215,29 @@ const DotPha = () => {
   const handleLevelUp = async () => {
     if (user && levelData && user.exp >= levelData.exp) {
       try {
+        const requiredItemIds = levelData.vatpham_bat_buoc_id.split(',');
+  
+        if (!user.id || requiredItemIds.length === 0) {
+          alert('User ID or required item IDs are missing.');
+          return;
+        }
+  
+        // Check if the user has the required items with quantity > 0
+        const response = await axios.get(`/api/user/dot-pha/check-items`, {
+          params: {
+            userId: user.id,
+            itemIds: requiredItemIds.join(','),
+          }
+        });
+  
+        const hasRequiredItems = response.data.hasRequiredItems;
+  
+        if (!hasRequiredItems) {
+          alert('Bạn không có đủ vật phẩm bắt buộc để Đột Phá.');
+          return;
+        }
+  
+        // Proceed with the level-up logic if the user has the required items
         const randomChance = Math.random() * 100;
   
         if (randomChance <= levelData.ty_le_dot_pha_thanh_cong) {
@@ -226,8 +249,8 @@ const DotPha = () => {
           setUser((prevUser) => ({
             ...prevUser,
             level: nextLevel,
-            exp: 0, 
-            tai_san: newTaiSan, 
+            exp: 0,
+            tai_san: newTaiSan,
           }));
   
           const { data: fetchedLevelData } = await axios.post(
@@ -235,6 +258,12 @@ const DotPha = () => {
             { level: nextLevel }
           );
           setLevelData(fetchedLevelData);
+  
+          // Decrement the quantity of the required items
+          await axios.post('/api/user/dot-pha/decrement-item', {
+            userId: user.id,
+            itemIds: requiredItemIds.join(','), // Pass the item IDs as a comma-separated string
+          });
   
           alert(`Đột phá thành công! Bạn đã lên cấp và nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc.`);
         } else {
@@ -250,9 +279,15 @@ const DotPha = () => {
         }
       } catch (error) {
         console.error("Error handling Đột Phá:", error);
+        alert('Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.');
       }
     }
   };
+  
+  
+  
+  
+  
 
   if (loading) {
     return <Container>Loading...</Container>;

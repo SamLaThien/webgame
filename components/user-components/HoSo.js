@@ -289,7 +289,7 @@ const HoSo = () => {
       <Container>
         <AvatarContainer>
           <Avatar
-            src={user.image || "/logo2.png"}
+            src={`data:image/png;base64,${user.image}` || "/logo2.png"}
             alt="User Avatar"
           />
           <ChangeLabel

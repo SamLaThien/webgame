@@ -34,12 +34,18 @@ export default async function handler(req, res) {
 
           const vatPhamNames = vatPhamResults.map(item => item.Name).join(', ');
 
+          // Include both names and IDs in the response
           levelData.vatpham_bat_buoc = vatPhamNames;
+          levelData.vatpham_bat_buoc_id = vatPhamIds.join(',');
 
           res.status(200).json(levelData);
         });
       } else {
-        res.status(200).json(levelData);
+        // Return only the level data if there are no required items
+        res.status(200).json({
+          ...levelData,
+          vatpham_bat_buoc_id: '' // No required items
+        });
       }
     });
   } catch (error) {
