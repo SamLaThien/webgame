@@ -12,12 +12,18 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Query to get user data and also check if the user is in a clan
     db.query(
       `SELECT 
-        id, username, email, role, created_at, bio, dateOfBirth, gender, image, 
-        tai_san, bang_hoi, danh_hao, ngoai_hieu, ban, active, exp, level, 
-        task_contribution_points, clan_contribution_points, clan_role 
-      FROM users WHERE id = ?`, 
+        u.id, u.username, u.email, u.role, u.created_at, u.bio, u.dateOfBirth, u.gender, u.image, 
+        u.tai_san, u.bang_hoi, u.danh_hao, u.ngoai_hieu, u.ban, u.active, u.exp, u.level, 
+        u.task_contribution_points, u.clan_contribution_points, u.clan_role,
+        cm.clan_id,
+        c.name AS clan_name
+      FROM users u
+      LEFT JOIN clan_members cm ON u.id = cm.member_id
+      LEFT JOIN clans c ON cm.clan_id = c.id
+      WHERE u.id = ?`, 
       [id], 
       (error, results) => {
         if (error) {
