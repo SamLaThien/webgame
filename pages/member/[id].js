@@ -253,7 +253,6 @@ const MemberPage = ({ id }) => {
         const response = await axios.get(`/api/user/member/${id}`);
         const userData = response.data;
 
-        // Fetch level information based on the user's level
         const levelResponse = await axios.post(`/api/user/dot-pha/level-info`, {
           level: userData.level,
         });
@@ -293,7 +292,6 @@ const MemberPage = ({ id }) => {
         <LeftSection>
           <CharacterContainer>
             <CharacterImage src="/nv1.png" alt="Character" />{" "}
-            {/* Replace with your character image */}
           </CharacterContainer>
         </LeftSection>
 
@@ -341,7 +339,6 @@ const MemberPage = ({ id }) => {
                 ))}
             </ItemsContainer>
           </Section>
-
           <Section>
             <FormContainer>
               <SectionTitle>Tặng bạc</SectionTitle>

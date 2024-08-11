@@ -20,16 +20,15 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 0;
 `;
 
 const Button = styled.button`
   padding: 10px 20px;
   margin-top: 20px;
-  background-color: #28a745;
+  background-color: #B3D7E8;
   color: white;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
 `;
 

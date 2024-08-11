@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 
 const Container = styled.div`
   background: white;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 12px;
   padding: 12px;
   border-radius: 0;
@@ -32,6 +33,34 @@ const Title = styled.h2`
   gap: 5px;
 `;
 
+const Banner = styled.div`
+  background-color: ${({ color }) => color || "#0070f3"};
+  color: white;
+  padding: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+  text-align: center;
+`;
+
+const TabContainer = styled.div`
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+`;
+
+const Tab = styled.div`
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  color: ${({ isActive }) => (isActive ? "#93b6c8" : "#333")};
+  border-bottom: ${({ isActive }) => (isActive ? "2px solid #93b6c8" : "none")};
+
+  &:hover {
+    color: #93b6c8;
+  }
+`;
+
 const ItemTable = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -41,6 +70,7 @@ const TableHeader = styled.th`
   background-color: #f3f3f3;
   padding: 10px;
   border: 1px solid #ddd;
+  text-align: left;
 `;
 
 const TableRow = styled.tr`
@@ -50,6 +80,8 @@ const TableRow = styled.tr`
 const TableCell = styled.td`
   padding: 10px;
   border: 1px solid #ddd;
+  vertical-align: top;
+  width: ${({ width }) => width || "auto"}; 
 `;
 
 const ActionButton = styled.button`
@@ -58,16 +90,23 @@ const ActionButton = styled.button`
   background-color: ${({ color }) => color || "#0070f3"};
   color: white;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
-
+  width: 100px;
   &:hover {
     background-color: ${({ hoverColor }) => hoverColor || "#005bb5"};
   }
 `;
 
+const Input = styled.input`
+  padding: 5px;
+  width: 80px;
+  margin-right: 10px;
+`;
+
 const RuongChuaDo = () => {
   const [items, setItems] = useState([]);
+  const [activeTab, setActiveTab] = useState(1);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -77,7 +116,12 @@ const RuongChuaDo = () => {
           const { data } = await axios.get(
             `/api/user/ruong-do?userId=${storedUser.id}`
           );
-          setItems(data);
+
+          if (data.message) {
+            setMessage(data.message); // Set the message if returned
+          } else {
+            setItems(data); // Set items if found
+          }
         }
       } catch (error) {
         console.error("Error fetching ruong do items:", error);
@@ -87,39 +131,63 @@ const RuongChuaDo = () => {
     fetchItems();
   }, []);
 
+  const categorizedItems = items.filter(item => item.phan_loai === activeTab);
+
+  const renderTabs = () => (
+    <TabContainer>
+      <Tab isActive={activeTab === 1} onClick={() => setActiveTab(1)}>Tăng Exp (Linh Lực)</Tab>
+      <Tab isActive={activeTab === 2} onClick={() => setActiveTab(2)}>Tăng HP</Tab>
+      <Tab isActive={activeTab === 3} onClick={() => setActiveTab(3)}>Công Pháp</Tab>
+      <Tab isActive={activeTab === 4} onClick={() => setActiveTab(4)}>Đột Phá</Tab>
+      <Tab isActive={activeTab === 5} onClick={() => setActiveTab(5)}>Binh Khí</Tab>
+      <Tab isActive={activeTab === 6} onClick={() => setActiveTab(6)}>Khải Giáp</Tab>
+      <Tab isActive={activeTab === 7} onClick={() => setActiveTab(7)}>Linh Thảo</Tab>
+    </TabContainer>
+  );
+
   return (
     <>
-      <Title>Rương chứa đồ</Title>
-
+      <Title> <Inventory2OutlinedIcon/> Rương chứa đồ</Title>
       <Container>
-        <ItemTable>
-          <thead>
-            <tr>
-              <TableHeader>Vật phẩm</TableHeader>
-              <TableHeader>Giới thiệu và rao bán</TableHeader>
-              <TableHeader>Sử dụng</TableHeader>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <TableRow key={item.ruong_do_id}>
-                <TableCell>
-                  {item.vat_pham_name} ({item.so_luong})
-                </TableCell>
-                <TableCell>{item.pham_cap}</TableCell>
-                <TableCell>
-                  <ActionButton color="#0070f3">Sử dụng</ActionButton>
-                  <ActionButton color="#f44336" hoverColor="#d32f2f">
-                    Nộp bang
-                  </ActionButton>
-                  <ActionButton color="#4caf50" hoverColor="#388e3c">
-                    Hành trang
-                  </ActionButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </tbody>
-        </ItemTable>
+        {renderTabs()}
+        {message ? (
+          <p>{message}</p> 
+        ) : (
+          <ItemTable>
+            <thead>
+              <tr>
+                <TableHeader style={{ width: "30%" }}>Vật phẩm</TableHeader>
+                <TableHeader style={{ width: "30%" }}>Giới thiệu và rao bán</TableHeader>
+                <TableHeader style={{ width: "25%" }}>Sử dụng</TableHeader>
+              </tr>
+            </thead>
+            <tbody>
+              {categorizedItems.map((item) => (
+                <TableRow key={item.ruong_do_id}>
+                  <TableCell width="30%">
+                    <div>{item.vat_pham_name} ({item.so_luong})</div>
+                    <div>{item.PhamCap}</div>
+                    <div>Hướng dẫn dùng: {item.SuDung}</div>
+                  </TableCell>
+                  <TableCell width="30%">
+                    <Input placeholder="Số lượng" />
+                    <Input placeholder="Số bạc/1c" />
+                    <ActionButton color="#ff9800" hoverColor="#ff5722">Rao bán</ActionButton>
+                    <Input placeholder="Số lượng" />
+                    <Input placeholder="ID nhận" />
+                    <ActionButton color="#f44336" hoverColor="#e53935">Chuyển</ActionButton>
+                  </TableCell>
+                  <TableCell width="25%">
+                    <Input placeholder="Số lượng" />
+                    <ActionButton color="#4caf50" hoverColor="#388e3c">Hành trang</ActionButton>
+                    <Input placeholder="Số lượng" />
+                    <ActionButton color="#f44336" hoverColor="#e53935">Nộp bang</ActionButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </tbody>
+          </ItemTable>
+        )}
       </Container>
     </>
   );
