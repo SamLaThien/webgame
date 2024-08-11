@@ -137,7 +137,6 @@ const Header = () => {
               <GameMenuContainer>
                 <GameMenuItem onClick={() => router.push('/game/oan-tu-ti')}>Oẳn Tù Tì</GameMenuItem>
                 <GameMenuItem onClick={() => router.push('/game/vong-quay-may-man')}>Vòng Quay May Mắn</GameMenuItem>
-                <GameMenuItem onClick={() => router.push('/game/do-phuong')}>Đổ Phương</GameMenuItem>
                 <GameMenuItem onClick={() => router.push('/game/lo-to')}>Lô Tô</GameMenuItem>
               </GameMenuContainer>
             </Menu>
@@ -166,7 +165,7 @@ const Header = () => {
                 },
               }}
             >
-              <MenuItem onClick={() => router.push('/user')}>Profile</MenuItem>
+              <MenuItem onClick={() => router.push('/user?section=hoso')}>Profile</MenuItem>
               {user.role === 1 && <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
               {user.role === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
               <MenuItem onClick={handleLogout}>Logout</MenuItem>

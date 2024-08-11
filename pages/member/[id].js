@@ -71,14 +71,33 @@ const CharacterImage = styled.img`
   height: auto;
 `;
 
+const Frame = styled.img`
+  position: absolute;
+  width: 120px;
+  z-index: 100;
+  height: 120px;
+`;
+
+const AvatarContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+`;
+
 const Avatar = styled.img`
+  position: absolute;
   width: 100px;
   height: 100px;
   border-radius: 50%;
   border: 3px solid #ddd;
   background-color: #f4f4f4;
-
 `;
+
+
 
 const InfoBox = styled.div`
   background-color: #B3D7E8;
@@ -117,19 +136,16 @@ const MemberPage = ({ id }) => {
   return (
     <Layout>
       <Container>
-        {/* <Sidebar>
-          <SidebarSection>
-            <SectionTitle>Tài khoản</SectionTitle>
-          </SidebarSection>
-        </Sidebar> */}
-
         <MainContent>
           <CharacterContainer>
             <CharacterImage src="/nv1.png" alt="Character" /> {/* Replace with your character image */}
-            <Avatar 
-              src={user.image ? `data:image/png;base64,${user.image}` : '/logo2.png'} 
-              alt={user.username || 'Default Avatar'} 
-            />
+            <AvatarContainer>
+              <Frame src="/frame.png" alt="Avatar Frame" />
+              <Avatar 
+                src={user.image ? `data:image/png;base64,${user.image}` : '/logo2.png'} 
+                alt={user.username || 'Default Avatar'} 
+              />
+            </AvatarContainer>
           </CharacterContainer>
           <InfoBox>Tên Ngoại Hiệu: {user.ngoai_hieu}</InfoBox>
           <InfoBox>Số Lượng Bạc: {user.tai_san}</InfoBox>
