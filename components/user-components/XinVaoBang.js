@@ -96,49 +96,60 @@ const XinVaoBang = () => {
   const [role, setRole] = useState(null);
   const [requests, setRequests] = useState([]);
   const [currentClanId, setCurrentClanId] = useState(null);
+  const [clanOwners, setClanOwners] = useState({});
 
   useEffect(() => {
-    console.log('Fetching clans...');
-    fetch('/api/admin/clan')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Fetched clans:', data);
-        setClans(data);
-      })
-      .catch(error => console.error('Error fetching clans:', error));
+    const fetchClans = async () => {
+      try {
+        const clanResponse = await fetch('/api/admin/clan');
+        const clansData = await clanResponse.json();
+
+        // Fetch clan owners' usernames
+        const owners = await Promise.all(
+          clansData.map(clan => 
+            axios.get(`/api/user/clan/user-info?userId=${clan.owner}`)
+              .then(res => ({ [clan.owner]: res.data.username }))
+              .catch(() => ({ [clan.owner]: 'Unknown User' }))
+          )
+        );
+        
+        const ownerMap = Object.assign({}, ...owners);
+        setClanOwners(ownerMap);
+        setClans(clansData);
+      } catch (error) {
+        console.error('Error fetching clans:', error);
+      }
+    };
 
     // Get username and role from local storage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      console.log('Fetched username from local storage:', user.name);
-      setUsername(user.name);
+    const fetchUserData = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        setUsername(user.name);
 
-      axios.get(`/api/user/clan/check-role?userId=${user.id}`)
-        .then(response => {
-          console.log('Fetched role:', response.data);
-          setRole(response.data.role_id);
+        try {
+          const roleResponse = await axios.get(`/api/user/clan/check-role?userId=${user.id}`);
+          setRole(roleResponse.data.role_id);
 
           // Get the clan ID of the current user
-          axios.get(`/api/user/clan-id?userId=${user.id}`)
-            .then(clanResponse => {
-              const userClanId = clanResponse.data.clan_id;
-              setCurrentClanId(userClanId);
+          const clanResponse = await axios.get(`/api/user/clan-id?userId=${user.id}`);
+          const userClanId = clanResponse.data.clan_id;
+          setCurrentClanId(userClanId);
 
-              // Fetch requests if the user is a clan leader or elder
-              if (response.data.role_id === '6' || response.data.role_id === '7') {
-                axios.get('/api/admin/clan-requests')
-                  .then(requestResponse => {
-                    console.log('Fetched requests:', requestResponse.data);
-                    setRequests(Array.isArray(requestResponse.data) ? requestResponse.data : []);
-                  })
-                  .catch(error => console.error('Error fetching requests:', error));
-              }
-            })
-            .catch(error => console.error('Error fetching user clan:', error));
-        })
-        .catch(error => console.error('Error fetching role:', error));
-    }
+          // Fetch requests if the user is a clan leader or elder
+          if (roleResponse.data.role_id === '6' || roleResponse.data.role_id === '7') {
+            const requestResponse = await axios.get('/api/admin/clan-requests');
+            setRequests(Array.isArray(requestResponse.data) ? requestResponse.data : []);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchClans();
+    fetchUserData();
   }, []);
 
   const handleJoinClan = (clanId) => {
@@ -147,7 +158,6 @@ const XinVaoBang = () => {
       return;
     }
 
-    console.log('Sending clan request with:', { username, clan_id: clanId });
     fetch('/api/user/clan/clan-requests', {
       method: 'POST',
       headers: {
@@ -155,21 +165,15 @@ const XinVaoBang = () => {
       },
       body: JSON.stringify({ username, clan_id: clanId })
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Clan request response:', data);
-        if (data.error) {
-          alert(data.error);
-        } else {
-          alert('Request sent successfully');
-        }
-      })
-      .catch(error => console.error('Error sending clan request:', error));
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert('Request sent successfully');
+      }
+    })
+    .catch(error => console.error('Error sending clan request:', error));
   };
 
   const handleRequest = async (requestId, action, userId, clanId) => {
@@ -204,14 +208,14 @@ const XinVaoBang = () => {
                 </RequestItem>
               ))
             ) : (
-              <p>Khoong cos yeu cau nao</p>
+              <p>Không có yêu cầu nào</p>
             )}
           </RequestList>
         </>
       ) : (
         <>
           <Banner bgColor="#d4edda" color="#155724">
-            - Người chơi có tham gia vào các bang hội để cùng nhau chiến đấu và hỗ trợ lẫn nhau. Mỗi người chơi chỉ được phép tham gia vào một bang hội duy nhất cùng một lúc. Tuy nhiên, người chơi có thể nộp đơn xin vào nhiều bang hội khác nhau. Để chính thức gia nhập một bang hội, đơn xin của người chơi cần được phê duyệt bởi bang chủ hoặc đại trưởng lão của bang hội đó. Sau khi được phê duyệt, người chơi mới có thể trở thành thành viên chính thức của bang hội
+            - Người chơi có thể tham gia vào các bang hội để cùng nhau chiến đấu và hỗ trợ lẫn nhau. Mỗi người chơi chỉ được phép tham gia vào một bang hội duy nhất cùng một lúc. Tuy nhiên, người chơi có thể nộp đơn xin vào nhiều bang hội khác nhau. Để chính thức gia nhập một bang hội, đơn xin của người chơi cần được phê duyệt bởi bang chủ hoặc đại trưởng lão của bang hội đó. Sau khi được phê duyệt, người chơi mới có thể trở thành thành viên chính thức của bang hội.
           </Banner>
           
           {clans.length > 0 ? (
@@ -219,7 +223,7 @@ const XinVaoBang = () => {
               <ClanCard key={clan.id} bgColor={index % 2 === 0 ? '#f0f0f0' : '#e0e0e0'}>
                 <div>
                   <p>Tên bang: {clan.name}</p>
-                  <p>Bang chủ: {clan.owner}</p>
+                  <p>Bang chủ: {clanOwners[clan.owner] || 'Loading...'}</p>
                   <p>Điểm cống hiến: {clan.contributionPoints}</p>
                 </div>
                 {clan.isMember ? (

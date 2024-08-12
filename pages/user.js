@@ -102,22 +102,27 @@ const ProfilePage = () => {
     bangphai: false,
   });
   const [isInClan, setIsInClan] = useState(false);
-  const [isMounted, setIsMounted] = useState(false); // Track if the component is mounted
+  const [role, setRole] = useState(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true); // Set to true when the component mounts
+    setIsMounted(true);
 
-    const checkClanStatus = async () => {
+    const fetchUserData = async () => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (user) {
-        const response = await fetch(`/api/user/clan/check-if-clan-member?userId=${user.id}`);
-        const data = await response.json();
-        setIsInClan(data.isInClan);
+        const roleResponse = await fetch(`/api/user/clan/check-role?userId=${user.id}`);
+        const roleData = await roleResponse.json();
+        setRole(roleData.role_id);
+
+        const clanResponse = await fetch(`/api/user/clan/check-if-clan-member?userId=${user.id}`);
+        const clanData = await clanResponse.json();
+        setIsInClan(clanData.isInClan);
       }
     };
 
     if (isMounted) {
-      checkClanStatus();
+      fetchUserData();
     }
   }, [isMounted]);
 
@@ -129,7 +134,7 @@ const ProfilePage = () => {
   };
 
   const getCurrentComponent = () => {
-    if (!isMounted) return null; // Prevent rendering until the component is mounted
+    if (!isMounted) return null;
 
     switch (router.query.section) {
       case 'hoso':
@@ -157,7 +162,13 @@ const ProfilePage = () => {
       case 'baokhophong':
         return <BaoKhoPhong />;
       case 'lanhsuduong':
-        return <LanhSuDuong />;
+        if (role === '6' || role === '7') {
+          return <LanhSuDuong />;
+        } else {
+          alert('Bạn không có quyền truy cập Lãnh Sự Đường');
+          router.push('/user?section=hoso');
+          return null;
+        }
       default:
         return <HoSo />;
     }
