@@ -92,6 +92,7 @@ const Input = styled.input`
   font-size: 16px;
   margin-right: 10px;
 `;
+
 const Input1 = styled.input`
   width: 100%;
   padding: 11px;
@@ -136,6 +137,8 @@ const Card = styled.div`
 const SectionP = styled.div`
   margin-bottom: 10px;
 `;
+
+Modal.setAppElement('#__next'); // Set the app element for React Modal
 
 const HoSo = () => {
   const [user, setUser] = useState(null);
@@ -183,9 +186,9 @@ const HoSo = () => {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarFile(file);
         setAvatarPreview(reader.result);
         setModalIsOpen(true);
       };
@@ -199,24 +202,22 @@ const HoSo = () => {
       setModalIsOpen(false);
       return;
     }
+
+    const formData = new FormData();
+    formData.append("avatar", avatarFile);
+    formData.append("userId", user.id);
+
     try {
-      // Strip the prefix "data:image/jpeg;base64," or "data:image/png;base64," from the base64 string
-      const base64Image = avatarPreview.replace(/^data:image\/[a-z]+;base64,/, "");
-  
       const response = await fetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          image: base64Image,
-          tai_san: user.tai_san - 1000,
-        }),
+        body: formData,
       });
-  
+
       if (response.ok) {
+        const data = await response.json();
         const updatedUser = {
           ...user,
-          image: base64Image, // Update the user object with the new base64 string (without the prefix)
+          image: data.imagePath,
           tai_san: user.tai_san - 1000,
         };
         setUser(updatedUser);
@@ -229,10 +230,9 @@ const HoSo = () => {
       console.error("Error:", error);
       alert("Failed to update avatar");
     }
-  
+
     setModalIsOpen(false);
   };
-  
 
   const handleConfirmSave = async () => {
     const cost = confirmType === "ngoai_hieu" ? 25000 : 0;
@@ -293,7 +293,7 @@ const HoSo = () => {
       <Container>
         <AvatarContainer>
           <Avatar
-            src={`data:image/png;base64,${user.image}` || "/logo2.png"}
+            src={user.image || "/logo2.png"}
             alt="User Avatar"
           />
           <ChangeLabel
@@ -421,9 +421,7 @@ const HoSo = () => {
       >
         <h2>Confirm Change</h2>
         {confirmType === "ngoai_hieu" ? (
-          <p>
-            Bạn có chắc chắn muốn đổi ngoại hiệu?
-          </p>
+          <p>Bạn có chắc chắn muốn đổi ngoại hiệu?</p>
         ) : (
           <p>Bạn có chắc chắn muốn đổi danh hiệu?</p>
         )}
