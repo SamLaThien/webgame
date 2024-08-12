@@ -302,7 +302,7 @@ const MemberPage = ({ id }) => {
               <Avatar
                 src={
                   user.image
-                    ? `data:image/png;base64,${user.image}`
+                    ? user.image
                     : "/logo2.png"
                 }
                 alt={user.username || "Default Avatar"}
