@@ -197,42 +197,54 @@ const HoSo = () => {
   };
 
   const handleAvatarSave = async () => {
+    if (!user || !user.id) {
+        alert("User ID is not available. Please try again.");
+        console.log("User ID is undefined or null.");
+        return;
+    }
+
     if (user.tai_san < 1000) {
-      alert("Không đủ bạc để đổi avatar");
-      setModalIsOpen(false);
-      return;
+        alert("Không đủ bạc để đổi avatar");
+        setModalIsOpen(false);
+        return;
     }
 
     const formData = new FormData();
     formData.append("avatar", avatarFile);
-    formData.append("userId", user.id);
 
     try {
-      const response = await fetch("/api/profile", {
-        method: "POST",
-        body: formData,
-      });
+        const response = await fetch(`/api/profile?userId=${user.id}`, {
+            method: "POST",
+            body: formData,
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        const updatedUser = {
-          ...user,
-          image: data.imagePath,
-          tai_san: user.tai_san - 1000,
-        };
-        setUser(updatedUser);
-        alert("Avatar updated successfully");
-      } else {
-        const result = await response.json();
-        alert(result.message);
-      }
+        if (response.ok) {
+            const data = await response.json();
+            const updatedUser = {
+                ...user,
+                image: data.imagePath,
+                tai_san: user.tai_san - 1000,
+            };
+            setUser(updatedUser);
+            alert("Avatar updated successfully");
+        } else {
+            const result = await response.json();
+            alert(result.message);
+        }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Failed to update avatar");
+        console.error("Error:", error);
+        alert("Failed to update avatar");
     }
 
     setModalIsOpen(false);
-  };
+};
+
+
+  
+
+
+
+
 
   const handleConfirmSave = async () => {
     const cost = confirmType === "ngoai_hieu" ? 25000 : 0;

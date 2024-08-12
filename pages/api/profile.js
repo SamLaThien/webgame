@@ -19,7 +19,11 @@ const upload = multer({
       cb(null, dir);
     },
     filename: function (req, file, cb) {
-      const userId = req.body.userId;
+      const userId = req.query.userId; 
+      console.log("Header" + req.query.userId)
+      if (!userId) {
+        return cb(new Error('User ID is required'), undefined);
+      }
       cb(null, `${userId}.png`);
     },
   }),
@@ -41,7 +45,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: err.message });
     }
 
-    const { userId, username, bio, dateOfBirth, gender, ngoai_hieu, danh_hao, tai_san } = req.body;
+    const { username, bio, dateOfBirth, gender, ngoai_hieu, danh_hao, tai_san } = req.body;
+    const userId = req.query.userId;
 
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
