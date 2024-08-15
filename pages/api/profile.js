@@ -20,11 +20,10 @@ const upload = multer({
     },
     filename: function (req, file, cb) {
       const userId = req.query.userId; 
-      console.log("Header" + req.query.userId)
       if (!userId) {
         return cb(new Error('User ID is required'), undefined);
       }
-      cb(null, `${userId}.png`);
+      cb(null, `${userId}.png`); // Ensure correct string interpolation here
     },
   }),
   fileFilter: function (req, file, cb) {
@@ -72,7 +71,7 @@ export default async function handler(req, res) {
       values.push(gender);
     }
     if (req.file) {
-      const imagePath = `/avatar/${userId}.png`; // Set image path
+      const imagePath = `/avatar/${userId}.png`; // Set image path correctly
       updates.push('image = ?');
       values.push(imagePath);
     }
@@ -104,7 +103,10 @@ export default async function handler(req, res) {
             return res.status(500).json({ message: 'Internal server error', error: error.message });
           }
 
-          res.status(200).json({ message: 'Profile updated successfully', imagePath: req.file ? `/avatar/${userId}.png` : undefined });
+          res.status(200).json({ 
+            message: 'Profile updated successfully', 
+            imagePath: req.file ? `/avatar/${userId}.png` : undefined 
+          });
         }
       );
     } catch (error) {

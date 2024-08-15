@@ -106,14 +106,14 @@ const Input1 = styled.input`
 
 const Button = styled.button`
   padding: 12px 20px;
-  background-color: #B3D7E8;
+  background-color: #b3d7e8;
   color: white;
   border: none;
   font-size: 16px;
   cursor: pointer;
   margin-right: 10px;
   &:hover {
-    background-color: #93B6C8;
+    background-color: #93b6c8;
   }
 `;
 
@@ -138,7 +138,9 @@ const SectionP = styled.div`
   margin-bottom: 10px;
 `;
 
-Modal.setAppElement('#__next'); // Set the app element for React Modal
+Modal.setAppElement("#__next");
+
+//day file len thu muc -> luu lai chuoi -> get thì  decode base64
 
 const HoSo = () => {
   const [user, setUser] = useState(null);
@@ -164,7 +166,7 @@ const HoSo = () => {
             router.push("/login");
             return;
           }
-          const response = await axios.post('/api/user', { userId });
+          const response = await axios.post("/api/user", { userId });
           if (response.status === 200) {
             setUser(response.data);
             console.log("User data fetched successfully:", response.data);
@@ -198,53 +200,47 @@ const HoSo = () => {
 
   const handleAvatarSave = async () => {
     if (!user || !user.id) {
-        alert("User ID is not available. Please try again.");
-        console.log("User ID is undefined or null.");
-        return;
+      alert("User ID is not available. Please try again.");
+      console.log("User ID is undefined or null.");
+      return;
     }
-
+  
     if (user.tai_san < 1000) {
-        alert("Không đủ bạc để đổi avatar");
-        setModalIsOpen(false);
-        return;
+      alert("Không đủ bạc để đổi avatar");
+      setModalIsOpen(false);
+      return;
     }
-
+  
     const formData = new FormData();
     formData.append("avatar", avatarFile);
-
-    try {
-        const response = await fetch(`/api/profile?userId=${user.id}`, {
-            method: "POST",
-            body: formData,
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            const updatedUser = {
-                ...user,
-                image: data.imagePath,
-                tai_san: user.tai_san - 1000,
-            };
-            setUser(updatedUser);
-            alert("Avatar updated successfully");
-        } else {
-            const result = await response.json();
-            alert(result.message);
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("Failed to update avatar");
-    }
-
-    setModalIsOpen(false);
-};
-
-
   
-
-
-
-
+    try {
+      const response = await fetch(`/api/profile?userId=${user.id}`, {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        const updatedUser = {
+          ...user,
+          image: data.imagePath,
+          tai_san: user.tai_san - 1000,
+        };
+        setUser(updatedUser);
+        alert("Avatar updated successfully");
+      } else {
+        const result = await response.json();
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to update avatar");
+    }
+  
+    setModalIsOpen(false);
+  };
+  
 
   const handleConfirmSave = async () => {
     const cost = confirmType === "ngoai_hieu" ? 25000 : 0;
@@ -259,7 +255,8 @@ const HoSo = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          [confirmType]: confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
+          [confirmType]:
+            confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
           tai_san: user.tai_san - cost,
         }),
       });
@@ -267,7 +264,8 @@ const HoSo = () => {
       if (response.ok) {
         const updatedUser = {
           ...user,
-          [confirmType]: confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
+          [confirmType]:
+            confirmType === "ngoai_hieu" ? changeNgoaiHieu : changeDanhHao,
           tai_san: user.tai_san - cost,
         };
         setUser(updatedUser);
@@ -304,10 +302,7 @@ const HoSo = () => {
       </SectionTitle>
       <Container>
         <AvatarContainer>
-          <Avatar
-            src={user.image || "/logo2.png"}
-            alt="User Avatar"
-          />
+          <Avatar src={user.image || "/logo2.png"} alt="User Avatar" />
           <ChangeLabel
             onClick={() => document.getElementById("avatarInput").click()}
           >

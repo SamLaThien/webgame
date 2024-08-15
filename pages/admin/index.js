@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
@@ -7,6 +7,7 @@ import ClanManagement from '@/components/admin-components/ClanManagement';
 import LevelManagement from '@/components/admin-components/LevelManagement';
 import ClanPremissionManagement from '@/components/admin-components/ClanPremissionManagement';
 import VatPhamManagement from '@/components/admin-components/VatPhamManagement';
+import WheelManagement from '@/components/admin-components/WheelManagement'; // Import the new component
 
 const Container = styled.div`
   display: flex;
@@ -103,7 +104,8 @@ const AdminPage = () => {
             <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Quản lý bang hội</SectionTitle>
             <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Quản lý quyền hạn bang</SectionTitle>
             <SectionTitle onClick={() => setSelectedSection('levelManagement')}>Quản lý cấp độ</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('vatPhamManagement')}>Quản lý vật phẩm</SectionTitle> 
+            <SectionTitle onClick={() => setSelectedSection('vatPhamManagement')}>Quản lý vật phẩm</SectionTitle>
+            <SectionTitle onClick={() => setSelectedSection('wheelManagement')}>Quản lý vòng quay</SectionTitle>
           </SidebarSection>
           <Button onClick={handleLogout}>Đăng xuất</Button>
         </Sidebar>
@@ -112,7 +114,8 @@ const AdminPage = () => {
           {selectedSection === 'clanManagement' && <ClanManagement />}
           {selectedSection === 'clanPermissionManagement' && <ClanPremissionManagement />}
           {selectedSection === 'levelManagement' && <LevelManagement />}
-          {selectedSection === 'vatPhamManagement' && <VatPhamManagement />} 
+          {selectedSection === 'vatPhamManagement' && <VatPhamManagement />}
+          {selectedSection === 'wheelManagement' && <WheelManagement />} 
         </MainContent>
       </Container>
     </Layout>
