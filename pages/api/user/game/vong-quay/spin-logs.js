@@ -2,18 +2,18 @@ import db from '@/lib/db';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { userId, prize_category, prize_name, quantity } = req.body;
-
-    if (!userId || !prize_category || !prize_name || !quantity) {
+    const {  username, prize_category, prize_name, quantity } = req.body;
+    console.log("Username" + username );
+    if (!username || !prize_category || !prize_name) {
       return res.status(400).json({ message: 'User ID, prize category, prize name, and quantity are required' });
     }
 
     try {
       const query = `
-        INSERT INTO spin_logs (user_id, prize_category, prize_name, quantity, timestamp)
+        INSERT INTO spin_logs (username, prize_category, prize_name, quantity, timestamp)
         VALUES (?, ?, ?, ?, NOW())
       `;
-      const values = [userId, prize_category, prize_name, quantity];
+      const values = [username, prize_category, prize_name, quantity];
       db.query(query, values, (error, results) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });

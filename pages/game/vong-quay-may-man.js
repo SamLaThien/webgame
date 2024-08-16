@@ -9,7 +9,6 @@ const Wheel = dynamic(
   () => import("react-custom-roulette").then((mod) => mod.Wheel),
   { ssr: false }
 );
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -19,7 +18,7 @@ const Container = styled.div`
   width: 100vw;
 `;
 const Image = styled.img`
-  margin-top: -17vh;
+  margin-top: calc(-7vw - 1vw);
   margin-left: -0.5vw;
   width: calc(38vw + 1vw);
   height: auto;
@@ -67,13 +66,7 @@ const LogItem = styled.div`
   border: 1px solid #93b6c8;
   font-size: 14px;
 `;
-const CustomWheelContainer = styled.div`
-  .wheel-container {
-    border-width: 1px !important;
-    border-style: solid !important;
-    border-color: white !important;
-  }
-`;
+
 const VongQuayMayManPage = () => {
   const [wheelSlots, setWheelSlots] = useState([]);
   const [mustSpin, setMustSpin] = useState(false);
@@ -206,8 +199,8 @@ const VongQuayMayManPage = () => {
         throw new Error("User not found in local storage");
       }
 
+      const username = storedUser.name;
       const userId = storedUser.id;
-
       const response = await fetch("/api/user/game/vong-quay/spin-logs", {
         method: "POST",
         headers: {
@@ -215,6 +208,7 @@ const VongQuayMayManPage = () => {
         },
         body: JSON.stringify({
           userId,
+          username,
           prize_category: prizeCategory,
           prize_name: prizeName,
           quantity,
@@ -309,7 +303,6 @@ const VongQuayMayManPage = () => {
       <Container>
         {wheelSlots.length > 0 && (
           <>
-          <CustomWheelContainer>
           <Wheel
               mustStartSpinning={mustSpin}
               prizeNumber={prizeIndex}
@@ -321,10 +314,14 @@ const VongQuayMayManPage = () => {
                   borderStyle: 'solid',
                   borderColor: 'white',
                 },
+                
               }))}
+              outerBorderWidth={1}
+              outerBorderColor="gold"
+              radiusLineColor="gold"
+              radiusLineWidth={1} 
               onStopSpinning={handlePrizeResult}
             />
-          </CustomWheelContainer>
             <Button onClick={handleSpinClick}>Quay</Button>
             {result && <p>You won: {result}</p>}
           </>
