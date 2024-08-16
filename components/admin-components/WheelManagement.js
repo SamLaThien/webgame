@@ -73,17 +73,29 @@ const EditInput = styled.input`
   border-radius: 5px;
 `;
 
+const Select = styled.select`
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+`;
+
+const FilterContainer = styled.div`
+  margin-bottom: 10px;
+`;
+
 const AddItemButton = styled(Button)`
   background-color: #008CBA;
   margin-top: 10px;
 `;
 
-const ColorDisplay = styled.div`
-  height: 20px;
-  width: 100%;
-  background-color: ${(props) => props.color};
-  margin-bottom: 10px;
+const Message = styled.div`
+  margin-top: 20px;
+  padding: 10px;
+  color: white;
+  background-color: ${(props) => (props.type === 'error' ? '#ff4d4f' : '#52c41a')};
   border-radius: 5px;
+  text-align: center;
 `;
 
 const WheelManagement = () => {
@@ -93,6 +105,10 @@ const WheelManagement = () => {
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeNumber, setPrizeNumber] = useState(0);
   const [result, setResult] = useState(null);
+  const [vatPhamList, setVatPhamList] = useState([]);
+  const [filteredVatPhamList, setFilteredVatPhamList] = useState([]);
+  const [selectedPhanLoai, setSelectedPhanLoai] = useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     fetch('/api/admin/wheel-slot-groups')
@@ -107,10 +123,19 @@ const WheelManagement = () => {
                   ...group,
                   items: slots.filter(slot => slot.slot_number === group.slot_number),
                 }));
+
                 setWheelSlots(groupedSlots);
               }
             });
         }
+      });
+
+    // Fetch vat_pham data
+    fetch('/api/admin/vat-pham')
+      .then(res => res.json())
+      .then(data => {
+        setVatPhamList(data);
+        setFilteredVatPhamList(data); // Initially, show all items
       });
   }, []);
 
@@ -139,6 +164,8 @@ const WheelManagement = () => {
       id: Date.now(),
       option_text: '',
       prize_rate: 0,
+      lower_bound: '',
+      higher_bound: '',
     };
 
     const updatedSlot = {
@@ -157,15 +184,45 @@ const WheelManagement = () => {
     setSelectedSlot({ ...selectedSlot, items: updatedItems });
   };
 
+  const handlePhanLoaiChange = (e) => {
+    const phanLoai = e.target.value;
+    setSelectedPhanLoai(phanLoai);
+
+    if (phanLoai) {
+      const filteredItems = vatPhamList.filter(item => item.phan_loai === parseInt(phanLoai, 10));
+      setFilteredVatPhamList(filteredItems);
+    } else {
+      setFilteredVatPhamList(vatPhamList); // Show all items if no filter is selected
+    }
+  };
+
+  const handleVatPhamSelect = (itemId, value) => {
+    const selectedVatPham = vatPhamList.find(item => item.ID === parseInt(value, 10));
+
+    if (!selectedVatPham) {
+      console.error(`Item with ID ${value} not found in vatPhamList`);
+      return;
+    }
+
+    const updatedItems = selectedSlot.items.map(item =>
+      item.id === itemId ? { ...item, option_text: selectedVatPham.Name, item_id: selectedVatPham.ID } : item
+    );
+
+    setSelectedSlot({ ...selectedSlot, items: updatedItems });
+  };
+
   const handleUpdateItems = (e) => {
     e.preventDefault();
 
     const updatedSlot = {
-      ...selectedSlot,
+      slot_number: selectedSlot.slot_number,
       items: selectedSlot.items.map(item => ({
         id: item.id,
         option_text: item.option_text,
         prize_rate: item.prize_rate,
+        lower_bound: item.lower_bound,
+        higher_bound: item.higher_bound,
+        item_id: item.item_id,
       })),
     };
 
@@ -175,28 +232,45 @@ const WheelManagement = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(updatedSlot),
-    }).then(() => {
+    }).then((response) => {
+      if (!response.ok) {
+        setMessage({ type: 'error', text: 'Failed to update slot' });
+        return;
+      }
+      setMessage({ type: 'success', text: 'Slot updated successfully' });
       setWheelSlots(wheelSlots.map(slot =>
         slot.slot_number === selectedSlot.slot_number ? updatedSlot : slot
       ));
-      setSelectedSlot(null);  // Clear the form after updating
+      setSelectedSlot(null);
     });
   };
 
   const handleUpdateStyle = (e) => {
     e.preventDefault();
 
+    const updatedStyle = {};
+
+    if (selectedStyle.slot_number) updatedStyle.slot_number = selectedStyle.slot_number;
+    if (selectedStyle.group_name) updatedStyle.group_name = selectedStyle.group_name;
+    if (selectedStyle.background_color) updatedStyle.background_color = selectedStyle.background_color;
+    if (selectedStyle.text_color) updatedStyle.text_color = selectedStyle.text_color;
+
     fetch(`/api/admin/wheel-slot-groups/${selectedStyle.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(selectedStyle),
-    }).then(() => {
+      body: JSON.stringify(updatedStyle),
+    }).then((response) => {
+      if (!response.ok) {
+        setMessage({ type: 'error', text: 'Failed to update style' });
+        return;
+      }
+      setMessage({ type: 'success', text: 'Style updated successfully' });
       setWheelSlots(wheelSlots.map(slot =>
         slot.slot_number === selectedStyle.slot_number ? selectedStyle : slot
       ));
-      setSelectedStyle(null);  // Clear the form after updating
+      setSelectedStyle(null);
     });
   };
 
@@ -207,17 +281,30 @@ const WheelManagement = () => {
   };
 
   const calculatePrize = (slot) => {
+    if (!slot) {
+      return 'Error: Slot data missing';
+    }
+  
     if (slot.prize_type === 1) {
-      // If prize_type is 1, randomize between lower_bound and higher_bound
-      const min = slot.lower_bound;
-      const max = slot.higher_bound;
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    } else {
-      // If prize_type is not 1, handle the logic for item-based prize selection
+      const itemWithBounds = slot.items.find(item => item.lower_bound !== undefined && item.higher_bound !== undefined);
+      
+      if (itemWithBounds) {
+        const min = itemWithBounds.lower_bound;
+        const max = itemWithBounds.higher_bound;
+
+        if (min !== null && max !== null && min <= max) {
+          return Math.floor(Math.random() * (max - min + 1)) + min;
+        } else {
+          return 'Invalid Range';
+        }
+      } else {
+        return 'Error: Bounds missing';
+      }
+    } else if (slot.prize_type !== undefined) {
       const items = slot.items || [];
       let totalWeight = items.reduce((sum, item) => sum + item.prize_rate, 0);
       let randomNum = Math.random() * totalWeight;
-  
+
       for (let item of items) {
         if (randomNum < item.prize_rate) {
           return item.option_text;
@@ -225,15 +312,21 @@ const WheelManagement = () => {
         randomNum -= item.prize_rate;
       }
       return null;
+    } else {
+      return 'Error: prize_type missing';
     }
   };
-  
 
   const handleStopSpinning = () => {
     setMustSpin(false);
     const selectedSlot = wheelSlots[prizeNumber];
-    const prizeValue = calculatePrize(selectedSlot);
-    setResult(`You won: ${prizeValue}`);
+
+    if (selectedSlot) {
+      const prizeValue = calculatePrize(selectedSlot);
+      setResult(`You won: ${prizeValue}`);
+    } else {
+      console.error('Selected Slot is undefined');
+    }
   };
 
   return (
@@ -273,20 +366,55 @@ const WheelManagement = () => {
             <Button onClick={() => handleEditStyle(slot)}>Edit Style</Button>
           </SlotItem>
         ))}
+        {message && <Message type={message.type}>{message.text}</Message>}
       </SlotManagementContainer>
       {selectedSlot && (
         <EditPanel>
           <h3>Edit Slot Items for Slot {selectedSlot.slot_number}</h3>
           <EditForm onSubmit={handleUpdateItems}>
             <h4>Items</h4>
+            <FilterContainer>
+              <label>Filter by Phan Loai: </label>
+              <Select value={selectedPhanLoai} onChange={handlePhanLoaiChange}>
+                <option value=''>All</option>
+                {Array.from(new Set(vatPhamList.map(item => item.phan_loai))).map(phan_loai => (
+                  <option key={phan_loai} value={phan_loai}>{phan_loai}</option>
+                ))}
+              </Select>
+            </FilterContainer>
             {selectedSlot.items.map(item => (
               <ItemRow key={item.id}>
+                <Select
+                  value={item.option_text}
+                  onChange={(e) => handleVatPhamSelect(item.id, e.target.value)}
+                >
+                  <option value=''>Select Vat Pham</option>
+                  {filteredVatPhamList.map(vatPham => (
+                    <option key={vatPham.ID} value={vatPham.ID}>{vatPham.Name}</option>
+                  ))}
+                </Select>
                 <EditInput
                   type="text"
                   value={item.option_text}
                   onChange={(e) => handleChangeItem(item.id, 'option_text', e.target.value)}
                   placeholder="Option Text"
                 />
+                {selectedSlot.prize_type === 1 && (
+                  <>
+                    <EditInput
+                      type="number"
+                      value={item.lower_bound}
+                      onChange={(e) => handleChangeItem(item.id, 'lower_bound', e.target.value)}
+                      placeholder="Lower Bound"
+                    />
+                    <EditInput
+                      type="number"
+                      value={item.higher_bound}
+                      onChange={(e) => handleChangeItem(item.id, 'higher_bound', e.target.value)}
+                      placeholder="Higher Bound"
+                    />
+                  </>
+                )}
                 <EditInput
                   type="number"
                   value={item.prize_rate}
@@ -311,14 +439,12 @@ const WheelManagement = () => {
               onChange={(e) => setSelectedStyle({ ...selectedStyle, group_name: e.target.value })}
               placeholder="Group Name"
             />
-            <ColorDisplay color={selectedStyle.background_color} />
             <EditInput
               type="color"
               value={selectedStyle.background_color}
               onChange={(e) => setSelectedStyle({ ...selectedStyle, background_color: e.target.value })}
               placeholder="Background Color"
             />
-            <ColorDisplay color={selectedStyle.text_color} />
             <EditInput
               type="color"
               value={selectedStyle.text_color}

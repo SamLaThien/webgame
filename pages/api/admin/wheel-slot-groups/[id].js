@@ -20,14 +20,35 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'PUT') {
     const { slot_number, group_name, background_color, text_color } = req.body;
-    
-    if (!slot_number || !group_name || !background_color || !text_color) {
-      return res.status(400).json({ message: 'All fields are required' });
+
+    // Dynamic query building for partial updates
+    const fieldsToUpdate = [];
+    const values = [];
+
+    if (slot_number !== undefined) {
+      fieldsToUpdate.push('slot_number = ?');
+      values.push(slot_number);
+    }
+    if (group_name !== undefined) {
+      fieldsToUpdate.push('group_name = ?');
+      values.push(group_name);
+    }
+    if (background_color !== undefined) {
+      fieldsToUpdate.push('background_color = ?');
+      values.push(background_color);
+    }
+    if (text_color !== undefined) {
+      fieldsToUpdate.push('text_color = ?');
+      values.push(text_color);
+    }
+
+    if (fieldsToUpdate.length === 0) {
+      return res.status(400).json({ message: 'No fields provided for update' });
     }
 
     try {
-      const query = 'UPDATE wheel_slot_groups SET slot_number = ?, group_name = ?, background_color = ?, text_color = ? WHERE id = ?';
-      const values = [slot_number, group_name, background_color, text_color, id];
+      const query = `UPDATE wheel_slot_groups SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
+      values.push(id);
       db.query(query, values, (error, results) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
