@@ -92,9 +92,11 @@ const Button = styled.a`
     background-color: #B3D7E8;
   }
 `;
+
 const StyledLink = styled(Link)`
   text-decoration: none;
 `;
+
 const ProfilePage = () => {
   const router = useRouter();
   const [openSections, setOpenSections] = useState({
@@ -138,37 +140,37 @@ const ProfilePage = () => {
   const getCurrentComponent = () => {
     if (!isMounted) return null;
 
-    switch (router.query.section) {
-      case 'hoso':
+    switch (router.pathname) {
+      case '/ho-so':
         return <HoSo />;
-      case 'tinnhan':
+      case '/tin-nhan':
         return <TinNhan />;
-      case 'doimatkhau':
+      case '/doi-mat-khau':
         return <DoiMatKhau />;
-      case 'ruongchuado':
+      case '/ruong-chua-do':
         return <RuongChuaDo />;
-      case 'dotpha':
+      case '/dot-pha':
         return <DotPha />;
-      case 'quythi':
+      case '/quy-thi':
         return <QuyThi />;
-      case 'luyendanthat':
+      case '/luyen-dan-that':
         return <LuyenDanThat />;
-      case 'nhiemvuduong':
+      case '/nhiem-vu-duong':
         return <NhiemVuDuong />;
-      case 'daokhoang':
+      case '/dao-khoang':
         return <DaoKhoang />;
-      case 'xinvaobang':
+      case '/xin-vao-bang':
         return <XinVaoBang />;
-      case 'nghisudien':
+      case '/nghi-su-dien':
         return <NghiSuDien />;
-      case 'baokhophong':
+      case '/bao-kho-phong':
         return <BaoKhoPhong />;
-      case 'lanhsuduong':
+      case '/lanh-su-duong':
         if (role === '6' || role === '7') {
           return <LanhSuDuong />;
         } else {
           alert('Bạn không có quyền truy cập Lãnh Sự Đường');
-          router.push('/user?section=hoso');
+          router.push('/ho-so');
           return null;
         }
       default:
@@ -183,61 +185,61 @@ const ProfilePage = () => {
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('taikhoan')}>Tài khoản</SectionTitle>
             <ButtonsContainer isOpen={openSections.taikhoan}>
-              <StyledLink href="/user?section=hoso" passHref>
-                <Button className={router.query.section === 'hoso' ? 'active' : ''}>Hồ sơ</Button>
+              <StyledLink href="/ho-so" passHref>
+                <Button className={router.pathname === '/ho-so' ? 'active' : ''}>Hồ sơ</Button>
               </StyledLink>
-              <StyledLink href="/user?section=tinnhan" passHref>
-                <Button className={router.query.section === 'tinnhan' ? 'active' : ''}>Tin nhắn</Button>
+              <StyledLink href="/tin-nhan" passHref>
+                <Button className={router.pathname === '/tin-nhan' ? 'active' : ''}>Tin nhắn</Button>
               </StyledLink>
-              <StyledLink href="/user?section=doimatkhau" passHref>
-                <Button className={router.query.section === 'doimatkhau' ? 'active' : ''}>Đổi mật khẩu</Button>
+              <StyledLink href="/doi-mat-khau" passHref>
+                <Button className={router.pathname === '/doi-mat-khau' ? 'active' : ''}>Đổi mật khẩu</Button>
               </StyledLink>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('taisan')}>Tài sản</SectionTitle>
             <ButtonsContainer isOpen={openSections.taisan}>
-              <StyledLink href="/user?section=ruongchuado" passHref>
-                <Button className={router.query.section === 'ruongchuado' ? 'active' : ''}>Rương chứa đồ</Button>
+              <StyledLink href="/ruong-chua-do" passHref>
+                <Button className={router.pathname === '/ruong-chua-do' ? 'active' : ''}>Rương chứa đồ</Button>
               </StyledLink>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('tulyen')}>Tu luyện</SectionTitle>
             <ButtonsContainer isOpen={openSections.tulyen}>
-              <StyledLink href="/user?section=dotpha" passHref>
-                <Button className={router.query.section === 'dotpha' ? 'active' : ''}>Đột phá</Button>
+              <StyledLink href="/dot-pha" passHref>
+                <Button className={router.pathname === '/dot-pha' ? 'active' : ''}>Đột phá</Button>
               </StyledLink>
-              <StyledLink href="/user?section=quythi" passHref>
-                <Button className={router.query.section === 'quythi' ? 'active' : ''}>Hắc Điếm</Button>
+              <StyledLink href="/quy-thi" passHref>
+                <Button className={router.pathname === '/quy-thi' ? 'active' : ''}>Hắc Điếm</Button>
               </StyledLink>
-              <StyledLink href="/user?section=luyendanthat" passHref>
-                <Button className={router.query.section === 'luyendanthat' ? 'active' : ''}>Luyện đan thất</Button>
+              <StyledLink href="/luyen-dan-that" passHref>
+                <Button className={router.pathname === '/luyen-dan-that' ? 'active' : ''}>Luyện đan thất</Button>
               </StyledLink>
-              <StyledLink href="/user?section=nhiemvuduong" passHref>
-                <Button className={router.query.section === 'nhiemvuduong' ? 'active' : ''}>Nhiệm vụ đường</Button>
+              <StyledLink href="/nhiem-vu-duong" passHref>
+                <Button className={router.pathname === '/nhiem-vu-duong' ? 'active' : ''}>Nhiệm vụ đường</Button>
               </StyledLink>
-              <StyledLink href="/user?section=daokhoang" passHref>
-                <Button className={router.query.section === 'daokhoang' ? 'active' : ''}>Đào khoáng</Button>
+              <StyledLink href="/dao-khoang" passHref>
+                <Button className={router.pathname === '/dao-khoang' ? 'active' : ''}>Đào khoáng</Button>
               </StyledLink>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('bangphai')}>Bang phái</SectionTitle>
             <ButtonsContainer isOpen={openSections.bangphai}>
-              <StyledLink href="/user?section=xinvaobang" passHref>
-                <Button className={router.query.section === 'xinvaobang' ? 'active' : ''}>Xin vào bang</Button>
+              <StyledLink href="/xin-vao-bang" passHref>
+                <Button className={router.pathname === '/xin-vao-bang' ? 'active' : ''}>Xin vào bang</Button>
               </StyledLink>
               {isInClan && (
                 <>
-                  <StyledLink href="/user?section=nghisudien" passHref>
-                    <Button className={router.query.section === 'nghisudien' ? 'active' : ''}>Nghị sự điện</Button>
+                  <StyledLink href="/nghi-su-dien" passHref>
+                    <Button className={router.pathname === '/nghi-su-dien' ? 'active' : ''}>Nghị sự điện</Button>
                   </StyledLink>
-                  <StyledLink href="/user?section=baokhophong" passHref>
-                    <Button className={router.query.section === 'baokhophong' ? 'active' : ''}>Bảo khố phòng</Button>
+                <StyledLink href="/bao-kho-phong" passHref>
+                    <Button className={router.pathname === '/bao-kho-phong' ? 'active' : ''}>Bảo khố phòng</Button>
                   </StyledLink>
-                  <StyledLink href="/user?section=lanhsuduong" passHref>
-                    <Button className={router.query.section === 'lanhsuduong' ? 'active' : ''}>Lãnh Sự Đường</Button>
+                  <StyledLink href="/lanh-su-duong" passHref>
+                    <Button className={router.pathname === '/lanh-su-duong' ? 'active' : ''}>Lãnh Sự Đường</Button>
                   </StyledLink>
                 </>
               )}

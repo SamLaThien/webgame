@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import Header from './Header';
+import Sidebar from './SideBar';
 
 const Container = styled.div`
   display: flex;
@@ -22,7 +23,7 @@ const Main = styled.main`
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; // Align content to the top
   padding-top: calc(200px + 1vh);
 `;
 
@@ -30,17 +31,39 @@ const ContentWrapper = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; // Align content to the top
 `;
+
+const ContentArea = styled.div`
+  width: 100%;
+  max-width: 1200px; // Set a max-width for the content area
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`;
+
+const MainContent = styled.div`
+  flex: 1;
+  padding-left: 20px; // Add some padding to the left for spacing from the sidebar
+`;
+
 const BackImage = styled.img`
   width: 100vw;
-`
+`;
+
 const Layout = ({ children }) => (
   <Container>
     <Header />
-    <Background><BackImage src="/home-bg-2.jfif"></BackImage></Background>
+    <Background>
+      <BackImage src="/home-bg-2.jfif" alt="Background" />
+    </Background>
     <Main>
-      <ContentWrapper>{children}</ContentWrapper>
+      <ContentWrapper>
+        <ContentArea>
+          <Sidebar /> {/* Add the Sidebar here */}
+          <MainContent>{children}</MainContent> {/* Main content area */}
+        </ContentArea>
+      </ContentWrapper>
     </Main>
   </Container>
 );
