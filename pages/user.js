@@ -92,7 +92,9 @@ const Button = styled.a`
     background-color: #B3D7E8;
   }
 `;
-
+const StyledLink = styled(Link)`
+  text-decoration: none;
+`;
 const ProfilePage = () => {
   const router = useRouter();
   const [openSections, setOpenSections] = useState({
@@ -181,62 +183,62 @@ const ProfilePage = () => {
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('taikhoan')}>Tài khoản</SectionTitle>
             <ButtonsContainer isOpen={openSections.taikhoan}>
-              <Link href="/user?section=hoso" passHref>
+              <StyledLink href="/user?section=hoso" passHref>
                 <Button className={router.query.section === 'hoso' ? 'active' : ''}>Hồ sơ</Button>
-              </Link>
-              <Link href="/user?section=tinnhan" passHref>
+              </StyledLink>
+              <StyledLink href="/user?section=tinnhan" passHref>
                 <Button className={router.query.section === 'tinnhan' ? 'active' : ''}>Tin nhắn</Button>
-              </Link>
-              <Link href="/user?section=doimatkhau" passHref>
+              </StyledLink>
+              <StyledLink href="/user?section=doimatkhau" passHref>
                 <Button className={router.query.section === 'doimatkhau' ? 'active' : ''}>Đổi mật khẩu</Button>
-              </Link>
+              </StyledLink>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('taisan')}>Tài sản</SectionTitle>
             <ButtonsContainer isOpen={openSections.taisan}>
-              <Link href="/user?section=ruongchuado" passHref>
+              <StyledLink href="/user?section=ruongchuado" passHref>
                 <Button className={router.query.section === 'ruongchuado' ? 'active' : ''}>Rương chứa đồ</Button>
-              </Link>
+              </StyledLink>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('tulyen')}>Tu luyện</SectionTitle>
             <ButtonsContainer isOpen={openSections.tulyen}>
-              <Link href="/user?section=dotpha" passHref>
+              <StyledLink href="/user?section=dotpha" passHref>
                 <Button className={router.query.section === 'dotpha' ? 'active' : ''}>Đột phá</Button>
-              </Link>
-              <Link href="/user?section=quythi" passHref>
+              </StyledLink>
+              <StyledLink href="/user?section=quythi" passHref>
                 <Button className={router.query.section === 'quythi' ? 'active' : ''}>Hắc Điếm</Button>
-              </Link>
-              <Link href="/user?section=luyendanthat" passHref>
+              </StyledLink>
+              <StyledLink href="/user?section=luyendanthat" passHref>
                 <Button className={router.query.section === 'luyendanthat' ? 'active' : ''}>Luyện đan thất</Button>
-              </Link>
-              <Link href="/user?section=nhiemvuduong" passHref>
+              </StyledLink>
+              <StyledLink href="/user?section=nhiemvuduong" passHref>
                 <Button className={router.query.section === 'nhiemvuduong' ? 'active' : ''}>Nhiệm vụ đường</Button>
-              </Link>
-              <Link href="/user?section=daokhoang" passHref>
+              </StyledLink>
+              <StyledLink href="/user?section=daokhoang" passHref>
                 <Button className={router.query.section === 'daokhoang' ? 'active' : ''}>Đào khoáng</Button>
-              </Link>
+              </StyledLink>
             </ButtonsContainer>
           </SidebarSection>
           <SidebarSection>
             <SectionTitle onClick={() => toggleSection('bangphai')}>Bang phái</SectionTitle>
             <ButtonsContainer isOpen={openSections.bangphai}>
-              <Link href="/user?section=xinvaobang" passHref>
+              <StyledLink href="/user?section=xinvaobang" passHref>
                 <Button className={router.query.section === 'xinvaobang' ? 'active' : ''}>Xin vào bang</Button>
-              </Link>
+              </StyledLink>
               {isInClan && (
                 <>
-                  <Link href="/user?section=nghisudien" passHref>
+                  <StyledLink href="/user?section=nghisudien" passHref>
                     <Button className={router.query.section === 'nghisudien' ? 'active' : ''}>Nghị sự điện</Button>
-                  </Link>
-                  <Link href="/user?section=baokhophong" passHref>
+                  </StyledLink>
+                  <StyledLink href="/user?section=baokhophong" passHref>
                     <Button className={router.query.section === 'baokhophong' ? 'active' : ''}>Bảo khố phòng</Button>
-                  </Link>
-                  <Link href="/user?section=lanhsuduong" passHref>
+                  </StyledLink>
+                  <StyledLink href="/user?section=lanhsuduong" passHref>
                     <Button className={router.query.section === 'lanhsuduong' ? 'active' : ''}>Lãnh Sự Đường</Button>
-                  </Link>
+                  </StyledLink>
                 </>
               )}
             </ButtonsContainer>

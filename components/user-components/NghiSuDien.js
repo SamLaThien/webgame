@@ -224,7 +224,7 @@ const NghiSuDien = () => {
           } second(s)`
         );
 
-        if (seconds !== 0 && seconds % 1 === 0) {
+        if (seconds !== 0 && seconds % 1800 === 0) {
           console.log("10 seconds reached. Preparing to update EXP...");
           updateExp();
         }

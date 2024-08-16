@@ -151,6 +151,8 @@ const HoSo = () => {
   const [changeDanhHao, setChangeDanhHao] = useState("");
   const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
   const [confirmType, setConfirmType] = useState("");
+  const [clanInfo, setClanInfo] = useState(null);
+
 
   const router = useRouter();
 
@@ -167,9 +169,14 @@ const HoSo = () => {
             return;
           }
           const response = await axios.post("/api/user", { userId });
+
           if (response.status === 200) {
             setUser(response.data);
             console.log("User data fetched successfully:", response.data);
+            
+            if (response.data.bang_hoi) {
+              fetchClanInfo(response.data.bang_hoi);
+            }
           } else {
             console.error("Failed to fetch user data:", response.statusText);
           }
@@ -179,6 +186,20 @@ const HoSo = () => {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+      }
+    };
+
+    const fetchClanInfo = async (clanId) => {
+      try {
+        const response = await axios.get(`/api/user/ho-so/get-clan-name?clanId=${clanId}`);
+        if (response.status === 200) {
+          setClanInfo(response.data);
+          console.log("Clan data fetched successfully:", response.data);
+        } else {
+          console.error("Failed to fetch clan data:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching clan data:", error);
       }
     };
 
@@ -326,7 +347,7 @@ const HoSo = () => {
             Danh hiệu: <b>{user.danh_hao || "Chưa có danh hiệu"}</b>
           </UserInfoItem>
           <UserInfoItem>
-            Bang hội: <b>{user.bang_hoi || "Chưa có bang hội"}</b>
+            Bang hội: <b>{clanInfo ? clanInfo.name : "Chưa có bang hội"}</b>
           </UserInfoItem>
           <UserInfoItem>
             Tài sản: <b>{user.tai_san || 0}</b> bạc
