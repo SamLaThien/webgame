@@ -17,21 +17,30 @@ const Container = styled.div`
   height: 120vh;
   width: 100vw;
 `;
+
+const WheelContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+`;
 const Image = styled.img`
-  margin-top: calc(-7vw - 1vw);
-  margin-left: -0.5vw;
-  width: calc(38vw + 1vw);
-  height: auto;
   z-index: -1;
   position: absolute;
+  width: 800px;
 `;
+
 const Image2 = styled.img`
-  margin-top: 7vh;
-  width: calc(15vw + 1vw);
-  height: auto;
-  z-index: 100000;
   position: absolute;
+  width: 350px;
+  z-index: 100;
+  cursor: pointer;
+  &:hover {
+    transform: scale(1.1); 
+  }
 `;
+
 const Button = styled.button`
   padding: 10px 20px;
   margin-top: 10vh;
@@ -53,7 +62,7 @@ const LogContainer = styled.div`
   width: calc(40vw + 1vw);
   border: 1px solid #93b6c8;
   padding: 20px;
-  overflow-y: auto;
+  overflow-y: hidden;
   background-color: white;
 `;
 const LogTitle = styled.h2`
@@ -67,12 +76,16 @@ const LogItem = styled.div`
   font-size: 14px;
 `;
 
+
+
 const VongQuayMayManPage = () => {
   const [wheelSlots, setWheelSlots] = useState([]);
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeIndex, setPrizeIndex] = useState(0);
   const [result, setResult] = useState(null);
   const [spinLogs, setSpinLogs] = useState([]);
+  const [taiSan, setTaiSan] = useState(0); 
+
 
   const formatTimeDifference = (timestamp) => {
     const now = moment();
@@ -104,9 +117,6 @@ const VongQuayMayManPage = () => {
                   style: {
                     backgroundColor: group.background_color,
                     textColor: group.text_color,
-                    borderWidth: '1px', 
-                    borderStyle: 'transparent', 
-                    borderColor: 'white',
                   },
                   items: slots.filter(
                     (slot) => slot.slot_number === group.slot_number
@@ -303,31 +313,33 @@ const VongQuayMayManPage = () => {
       <Container>
         {wheelSlots.length > 0 && (
           <>
-          <Wheel
-              mustStartSpinning={mustSpin}
-              prizeNumber={prizeIndex}
-              data={wheelSlots.map((slot) => ({
-                option: slot.option,
-                style: {
-                  ...slot.style,
-                  borderWidth: '1px', 
-                  borderStyle: 'solid',
-                  borderColor: 'white',
-                },
-                
-              }))}
-              outerBorderWidth={1}
-              outerBorderColor="gold"
-              radiusLineColor="gold"
-              radiusLineWidth={1} 
-              onStopSpinning={handlePrizeResult}
-            />
+            <WheelContainer>
+              <Wheel
+                mustStartSpinning={mustSpin}
+                prizeNumber={prizeIndex}
+                data={wheelSlots.map((slot) => ({
+                  option: slot.option,
+                  style: {
+                    ...slot.style,
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "white",
+                  },
+                }))}
+                outerBorderWidth={1}
+                outerBorderColor="gold"
+                radiusLineColor="gold"
+                radiusLineWidth={1}
+                onStopSpinning={handlePrizeResult}
+              />
+              <Image src="/spin/overlay2.png" alt="Image below the wheel" />
+              <Image2 src="/spin/center.png" alt="Image below the wheel"  onClick={handleSpinClick}/>
+            </WheelContainer>
+
             <Button onClick={handleSpinClick}>Quay</Button>
             {result && <p>You won: {result}</p>}
           </>
         )}
-        <Image src="/spin/overlay2.png" alt="Image below the wheel" />
-        <Image2 src="/spin/center.png" alt="Image below the wheel" />
 
         <LowerSection>
           <LogContainer>
