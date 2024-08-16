@@ -159,8 +159,8 @@ const DotPha = () => {
         const response = await fetch(`/api/user/ruong-do/check-item?userId=${userId}`);
         const ruongDoItems = await response.json();
 
-        const item1Id = 5; // ID for `Đại Linh Đan`
-        const item2Id = 6; // ID for `Độ Hư Đan`
+        const item1Id = 38; // ID for `Đại Linh Đan`
+        const item2Id = 39; // ID for `Độ Hư Đan`
 
         setHasItem1(
           ruongDoItems.some(
@@ -385,7 +385,7 @@ const DotPha = () => {
                   onChange={handleCheckboxChangeItem1}
                   disabled={!hasItem1} // Disable if the user doesn't have the item
                 />
-                <CheckboxLabel htmlFor="item1">Đại Linh Đan</CheckboxLabel>
+                <CheckboxLabel htmlFor="item1">Đế Giai Thuẫn</CheckboxLabel>
               </CheckboxContainer>
               <CheckboxContainer>
                 <input
@@ -395,7 +395,7 @@ const DotPha = () => {
                   onChange={handleCheckboxChangeItem2}
                   disabled={!hasItem2} // Disable if the user doesn't have the item
                 />
-                <CheckboxLabel htmlFor="item2">Độ Hư Đan</CheckboxLabel>
+                <CheckboxLabel htmlFor="item2">Tị Lôi Châu</CheckboxLabel>
               </CheckboxContainer>
               <DotPhaButton onClick={handleLevelUp} disabled={!canLevelUp}>
                 Đột phá
