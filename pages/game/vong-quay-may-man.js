@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import dynamic from "next/dynamic";
 import Layout from "../../components/Layout";
+import CboxGeneral from "@/components/CboxGeneral";
+import moment from "moment";
 
 const Wheel = dynamic(
   () => import("react-custom-roulette").then((mod) => mod.Wheel),
@@ -13,22 +15,86 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 0;
+  height: 120vh;
+  width: 100vw;
 `;
-
+const Image = styled.img`
+  margin-top: -17vh;
+  margin-left: -0.5vw;
+  width: calc(38vw + 1vw);
+  height: auto;
+  z-index: -1;
+  position: absolute;
+`;
+const Image2 = styled.img`
+  margin-top: 7vh;
+  width: calc(15vw + 1vw);
+  height: auto;
+  z-index: 100000;
+  position: absolute;
+`;
 const Button = styled.button`
   padding: 10px 20px;
-  margin-top: 20px;
+  margin-top: 10vh;
   background-color: #b3d7e8;
   color: white;
   border: none;
   cursor: pointer;
+  font-weight: bold;
+  font-size: larger;
+`;
+const LowerSection = styled.div`
+  margin-top: 40px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
 `;
 
+const LogContainer = styled.div`
+  width: calc(40vw + 1vw);
+  border: 1px solid #93b6c8;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: white;
+`;
+const LogTitle = styled.h2`
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 12px;
+`;
+const LogItem = styled.div`
+  padding: 8px;
+  border: 1px solid #93b6c8;
+  font-size: 14px;
+`;
+const CustomWheelContainer = styled.div`
+  .wheel-container {
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: white !important;
+  }
+`;
 const VongQuayMayManPage = () => {
   const [wheelSlots, setWheelSlots] = useState([]);
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeIndex, setPrizeIndex] = useState(0);
   const [result, setResult] = useState(null);
+  const [spinLogs, setSpinLogs] = useState([]);
+
+  const formatTimeDifference = (timestamp) => {
+    const now = moment();
+    const logTime = moment(timestamp);
+    const duration = moment.duration(now.diff(logTime));
+
+    const hours = duration.asHours();
+    const minutes = duration.asMinutes();
+
+    if (hours >= 1) {
+      return `${Math.floor(hours)} giờ trước`;
+    } else {
+      return `${Math.floor(minutes)} phút trước`;
+    }
+  };
 
   useEffect(() => {
     // Fetch the wheel data
@@ -45,6 +111,9 @@ const VongQuayMayManPage = () => {
                   style: {
                     backgroundColor: group.background_color,
                     textColor: group.text_color,
+                    borderWidth: '1px', 
+                    borderStyle: 'transparent', 
+                    borderColor: 'white',
                   },
                   items: slots.filter(
                     (slot) => slot.slot_number === group.slot_number
@@ -54,6 +123,16 @@ const VongQuayMayManPage = () => {
               }
             });
         }
+      });
+
+    fetch("/api/user/game/vong-quay/spin-logs")
+      .then((res) => res.json())
+      .then((logs) => {
+        const formattedLogs = logs.map((log) => ({
+          ...log,
+          formattedTime: formatTimeDifference(log.timestamp),
+        }));
+        setSpinLogs(formattedLogs);
       });
   }, []);
 
@@ -101,47 +180,81 @@ const VongQuayMayManPage = () => {
       return;
     }
 
-    console.log("Selected Slot:", selectedSlot); 
-    console.log("Prize Value:", prizeValue); 
+    console.log("Selected Slot:", selectedSlot);
+    console.log("Prize Value:", prizeValue);
 
     if (selectedSlot.items[0]?.prize_type === 1) {
-      console.log("Prize Type: Exp/Bac"); 
+      console.log("Prize Type: Exp/Bac");
       await updateUserExpOrBac(selectedSlot.option, prizeValue);
     } else if (selectedSlot.items[0]?.prize_type === 2) {
-      console.log("Prize Type: Item"); 
+      console.log("Prize Type: Item");
       const vatPhamId = await getVatPhamId(prizeValue);
       if (vatPhamId) {
-        await updateUserItem(vatPhamId, 1); 
+        await updateUserItem(vatPhamId, 1);
       }
     }
+    await logSpinResult(selectedSlot.option, prizeValue);
 
     setResult(prizeValue);
     setMustSpin(false);
   };
 
+  const logSpinResult = async (prizeCategory, prizeName, quantity) => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser || !storedUser.id) {
+        throw new Error("User not found in local storage");
+      }
+
+      const userId = storedUser.id;
+
+      const response = await fetch("/api/user/game/vong-quay/spin-logs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          prize_category: prizeCategory,
+          prize_name: prizeName,
+          quantity,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to log spin result");
+      }
+
+      setSpinLogs((prevLogs) => [...prevLogs, data]);
+    } catch (error) {
+      console.error("Error logging spin result:", error);
+    }
+  };
+
   function normalizePrizeName(prize) {
     return prize
       .toLowerCase()
-      .normalize('NFD') // Decompose special characters
-      .replace(/[\u0300-\u036f]/g, ''); // Remove diacritical marks
+      .normalize("NFD") // Decompose special characters
+      .replace(/[\u0300-\u036f]/g, ""); // Remove diacritical marks
   }
-  
+
   async function updateUserExpOrBac(prize, amount) {
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       if (!storedUser || !storedUser.id) {
         throw new Error("User not found in local storage");
       }
-  
+
       const userId = storedUser.id;
       const normalizedPrize = normalizePrizeName(prize);
-  
-      console.log('Updating User:', { userId, prize: normalizedPrize, amount }); // Log to verify data
-  
-      const response = await fetch('/api/user/game/vong-quay/exp', {
-        method: 'POST',
+
+      console.log("Updating User:", { userId, prize: normalizedPrize, amount }); // Log to verify data
+
+      const response = await fetch("/api/user/game/vong-quay/exp", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
@@ -149,18 +262,16 @@ const VongQuayMayManPage = () => {
           amount,
         }),
       });
-  
+
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update Exp/Bac');
+        throw new Error(data.message || "Failed to update Exp/Bac");
       }
-      console.log('User Exp/Bac updated successfully:', data);
+      console.log("User Exp/Bac updated successfully:", data);
     } catch (error) {
-      console.error('Error updating Exp/Bac:', error);
+      console.error("Error updating Exp/Bac:", error);
     }
   }
-  
-  
 
   async function updateUserItem(vat_pham_id) {
     try {
@@ -168,51 +279,76 @@ const VongQuayMayManPage = () => {
       if (!storedUser || !storedUser.id) {
         throw new Error("User not found in local storage");
       }
-  
+
       const userId = storedUser.id;
-  
-      const response = await fetch('/api/user/game/vong-quay/item', {
-        method: 'POST',
+
+      const response = await fetch("/api/user/game/vong-quay/item", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
           vat_pham_id,
-          so_luong: 1,  // Assuming the quantity won is 1
+          so_luong: 1, // Assuming the quantity won is 1
         }),
       });
-  
+
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to add item to Ruong Do');
+        throw new Error(data.message || "Failed to add item to Ruong Do");
       }
-      console.log('Item added to Ruong Do successfully:', data);
+      console.log("Item added to Ruong Do successfully:", data);
     } catch (error) {
-      console.error('Error updating Ruong Do:', error);
+      console.error("Error updating Ruong Do:", error);
     }
   }
-  
 
   return (
     <Layout>
       <Container>
-        <h1>Vòng Quay May Mắn</h1>
         {wheelSlots.length > 0 && (
           <>
-            <Wheel
+          <CustomWheelContainer>
+          <Wheel
               mustStartSpinning={mustSpin}
               prizeNumber={prizeIndex}
               data={wheelSlots.map((slot) => ({
                 option: slot.option,
-                style: slot.style,
+                style: {
+                  ...slot.style,
+                  borderWidth: '1px', 
+                  borderStyle: 'solid',
+                  borderColor: 'white',
+                },
               }))}
               onStopSpinning={handlePrizeResult}
             />
+          </CustomWheelContainer>
             <Button onClick={handleSpinClick}>Quay</Button>
             {result && <p>You won: {result}</p>}
           </>
         )}
+        <Image src="/spin/overlay2.png" alt="Image below the wheel" />
+        <Image2 src="/spin/center.png" alt="Image below the wheel" />
+
+        <LowerSection>
+          <LogContainer>
+            <LogTitle>Lịch Sử Quay</LogTitle>
+            {spinLogs && spinLogs.length > 0 ? (
+              spinLogs.map((log, index) => (
+                <LogItem key={index}>
+                  <strong>{log.username}</strong> Quay trúng{" "}
+                  <strong>{log.prize_category}</strong> ({log.prize_name}) (
+                  {log.formattedTime})
+                </LogItem>
+              ))
+            ) : (
+              <p>No spin logs available.</p>
+            )}
+          </LogContainer>
+          <CboxGeneral />
+        </LowerSection>
       </Container>
     </Layout>
   );
