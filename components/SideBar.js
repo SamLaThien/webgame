@@ -5,14 +5,19 @@ import Link from 'next/link';
 
 const SidebarContainer = styled.div`
   width: 250px;
-  padding-right: 20px;
   display: flex;
   flex-direction: column;
+  @media (max-width: 749px){
+    width: 95vw !important;
+  }
 `;
 
 const SidebarSection = styled.div`
   margin-bottom: 20px;
   border: 1px solid #93B6C8;
+  @media (max-width: 749px){
+    width: 95vw !important;
+  }
 `;
 
 const SectionTitle = styled.div`
@@ -22,6 +27,9 @@ const SectionTitle = styled.div`
   background-color: #B3D7E8;
   color: white;
   border-bottom: 1px solid #93B6C8;
+  @media (max-width: 749px){
+    width: 90vw !important;
+  }
 `;
 
 const Button = styled.a`
@@ -33,6 +41,9 @@ const Button = styled.a`
   font-size: 16px;
   display: block;
   box-sizing: border-box;
+  @media (max-width: 749px){
+    width: 95vw !important;
+  }
 
   &:hover {
     background-color: #93B6C8;

@@ -31,20 +31,24 @@ const ContentWrapper = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-start; // Align content to the top
+  align-items: flex-start; 
 `;
 
 const ContentArea = styled.div`
   width: 100%;
-  max-width: 1200px; // Set a max-width for the content area
+  max-width: 1200px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  gap: 20px;
+  @media( max-width: 749px){
+    flex-direction: column;
+    padding: 20px;
+  }
 `;
 
 const MainContent = styled.div`
   flex: 1;
-  padding-left: 20px; // Add some padding to the left for spacing from the sidebar
 `;
 
 const BackImage = styled.img`

@@ -11,7 +11,7 @@ const Container = styled.div`
   justify-content: space-between;
   background-color: none;
   gap: 20px;
-  padding: 20px;
+  padding: 0;
   align-items: start;
   box-sizing: border-box;
   @media (max-width: 749px) {
