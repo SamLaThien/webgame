@@ -14,7 +14,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch all items in ruong_do for the user
     const query = `
       SELECT rd.id AS ruong_do_id, vp.Name AS vat_pham_name, rd.so_luong, vp.PhamCap, vp.SuDung, vp.phan_loai
       FROM ruong_do rd
@@ -27,11 +26,9 @@ export default async function handler(req, res) {
       }
 
       if (results.length === 0) {
-        // If no items found, return a message indicating the inventory is empty
         return res.status(200).json({ message: 'Rương đồ trống' });
       }
 
-      // Return the fetched items
       return res.status(200).json(results);
     });
   } catch (error) {
