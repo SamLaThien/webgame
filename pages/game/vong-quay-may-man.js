@@ -37,7 +37,7 @@ const Image2 = styled.img`
   z-index: 100;
   cursor: pointer;
   &:hover {
-    transform: scale(1.1); 
+    transform: scale(1.1);
   }
 `;
 
@@ -60,9 +60,10 @@ const LowerSection = styled.div`
 
 const LogContainer = styled.div`
   width: calc(40vw + 1vw);
+  height: calc(40vh + 1vh);
   border: 1px solid #93b6c8;
   padding: 20px;
-  overflow-y: hidden;
+  overflow-y: scroll;
   background-color: white;
 `;
 const LogTitle = styled.h2`
@@ -76,16 +77,13 @@ const LogItem = styled.div`
   font-size: 14px;
 `;
 
-
-
 const VongQuayMayManPage = () => {
   const [wheelSlots, setWheelSlots] = useState([]);
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeIndex, setPrizeIndex] = useState(0);
   const [result, setResult] = useState(null);
   const [spinLogs, setSpinLogs] = useState([]);
-  const [taiSan, setTaiSan] = useState(0); 
-
+  const [taiSan, setTaiSan] = useState(0);
 
   const formatTimeDifference = (timestamp) => {
     const now = moment();
@@ -139,10 +137,30 @@ const VongQuayMayManPage = () => {
       });
   }, []);
 
-  const handleSpinClick = () => {
-    const newPrizeIndex = Math.floor(Math.random() * wheelSlots.length);
-    setPrizeIndex(newPrizeIndex);
-    setMustSpin(true);
+  const handleSpinClick = async () => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const response = await fetch("/api/user/game/vong-quay/tai-san", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: storedUser.id }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setTaiSan(data.tai_san); // Update tai_san in the component's state
+        const newPrizeIndex = Math.floor(Math.random() * wheelSlots.length);
+        setPrizeIndex(newPrizeIndex);
+        setMustSpin(true);
+      } else {
+        alert(data.message); // Display the error message if the spin is not allowed
+      }
+    } catch (error) {
+      console.error("Error checking tai_san:", error);
+    }
   };
 
   const calculatePrize = (slot) => {
@@ -333,7 +351,11 @@ const VongQuayMayManPage = () => {
                 onStopSpinning={handlePrizeResult}
               />
               <Image src="/spin/overlay2.png" alt="Image below the wheel" />
-              <Image2 src="/spin/center.png" alt="Image below the wheel"  onClick={handleSpinClick}/>
+              <Image2
+                src="/spin/center.png"
+                alt="Image below the wheel"
+                onClick={handleSpinClick}
+              />
             </WheelContainer>
 
             <Button onClick={handleSpinClick}>Quay</Button>
