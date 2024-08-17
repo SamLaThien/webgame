@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     const query = `
-      SELECT rd.id AS ruong_do_id, vp.Name AS vat_pham_name, rd.so_luong, vp.PhamCap, vp.SuDung, vp.phan_loai
+      SELECT rd.id AS ruong_do_id, rd.vat_pham_id, vp.Name AS vat_pham_name, rd.so_luong, vp.PhamCap, vp.SuDung, vp.phan_loai
       FROM ruong_do rd
       LEFT JOIN vat_pham vp ON rd.vat_pham_id = vp.ID
       WHERE rd.user_id = ?
