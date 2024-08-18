@@ -116,30 +116,17 @@ const DotPha = () => {
   const [user, setUser] = useState(null);
   const [levelData, setLevelData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [seconds, setSeconds] = useState(0);
-  const [hasItem1, setHasItem1] = useState(false);
-  const [hasItem2, setHasItem2] = useState(false);
-  const [isCheckedItem1, setIsCheckedItem1] = useState(false);
-  const [isCheckedItem2, setIsCheckedItem2] = useState(false);
+  const [checkedItems, setCheckedItems] = useState({});
 
   useEffect(() => {
-    console.log("Fetching user and level data...");
     const fetchUserAndLevel = async () => {
       try {
         const storedUser = JSON.parse(localStorage.getItem("user"));
         if (storedUser) {
-          console.log("User found in localStorage:", storedUser);
-          const { data: userData } = await axios.get(
-            `/api/user/clan/user-info?userId=${storedUser.id}`
-          );
-          console.log("User data fetched:", userData);
+          const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
           setUser(userData);
 
-          const { data: fetchedLevelData } = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: userData.level }
-          );
-          console.log("Level data fetched:", fetchedLevelData);
+          const { data: fetchedLevelData } = await axios.post(`/api/user/dot-pha/level-info`, { level: userData.level });
           setLevelData(fetchedLevelData);
         }
       } catch (error) {
@@ -148,123 +135,23 @@ const DotPha = () => {
         setLoading(false);
       }
     };
-    const fetchUserItems = async () => {
-      try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (!storedUser || !storedUser.id) {
-          throw new Error("User not found in local storage");
-        }
 
-        const userId = storedUser.id;
-        const item1Id = 38; 
-        const item2Id = 39; 
-
-        const { data: usedItemsData } = await axios.get(`/api/user/dot-pha/check-used-items`, {
-          params: {
-            userId,
-            usedItemIds: `${item1Id},${item2Id}`
-          }
-        });
-
-        setHasItem1(usedItemsData.hasUsedItems);
-        setHasItem2(usedItemsData.hasUsedItems);
-
-      } catch (error) {
-        console.error("Error fetching user items:", error);
-      }
-    };
-
-    fetchUserItems();
     fetchUserAndLevel();
   }, []);
 
-  const handleCheckboxChangeItem1 = () => {
-    setIsCheckedItem1(!isCheckedItem1);
-  };
-
-  const handleCheckboxChangeItem2 = () => {
-    setIsCheckedItem2(!isCheckedItem2);
-  };
-  // useEffect(() => {
-  //   if (user) {
-  //     console.log("Starting timer for EXP update...");
-  //     const interval = setInterval(() => {
-  //       setSeconds((prevSeconds) => prevSeconds + 1);
-  //       console.log(
-  //         `Timer: ${Math.floor(seconds / 60)} minute(s) and ${
-  //           seconds % 60
-  //         } second(s)`
-  //       );
-
-  //       if (seconds !== 0 && seconds % 1 === 0) {
-  //         console.log("10 seconds reached. Preparing to update EXP...");
-  //         updateExp();
-  //       }
-  //     }, 1000);
-
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [user, seconds]);
-
-  const updateExp = async () => {
-    try {
-      const cap = Math.floor(user.level / 10) + 1;
-      let tile = 1;
-
-      switch (cap) {
-        case 1:
-          tile = 1.1;
-          break;
-        case 2:
-          tile = 1.2;
-          break;
-        case 3:
-          tile = 1.3;
-          break;
-        case 4:
-          tile = 2.6;
-          break;
-        case 5:
-          tile = 4.2;
-          break;
-        case 6:
-          tile = 10.5;
-          break;
-        case 7:
-          tile = 21;
-          break;
-        case 8:
-          tile = 70;
-          break;
-        case 9:
-          tile = 210;
-          break;
-        default:
-          tile = 1;
-      }
-
-      const expToAdd = 1 / (48 * tile);
-
-      console.log(`Calculated EXP to add: ${expToAdd}`);
-
-      const response = await axios.post("/api/user/dot-pha/update", {
-        userId: user.id,
-        expToAdd: expToAdd,
-      });
-
-      console.log("API response:", response.data);
-
-      setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + expToAdd }));
-    } catch (error) {
-      console.error("Error updating exp:", error);
-    }
+  const handleCheckboxChange = (itemId) => {
+    setCheckedItems(prevState => ({
+      ...prevState,
+      [itemId]: !prevState[itemId],
+    }));
   };
 
   const handleLevelUp = async () => {
     if (user && levelData && user.exp >= levelData.exp) {
       try {
-        const requiredItemIds = levelData.vatpham_bat_buoc ? levelData.vatpham_bat_buoc.split(",") : [];
+        const requiredItemIds = levelData.vatpham_bat_buoc_id ? levelData.vatpham_bat_buoc_id.split(",") : [];
   
+        // Check for required items only if they exist
         if (requiredItemIds.length > 0) {
           const { data: requiredItemsData } = await axios.get(`/api/user/dot-pha/check-required-item`, {
             params: {
@@ -282,21 +169,30 @@ const DotPha = () => {
         let successChance = levelData.ty_le_dot_pha_thanh_cong;
         console.log("Base ti le dot pha thanh cong:", successChance);
   
-        let levelRangeKey = Object.keys(levelItemChances).find((range) => {
+        const levelRangeKey = Object.keys(levelItemChances).find((range) => {
           const [min, max] = range.split('-').map(Number);
           return user.level >= min && user.level <= max;
         });
   
-        if (isCheckedItem1 && hasItem1) {
-          const itemChance = levelItemChances[levelRangeKey][38];
-          successChance += itemChance;
-          console.log("Added chance from item 38:", itemChance, "New successChance:", successChance);
-        }
+        // Collecting selected item IDs that the user opted to use
+        const selectedItems = Object.keys(checkedItems).filter(itemId => checkedItems[itemId]);
   
-        if (isCheckedItem2 && hasItem2) {
-          const itemChance = levelItemChances[levelRangeKey][39];
-          successChance += itemChance;
-          console.log("Added chance from item 39:", itemChance, "New successChance:", successChance);
+        if (selectedItems.length > 0) {
+          const { data: usedItemsData } = await axios.get(`/api/user/dot-pha/check-used-items`, {
+            params: {
+              userId: user.id,
+              usedItemIds: selectedItems.join(","),
+            },
+          });
+  
+          // Apply success chance boosts based on items the user opted to use
+          usedItemsData.forEach(item => {
+            const itemChance = levelItemChances[levelRangeKey]?.[item.vat_pham_id] || consistentItemChances[item.vat_pham_id];
+            if (itemChance) {
+              successChance += itemChance;
+              console.log(`Added chance from item ${item.vat_pham_id}:`, itemChance, "New successChance:", successChance);
+            }
+          });
         }
   
         const randomChance = Math.random() * 100;
@@ -321,17 +217,12 @@ const DotPha = () => {
             tai_san: newTaiSan,
           }));
   
-          const { data: fetchedLevelData } = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: nextLevel }
-          );
+          const { data: fetchedLevelData } = await axios.post(`/api/user/dot-pha/level-info`, { level: nextLevel });
           setLevelData(fetchedLevelData);
   
           alert("Đột phá thành công!");
         } else {
-          const expLoss = Math.floor(
-            user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
-          );
+          const expLoss = Math.floor(user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100));
           const newExp = Math.max(0, user.exp - expLoss);
   
           setUser((prevUser) => ({
@@ -350,8 +241,6 @@ const DotPha = () => {
   };
   
   
-  
-  
 
   if (loading) {
     return <Container>Loading...</Container>;
@@ -363,6 +252,11 @@ const DotPha = () => {
 
   const expProgress = (user.exp / levelData.exp) * 100;
   const canLevelUp = user.exp >= levelData.exp;
+
+  const levelRangeKey = Object.keys(levelItemChances).find((range) => {
+    const [min, max] = range.split('-').map(Number);
+    return user.level >= min && user.level <= max;
+  });
 
   return (
     <>
@@ -387,26 +281,32 @@ const DotPha = () => {
                 Vật phẩm bắt buộc: {levelData.vatpham_bat_buoc}
               </MandatoryItems>
               <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
-              <CheckboxContainer>
-                <input
-                  type="checkbox"
-                  id="item1"
-                  checked={isCheckedItem1}
-                  onChange={handleCheckboxChangeItem1}
-                  disabled={!hasItem1} // Disable if the user doesn't have the item
-                />
-                <CheckboxLabel htmlFor="item1">Đế Giai Thuẫn</CheckboxLabel>
-              </CheckboxContainer>
-              <CheckboxContainer>
-                <input
-                  type="checkbox"
-                  id="item2"
-                  checked={isCheckedItem2}
-                  onChange={handleCheckboxChangeItem2}
-                  disabled={!hasItem2} // Disable if the user doesn't have the item
-                />
-                <CheckboxLabel htmlFor="item2">Tị Lôi Châu</CheckboxLabel>
-              </CheckboxContainer>
+              {Object.entries(levelItemChances[levelRangeKey]).map(([itemId, itemChance]) => (
+                <CheckboxContainer key={itemId}>
+                  <input
+                    type="checkbox"
+                    id={`item-${itemId}`}
+                    checked={!!checkedItems[itemId]}
+                    onChange={() => handleCheckboxChange(itemId)}
+                  />
+                  <CheckboxLabel htmlFor={`item-${itemId}`}>
+                    {getItemNameById(itemId)} ({itemChance > 0 ? `+${itemChance}%` : "Không khả dụng ở cấp này"})
+                  </CheckboxLabel>
+                </CheckboxContainer>
+              ))}
+              {Object.entries(consistentItemChances).map(([itemId, itemChance]) => (
+                <CheckboxContainer key={itemId}>
+                  <input
+                    type="checkbox"
+                    id={`item-${itemId}`}
+                    checked={!!checkedItems[itemId]}
+                    onChange={() => handleCheckboxChange(itemId)}
+                  />
+                  <CheckboxLabel htmlFor={`item-${itemId}`}>
+                    {getItemNameById(itemId)} (+{itemChance}%)
+                  </CheckboxLabel>
+                </CheckboxContainer>
+              ))}
               <DotPhaButton onClick={handleLevelUp} disabled={!canLevelUp}>
                 Đột phá
               </DotPhaButton>
@@ -460,3 +360,19 @@ const DotPha = () => {
 };
 
 export default DotPha;
+
+const getItemNameById = (itemId) => {
+  const itemNames = {
+    35: 'Huyết Khí Đan',
+    38: 'Đế Giai Thuẫn',
+    39: 'Tị Lôi Châu',
+    40: 'Thanh Tâm Đan',
+    41: 'Hộ Linh Trận',
+    42: 'Tân Lôi Trận',
+    43: 'Sa Ngọc Châu',
+    44: 'Hoàng Kim Lệnh',
+    45: 'Hoả Ngọc Châu',
+    // Add other items here as needed
+  };
+  return itemNames[itemId] || `Item ${itemId}`;
+};

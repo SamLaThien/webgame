@@ -11,12 +11,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'User ID is required' });
   }
 
-  // If itemIds is null, undefined, or empty, automatically pass the check
   if (!itemIds || itemIds.trim() === '') {
     return res.status(200).json({ hasRequiredItems: true });
   }
 
-  const itemIdArray = itemIds.split(',').map(id => parseInt(id.trim(), 10));
+  const itemIdArray = itemIds.split(',').map(id => {
+    const parsedId = parseInt(id.trim(), 10);
+    return isNaN(parsedId) ? null : parsedId;
+  }).filter(id => id !== null);
+
+  if (itemIdArray.length === 0) {
+    return res.status(400).json({ message: 'Invalid item IDs provided' });
+  }
 
   try {
     const query = `
