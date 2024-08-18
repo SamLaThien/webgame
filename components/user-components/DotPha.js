@@ -4,6 +4,7 @@ import axios from "axios";
 import BoltIcon from "@mui/icons-material/Bolt";
 import { Bolt, Error } from "@mui/icons-material";
 import ErrorIcon from "@mui/icons-material/Error";
+import { levelItemChances, consistentItemChances } from '@/utils/levelItemChances';
 
 const Container = styled.div`
   background: white;
@@ -264,7 +265,6 @@ const DotPha = () => {
       try {
         const requiredItemIds = levelData.vatpham_bat_buoc ? levelData.vatpham_bat_buoc.split(",") : [];
   
-        // Check if required items are needed and available
         if (requiredItemIds.length > 0) {
           const { data: requiredItemsData } = await axios.get(`/api/user/dot-pha/check-required-item`, {
             params: {
@@ -279,37 +279,68 @@ const DotPha = () => {
           }
         }
   
-        // Calculate leftover EXP after leveling up
-        const expUsed = levelData.exp;
-        const currentExp = user.exp;
-        const leftoverExp = currentExp - expUsed;
+        let successChance = levelData.ty_le_dot_pha_thanh_cong;
+        console.log("Base ti le dot pha thanh cong:", successChance);
   
-        // Proceed with the level-up logic
-        const nextLevel = user.level + 1;
-        const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
-  
-        await axios.post("/api/user/dot-pha/level-up", {
-          userId: user.id,
-          newLevel: nextLevel,
-          newTaiSan,
-          expUsed: expUsed, // The EXP needed for the current level-up
-          currentExp: currentExp, // The user's current EXP
+        let levelRangeKey = Object.keys(levelItemChances).find((range) => {
+          const [min, max] = range.split('-').map(Number);
+          return user.level >= min && user.level <= max;
         });
   
-        // Update the user state with the new level and leftover EXP
-        setUser((prevUser) => ({
-          ...prevUser,
-          level: nextLevel,
-          exp: leftoverExp, // Set leftover EXP after leveling up
-          tai_san: newTaiSan,
-        }));
+        if (isCheckedItem1 && hasItem1) {
+          const itemChance = levelItemChances[levelRangeKey][38];
+          successChance += itemChance;
+          console.log("Added chance from item 38:", itemChance, "New successChance:", successChance);
+        }
   
-        // Fetch new level data for the next level
-        const { data: fetchedLevelData } = await axios.post(
-          `/api/user/dot-pha/level-info`,
-          { level: nextLevel }
-        );
-        setLevelData(fetchedLevelData);
+        if (isCheckedItem2 && hasItem2) {
+          const itemChance = levelItemChances[levelRangeKey][39];
+          successChance += itemChance;
+          console.log("Added chance from item 39:", itemChance, "New successChance:", successChance);
+        }
+  
+        const randomChance = Math.random() * 100;
+        console.log("Random chance:", randomChance);
+  
+        if (randomChance <= successChance) {
+          const nextLevel = user.level + 1;
+          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+  
+          await axios.post("/api/user/dot-pha/level-up", {
+            userId: user.id,
+            newLevel: nextLevel,
+            newTaiSan,
+            expUsed: levelData.exp,
+            currentExp: user.exp,
+          });
+  
+          setUser((prevUser) => ({
+            ...prevUser,
+            level: nextLevel,
+            exp: prevUser.exp - levelData.exp,
+            tai_san: newTaiSan,
+          }));
+  
+          const { data: fetchedLevelData } = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: nextLevel }
+          );
+          setLevelData(fetchedLevelData);
+  
+          alert("Đột phá thành công!");
+        } else {
+          const expLoss = Math.floor(
+            user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
+          );
+          const newExp = Math.max(0, user.exp - expLoss);
+  
+          setUser((prevUser) => ({
+            ...prevUser,
+            exp: newExp,
+          }));
+  
+          alert(`Đột phá thất bại! Bạn đã mất ${expLoss} kinh nghiệm.`);
+        }
   
       } catch (error) {
         console.error("Error handling Đột Phá:", error);
@@ -317,6 +348,9 @@ const DotPha = () => {
       }
     }
   };
+  
+  
+  
   
 
   if (loading) {
