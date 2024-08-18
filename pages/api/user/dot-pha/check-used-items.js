@@ -1,5 +1,3 @@
-// pages/api/user/dot-pha/check-used-items.js
-
 import db from '@/lib/db';
 
 export default async function handler(req, res) {
@@ -25,11 +23,8 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Internal server error', error: error.message });
       }
 
-      const userHasUsedItems = usedItemIdArray.every(id => 
-        results.some(item => item.vat_pham_id === id && item.so_luong > 0)
-      );
-
-      return res.status(200).json({ hasUsedItems: userHasUsedItems });
+      // Return the items that the user has
+      return res.status(200).json(results);
     });
   } catch (error) {
     return res.status(500).json({ message: 'Internal server error', error: error.message });

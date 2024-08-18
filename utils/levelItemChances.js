@@ -2,10 +2,6 @@
 export const levelItemChances = {
   '0-10': {
     35: 5,  // Huyết Khí Đan
-    38: 0, // Đế Giai Thuẫn
-    39: 0, // Tị Lôi Châu
-    40: 0, // Thanh Tâm Đan
-    41: 0, // Hộ Linh Trận
   },
   '11-20': {
     35: 3,  // Huyết Khí Đan

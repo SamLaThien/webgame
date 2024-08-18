@@ -148,97 +148,102 @@ const DotPha = () => {
 
   const handleLevelUp = async () => {
     if (user && levelData && user.exp >= levelData.exp) {
-      try {
-        const requiredItemIds = levelData.vatpham_bat_buoc_id ? levelData.vatpham_bat_buoc_id.split(",") : [];
-  
-        // Check for required items only if they exist
-        if (requiredItemIds.length > 0) {
-          const { data: requiredItemsData } = await axios.get(`/api/user/dot-pha/check-required-item`, {
-            params: {
-              userId: user.id,
-              itemIds: requiredItemIds.join(","),
-            },
-          });
-  
-          if (!requiredItemsData.hasRequiredItems) {
-            alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
-            return;
-          }
-        }
-  
-        let successChance = levelData.ty_le_dot_pha_thanh_cong;
-        console.log("Base ti le dot pha thanh cong:", successChance);
-  
-        const levelRangeKey = Object.keys(levelItemChances).find((range) => {
-          const [min, max] = range.split('-').map(Number);
-          return user.level >= min && user.level <= max;
-        });
-  
-        // Collecting selected item IDs that the user opted to use
-        const selectedItems = Object.keys(checkedItems).filter(itemId => checkedItems[itemId]);
-  
-        if (selectedItems.length > 0) {
-          const { data: usedItemsData } = await axios.get(`/api/user/dot-pha/check-used-items`, {
-            params: {
-              userId: user.id,
-              usedItemIds: selectedItems.join(","),
-            },
-          });
-  
-          // Apply success chance boosts based on items the user opted to use
-          usedItemsData.forEach(item => {
-            const itemChance = levelItemChances[levelRangeKey]?.[item.vat_pham_id] || consistentItemChances[item.vat_pham_id];
-            if (itemChance) {
-              successChance += itemChance;
-              console.log(`Added chance from item ${item.vat_pham_id}:`, itemChance, "New successChance:", successChance);
+        try {
+            const requiredItemIds = levelData.vatpham_bat_buoc_id ? levelData.vatpham_bat_buoc_id.split(",") : [];
+
+            // Check for required items only if they exist
+            if (requiredItemIds.length > 0) {
+                const { data: requiredItemsData } = await axios.get(`/api/user/dot-pha/check-required-item`, {
+                    params: {
+                        userId: user.id,
+                        itemIds: requiredItemIds.join(","),
+                    },
+                });
+
+                if (!requiredItemsData.hasRequiredItems) {
+                    alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
+                    return;
+                }
             }
-          });
+
+            let successChance = levelData.ty_le_dot_pha_thanh_cong;
+            console.log("Base ti le dot pha thanh cong:", successChance);
+
+            const levelRangeKey = Object.keys(levelItemChances).find((range) => {
+                const [min, max] = range.split('-').map(Number);
+                return user.level >= min && user.level <= max;
+            });
+
+            // Collecting selected item IDs that the user opted to use
+            const selectedItems = Object.keys(checkedItems).filter(itemId => checkedItems[itemId]);
+
+            if (selectedItems.length > 0) {
+                const { data: usedItemsData } = await axios.get(`/api/user/dot-pha/check-used-items`, {
+                    params: {
+                        userId: user.id,
+                        usedItemIds: selectedItems.join(","),
+                    },
+                });
+
+                // Apply success chance boosts based on items the user opted to use
+                usedItemsData.forEach(item => {
+                    const itemChance = levelItemChances[levelRangeKey]?.[item.vat_pham_id] || consistentItemChances[item.vat_pham_id];
+                    if (itemChance) {
+                        successChance += itemChance;
+                        console.log(`Added chance from item ${item.vat_pham_id}:`, itemChance, "New successChance:", successChance);
+                    }
+                });
+            }
+
+            // Generate a random number between 0 and 100 to determine success
+            const randomChance = Math.random() * 100;
+            console.log("Random chance:", randomChance);
+
+            if (randomChance <= successChance) {
+                const nextLevel = user.level + 1;
+                const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+
+                await axios.post("/api/user/dot-pha/level-up", {
+                    userId: user.id,
+                    newLevel: nextLevel,
+                    newTaiSan,
+                    expUsed: levelData.exp,
+                    currentExp: user.exp,
+                });
+
+                setUser((prevUser) => ({
+                    ...prevUser,
+                    level: nextLevel,
+                    exp: prevUser.exp - levelData.exp,
+                    tai_san: newTaiSan,
+                }));
+
+                const { data: fetchedLevelData } = await axios.post(`/api/user/dot-pha/level-info`, { level: nextLevel });
+                setLevelData(fetchedLevelData);
+
+                alert("Đột phá thành công!");
+            } else {
+                const expLoss = Math.floor(user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100));
+                const newExp = Math.max(0, user.exp - expLoss);
+
+                setUser((prevUser) => ({
+                    ...prevUser,
+                    exp: newExp,
+                }));
+
+                alert(`Đột phá thất bại! Bạn đã mất ${expLoss} kinh nghiệm.`);
+            }
+
+        } catch (error) {
+            console.error("Error handling Đột Phá:", error);
+            alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
         }
-  
-        const randomChance = Math.random() * 100;
-        console.log("Random chance:", randomChance);
-  
-        if (randomChance <= successChance) {
-          const nextLevel = user.level + 1;
-          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
-  
-          await axios.post("/api/user/dot-pha/level-up", {
-            userId: user.id,
-            newLevel: nextLevel,
-            newTaiSan,
-            expUsed: levelData.exp,
-            currentExp: user.exp,
-          });
-  
-          setUser((prevUser) => ({
-            ...prevUser,
-            level: nextLevel,
-            exp: prevUser.exp - levelData.exp,
-            tai_san: newTaiSan,
-          }));
-  
-          const { data: fetchedLevelData } = await axios.post(`/api/user/dot-pha/level-info`, { level: nextLevel });
-          setLevelData(fetchedLevelData);
-  
-          alert("Đột phá thành công!");
-        } else {
-          const expLoss = Math.floor(user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100));
-          const newExp = Math.max(0, user.exp - expLoss);
-  
-          setUser((prevUser) => ({
-            ...prevUser,
-            exp: newExp,
-          }));
-  
-          alert(`Đột phá thất bại! Bạn đã mất ${expLoss} kinh nghiệm.`);
-        }
-  
-      } catch (error) {
-        console.error("Error handling Đột Phá:", error);
-        alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
-      }
     }
-  };
+};
+
+
+  
+  
   
   
 
