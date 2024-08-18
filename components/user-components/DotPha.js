@@ -164,7 +164,6 @@ const handleLevelUp = async () => {
       try {
           const requiredItemIds = levelData.vatpham_bat_buoc_id ? levelData.vatpham_bat_buoc_id.split(",") : [];
 
-          // Check for required items only if they exist
           if (requiredItemIds.length > 0) {
               const { data: requiredItemsData } = await axios.get(`/api/user/dot-pha/check-required-item`, {
                   params: {
@@ -187,7 +186,6 @@ const handleLevelUp = async () => {
               return user.level >= min && user.level <= max;
           });
 
-          // Collecting selected item IDs that the user opted to use
           const selectedItems = Object.keys(checkedItems).filter(itemId => checkedItems[itemId]);
 
           if (selectedItems.length > 0) {
@@ -198,11 +196,9 @@ const handleLevelUp = async () => {
                   },
               });
 
-              // Log used items
               const usedItemsLog = usedItemsData.map(item => `${getItemNameById(item.vat_pham_id)} x${item.so_luong}`).join(', ');
               await logUserActivity(user.id, 'Item Use', `Đã sử dụng: ${usedItemsLog}`);
 
-              // Apply success chance boosts based on items the user opted to use
               usedItemsData.forEach(item => {
                   const itemChance = levelItemChances[levelRangeKey]?.[item.vat_pham_id] || consistentItemChances[item.vat_pham_id];
                   if (itemChance) {
@@ -234,7 +230,6 @@ const handleLevelUp = async () => {
               const { data: fetchedLevelData } = await axios.post(`/api/user/dot-pha/level-info`, { level: nextLevel });
               setLevelData(fetchedLevelData);
 
-              // Log the successful level-up
               await logUserActivity(user.id, 'Dot Pha Success', `Đã đột phá thành công lên cấp ${nextLevel}!`);
           } else {
               const expLoss = Math.floor(user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100));
@@ -245,7 +240,6 @@ const handleLevelUp = async () => {
                   exp: newExp,
               }));
 
-              // Log the failed level-up
               await logUserActivity(user.id, 'Dot Pha Fail', `Đã thất bại trong việc đột phá và mất ${expLoss} kinh nghiệm.`);
           }
 

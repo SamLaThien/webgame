@@ -118,9 +118,9 @@ const RuongChuaDo = () => {
           );
 
           if (data.message) {
-            setMessage(data.message); // Set the message if returned
+            setMessage(data.message); 
           } else {
-            setItems(data); // Set items if found
+            setItems(data); 
           }
         }
       } catch (error) {
@@ -131,40 +131,64 @@ const RuongChuaDo = () => {
     fetchItems();
   }, []);
 
-  const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
+  const logUserActivity = async (userId, actionType, actionDetails) => {
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser) return;
-
-      const useAmount = isMultiple ? 10 : 1;
-
-      if (soLuong < useAmount) {
-        alert("Not enough items to use.");
-        return;
-      }
-
-      const { data } = await axios.post("/api/user/ruong-do/use-item", {
-        userId: storedUser.id,
-        ruongDoId,
-        vatPhamId,
-        useAmount,
+      await axios.post('/api/user/log/dot-pha-log', {
+        userId,
+        actionType,
+        actionDetails,
       });
-
-      if (data.success) {
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.ruong_do_id === ruongDoId
-              ? { ...item, so_luong: item.so_luong - useAmount }
-              : item
-          )
-        );
-      } else {
-        alert(data.message || "Error using item");
-      }
     } catch (error) {
-      console.error("Error using item:", error);
+      console.error("Error logging user activity:", error);
     }
   };
+  
+
+  const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
+    try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (!storedUser) return;
+
+        const useAmount = isMultiple ? 10 : 1;
+
+        if (soLuong < useAmount) {
+            alert("Not enough items to use.");
+            return;
+        }
+
+        const { data } = await axios.post("/api/user/ruong-do/use-item", {
+            userId: storedUser.id,
+            ruongDoId,
+            vatPhamId,
+            useAmount,
+        });
+
+        if (data.success) {
+            // Update the items in the UI
+            setItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.ruong_do_id === ruongDoId
+                        ? { ...item, so_luong: item.so_luong - useAmount }
+                        : item
+                )
+            );
+
+            // Log the activity
+            const itemName = items.find(item => item.vat_pham_id === vatPhamId)?.vat_pham_name || 'Unknown Item';
+            await logUserActivity(
+                storedUser.id,
+                'Item Use',
+                `đã sử dụng ${itemName} x${useAmount}`
+            );
+        } else {
+            alert(data.message || "Error using item");
+        }
+    } catch (error) {
+        console.error("Error using item:", error);
+    }
+};
+
+  
 
   const categorizedItems = items.filter((item) => item.phan_loai === activeTab);
 
