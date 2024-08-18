@@ -47,7 +47,7 @@ const Avatar = styled.img`
   width: calc(9rem + 1vw);
   height: calc(9rem + 1vw);
   border: 3px solid #93b6c8;
-  border-radius: 50%;
+  border-radius: 5%;
 `;
 
 const ChangeLabel = styled.div`

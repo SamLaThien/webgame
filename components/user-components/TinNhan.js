@@ -61,7 +61,6 @@ const Tab = styled.button`
 const TabContent = styled.div`
   display: ${(props) => (props.active ? "block" : "none")};
   border: 1px solid #93b6c8;
-  border-radius: 0 0 8px 8px;
   padding: 20px;
   background-color: #f9f9f9;
 `;
