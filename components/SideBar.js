@@ -144,7 +144,7 @@ const Sidebar = () => {
               <Button className={activeSection === '/bao-kho-phong' ? 'active' : ''}>Bảo khố phòng</Button>
             </StyledLink>
             <StyledLink href="/lanh-su-duong" passHref>
-              <Button className={activeSection === '/lanh-su-duong' ? 'active' : ''}>Lãnh Sự Đường</Button>
+              <Button className={activeSection === '/lanh-su-duong' ? 'active' : ''}>Chấp Sự Đường</Button>
             </StyledLink>
           </>
         )}

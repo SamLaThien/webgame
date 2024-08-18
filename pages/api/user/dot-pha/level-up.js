@@ -5,17 +5,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { userId, newLevel, newTaiSan } = req.body;
+  const { userId, newLevel, newTaiSan, expUsed, currentExp } = req.body;
 
-  if (!userId || !newLevel) {
-    return res.status(400).json({ message: 'User ID and new level are required' });
+  if (!userId || !newLevel || expUsed === undefined || currentExp === undefined) {
+    return res.status(400).json({ message: 'User ID, new level, expUsed, and currentExp are required' });
   }
 
   try {
-    // Update the user's level and reset EXP, also update tai_san
+    const leftoverExp = currentExp - expUsed;
+
     db.query(
-      'UPDATE users SET level = ?, exp = 0, tai_san = ? WHERE id = ?',
-      [newLevel, newTaiSan, userId],
+      'UPDATE users SET level = ?, exp = ?, tai_san = ? WHERE id = ?',
+      [newLevel, leftoverExp, newTaiSan, userId],
       (error, results) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
           return res.status(404).json({ message: 'User not found' });
         }
 
-        res.status(200).json({ message: 'User level updated successfully' });
+        res.status(200).json({ message: 'User level updated successfully', leftoverExp });
       }
     );
   } catch (error) {

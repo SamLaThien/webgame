@@ -155,23 +155,19 @@ const DotPha = () => {
         }
 
         const userId = storedUser.id;
+        const item1Id = 38; 
+        const item2Id = 39; 
 
-        const response = await fetch(`/api/user/ruong-do/check-item?userId=${userId}`);
-        const ruongDoItems = await response.json();
+        const { data: usedItemsData } = await axios.get(`/api/user/dot-pha/check-used-items`, {
+          params: {
+            userId,
+            usedItemIds: `${item1Id},${item2Id}`
+          }
+        });
 
-        const item1Id = 38; // ID for `Đại Linh Đan`
-        const item2Id = 39; // ID for `Độ Hư Đan`
+        setHasItem1(usedItemsData.hasUsedItems);
+        setHasItem2(usedItemsData.hasUsedItems);
 
-        setHasItem1(
-          ruongDoItems.some(
-            (item) => item.vat_pham_id === item1Id && item.so_luong > 0
-          )
-        );
-        setHasItem2(
-          ruongDoItems.some(
-            (item) => item.vat_pham_id === item2Id && item.so_luong > 0
-          )
-        );
       } catch (error) {
         console.error("Error fetching user items:", error);
       }
@@ -266,82 +262,62 @@ const DotPha = () => {
   const handleLevelUp = async () => {
     if (user && levelData && user.exp >= levelData.exp) {
       try {
-        const requiredItemIds = levelData.vatpham_bat_buoc_id.split(",");
-
-        if (!user.id || requiredItemIds.length === 0) {
-          alert("User ID or required item IDs are missing.");
-          return;
+        const requiredItemIds = levelData.vatpham_bat_buoc ? levelData.vatpham_bat_buoc.split(",") : [];
+  
+        // Check if required items are needed and available
+        if (requiredItemIds.length > 0) {
+          const { data: requiredItemsData } = await axios.get(`/api/user/dot-pha/check-required-item`, {
+            params: {
+              userId: user.id,
+              itemIds: requiredItemIds.join(","),
+            },
+          });
+  
+          if (!requiredItemsData.hasRequiredItems) {
+            alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
+            return;
+          }
         }
-
-        // Check if the user has the required items with quantity > 0
-        const response = await axios.get(`/api/user/dot-pha/check-items`, {
-          params: {
-            userId: user.id,
-            itemIds: requiredItemIds.join(","),
-          },
+  
+        // Calculate leftover EXP after leveling up
+        const expUsed = levelData.exp;
+        const currentExp = user.exp;
+        const leftoverExp = currentExp - expUsed;
+  
+        // Proceed with the level-up logic
+        const nextLevel = user.level + 1;
+        const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+  
+        await axios.post("/api/user/dot-pha/level-up", {
+          userId: user.id,
+          newLevel: nextLevel,
+          newTaiSan,
+          expUsed: expUsed, // The EXP needed for the current level-up
+          currentExp: currentExp, // The user's current EXP
         });
-
-        const hasRequiredItems = response.data.hasRequiredItems;
-
-        if (!hasRequiredItems) {
-          alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
-          return;
-        }
-
-        // Proceed with the level-up logic if the user has the required items
-        const randomChance = Math.random() * 100;
-
-        if (randomChance <= levelData.ty_le_dot_pha_thanh_cong) {
-          const nextLevel = user.level + 1;
-          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
-
-          await axios.post("/api/user/dot-pha/level-up", {
-            userId: user.id,
-            newLevel: nextLevel,
-            newTaiSan,
-          });
-
-          setUser((prevUser) => ({
-            ...prevUser,
-            level: nextLevel,
-            exp: 0,
-            tai_san: newTaiSan,
-          }));
-
-          const { data: fetchedLevelData } = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: nextLevel }
-          );
-          setLevelData(fetchedLevelData);
-
-          // Decrement the quantity of the required items
-          await axios.post("/api/user/dot-pha/decrement-item", {
-            userId: user.id,
-            itemIds: requiredItemIds.join(","), // Pass the item IDs as a comma-separated string
-          });
-
-          alert(
-            `Đột phá thành công! Bạn đã lên cấp và nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc.`
-          );
-        } else {
-          const expLoss = Math.floor(
-            user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
-          );
-          const newExp = Math.max(0, user.exp - expLoss);
-
-          setUser((prevUser) => ({
-            ...prevUser,
-            exp: newExp,
-          }));
-
-          alert(`Đột phá thất bại! Bạn đã mất ${expLoss} kinh nghiệm.`);
-        }
+  
+        // Update the user state with the new level and leftover EXP
+        setUser((prevUser) => ({
+          ...prevUser,
+          level: nextLevel,
+          exp: leftoverExp, // Set leftover EXP after leveling up
+          tai_san: newTaiSan,
+        }));
+  
+        // Fetch new level data for the next level
+        const { data: fetchedLevelData } = await axios.post(
+          `/api/user/dot-pha/level-info`,
+          { level: nextLevel }
+        );
+        setLevelData(fetchedLevelData);
+  
       } catch (error) {
         console.error("Error handling Đột Phá:", error);
         alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
       }
     }
   };
+  
 
   if (loading) {
     return <Container>Loading...</Container>;

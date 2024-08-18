@@ -7,11 +7,16 @@ export default async function handler(req, res) {
 
   const { userId, itemIds } = req.body;
 
-  if (!userId || !itemIds) {
-    return res.status(400).json({ message: 'User ID and item IDs are required' });
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required' });
   }
 
-  const itemIdArray = itemIds.split(',').map(id => parseInt(id.trim(), 10)); // Convert the string to an array of integers
+  // If itemIds is null, undefined, or empty, skip the decrement operation
+  if (!itemIds || itemIds.trim() === '') {
+    return res.status(200).json({ message: 'No items to decrement.' });
+  }
+
+  const itemIdArray = itemIds.split(',').map(id => parseInt(id.trim(), 10));
 
   try {
     // Decrement the quantity of each item by 1 in the ruong_do table
