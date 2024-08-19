@@ -85,10 +85,10 @@ const VatPhamManagement = () => {
           <TableBody>
             {vatPhams.map((vatPham) => (
               <TableRow key={vatPham.id}>
-                <TableCell>{vatPham.id}</TableCell>
-                <TableCell>{vatPham.name}</TableCell>
-                <TableCell>{vatPham.phamCap}</TableCell>
-                <TableCell>{vatPham.suDung}</TableCell>
+                <TableCell>{vatPham.ID}</TableCell>
+                <TableCell>{vatPham.Name}</TableCell>
+                <TableCell>{vatPham.PhamCap}</TableCell>
+                <TableCell>{vatPham.SuDung}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleOpenModal(vatPham, 'details')}>Chi tiết</Button>
                   <Button onClick={() => handleOpenModal(vatPham, 'edit')}>Sửa</Button>

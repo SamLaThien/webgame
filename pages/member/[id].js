@@ -190,7 +190,7 @@ const ProgressBar = styled.div`
 const Progress = styled.div`
   height: 100%;
   background-color: #4caf50;
-  width: ${({ width }) => `${width}%`}; 
+  width: ${({ width }) => `${width}%`};
   transition: width 0.4s ease;
 `;
 
@@ -267,7 +267,10 @@ const MemberPage = ({ id }) => {
     fetchUserData();
   }, [id]);
 
-  const expProgress = user && levelData && levelData.exp > 0 ? (user.exp / levelData.exp) * 100 : 0;
+  const expProgress =
+    user && levelData && levelData.exp > 0
+      ? Math.min(Math.round((user.exp / levelData.exp) * 100), 100)
+      : 0;
 
   const getClanRole = (roleId) => {
     const roles = {
@@ -300,11 +303,7 @@ const MemberPage = ({ id }) => {
             <AvatarContainer>
               <Frame src="/frame.png" alt="Avatar Frame" />
               <Avatar
-                src={
-                  user.image
-                    ? user.image
-                    : "/logo2.png"
-                }
+                src={user.image ? user.image : "/logo2.png"}
                 alt={user.username || "Default Avatar"}
               />
             </AvatarContainer>
@@ -322,11 +321,11 @@ const MemberPage = ({ id }) => {
             <SectionTitle>Tu luyện & Vật phẩm</SectionTitle>
             <ProgressContainer>
               <ProgressBarContainer>
-                <ProgressBarLabel>Phàm Nhân</ProgressBarLabel>
+                <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
                 <ProgressBar>
                   <Progress width={expProgress} />
                 </ProgressBar>
-                {user.exp}/{levelData.exp}
+                {expProgress}%
               </ProgressBarContainer>
             </ProgressContainer>
             <ItemsContainer>

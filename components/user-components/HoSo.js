@@ -152,8 +152,9 @@ const HoSo = () => {
   const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
   const [confirmType, setConfirmType] = useState("");
   const [clanInfo, setClanInfo] = useState(null);
-
-
+  const [giftCode, setGiftCode] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -173,7 +174,7 @@ const HoSo = () => {
           if (response.status === 200) {
             setUser(response.data);
             console.log("User data fetched successfully:", response.data);
-            
+
             if (response.data.bang_hoi) {
               fetchClanInfo(response.data.bang_hoi);
             }
@@ -191,7 +192,9 @@ const HoSo = () => {
 
     const fetchClanInfo = async (clanId) => {
       try {
-        const response = await axios.get(`/api/user/ho-so/get-clan-name?clanId=${clanId}`);
+        const response = await axios.get(
+          `/api/user/ho-so/get-clan-name?clanId=${clanId}`
+        );
         if (response.status === 200) {
           setClanInfo(response.data);
           console.log("Clan data fetched successfully:", response.data);
@@ -225,22 +228,22 @@ const HoSo = () => {
       console.log("User ID is undefined or null.");
       return;
     }
-  
+
     if (user.tai_san < 1000) {
       alert("Không đủ bạc để đổi avatar");
       setModalIsOpen(false);
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("avatar", avatarFile);
-  
+
     try {
       const response = await fetch(`/api/profile?userId=${user.id}`, {
         method: "POST",
         body: formData,
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         const updatedUser = {
@@ -258,10 +261,9 @@ const HoSo = () => {
       console.error("Error:", error);
       alert("Failed to update avatar");
     }
-  
+
     setModalIsOpen(false);
   };
-  
 
   const handleConfirmSave = async () => {
     const cost = confirmType === "ngoai_hieu" ? 25000 : 0;
@@ -311,6 +313,27 @@ const HoSo = () => {
   const handleDanhHaoChange = () => {
     setConfirmType("danh_hao");
     setConfirmModalIsOpen(true);
+  };
+
+  const handleGiftCodeRedeem = async () => {
+    try {
+      const response = await axios.post("/api/user/ho-so/redeem-gift-code", {
+        userId: user.id,
+        giftCode: giftCode,
+      });
+
+      if (response.data.success) {
+        setSuccessMessage("Gift code redeemed successfully!");
+        setErrorMessage("");
+      } else {
+        setErrorMessage(response.data.message || "Failed to redeem gift code.");
+        setSuccessMessage("");
+      }
+    } catch (error) {
+      setErrorMessage("An error occurred while redeeming the gift code.");
+      setSuccessMessage("");
+      console.error("Error redeeming gift code:", error);
+    }
   };
 
   if (!user) return null;
@@ -422,6 +445,25 @@ const HoSo = () => {
             <Input1 type="text" placeholder="Danh hào" />
             <Button>Mua</Button>
             <Button>Đổi màu danh hào</Button>
+          </Section>
+        </Card>
+        <Card>
+          <SectionTitle>
+            <LocalFireDepartmentOutlinedIcon />
+            GIFT CODE
+          </SectionTitle>
+          <Section>
+            <Input
+              type="text"
+              placeholder="Nhập giftcode"
+              value={giftCode}
+              onChange={(e) => setGiftCode(e.target.value)}
+            />
+            <Button onClick={handleGiftCodeRedeem}>Nhận quà</Button>
+            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+            {successMessage && (
+              <p style={{ color: "green" }}>{successMessage}</p>
+            )}
           </Section>
         </Card>
       </BottomLayout>

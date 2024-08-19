@@ -8,6 +8,7 @@ import LevelManagement from '@/components/admin-components/LevelManagement';
 import ClanPremissionManagement from '@/components/admin-components/ClanPremissionManagement';
 import VatPhamManagement from '@/components/admin-components/VatPhamManagement';
 import WheelManagement from '@/components/admin-components/WheelManagement'; // Import the new component
+import GiftCodeManagement from '@/components/admin-components/GiftCodeManagement';
 
 const Container = styled.div`
   display: flex;
@@ -96,29 +97,29 @@ const AdminPage = () => {
   if (!user) return null;
 
   return (
-    <Layout>
-      <Container>
-        <Sidebar>
-          <SidebarSection>
-            <SectionTitle onClick={() => setSelectedSection('userManagement')}>Quản lý người dùng</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Quản lý bang hội</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Quản lý quyền hạn bang</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('levelManagement')}>Quản lý cấp độ</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('vatPhamManagement')}>Quản lý vật phẩm</SectionTitle>
-            <SectionTitle onClick={() => setSelectedSection('wheelManagement')}>Quản lý vòng quay</SectionTitle>
-          </SidebarSection>
-          <Button onClick={handleLogout}>Đăng xuất</Button>
-        </Sidebar>
-        <MainContent>
-          {selectedSection === 'userManagement' && <UserManagement />}
-          {selectedSection === 'clanManagement' && <ClanManagement />}
-          {selectedSection === 'clanPermissionManagement' && <ClanPremissionManagement />}
-          {selectedSection === 'levelManagement' && <LevelManagement />}
-          {selectedSection === 'vatPhamManagement' && <VatPhamManagement />}
-          {selectedSection === 'wheelManagement' && <WheelManagement />} 
-        </MainContent>
-      </Container>
-    </Layout>
+    <Container>
+      <Sidebar>
+        <SidebarSection>
+          <SectionTitle onClick={() => setSelectedSection('userManagement')}>Quản lý người dùng</SectionTitle>
+          <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Quản lý bang hội</SectionTitle>
+          <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Quản lý quyền hạn bang</SectionTitle>
+          <SectionTitle onClick={() => setSelectedSection('levelManagement')}>Quản lý cấp độ</SectionTitle>
+          <SectionTitle onClick={() => setSelectedSection('vatPhamManagement')}>Quản lý vật phẩm</SectionTitle>
+          <SectionTitle onClick={() => setSelectedSection('wheelManagement')}>Quản lý vòng quay</SectionTitle>
+          <SectionTitle onClick={() => setSelectedSection('giftCodeManagement')}>Quản lý Gift Code</SectionTitle> {/* Add this line */}
+        </SidebarSection>
+        <Button onClick={handleLogout}>Đăng xuất</Button>
+      </Sidebar>
+      <MainContent>
+        {selectedSection === 'userManagement' && <UserManagement />}
+        {selectedSection === 'clanManagement' && <ClanManagement />}
+        {selectedSection === 'clanPermissionManagement' && <ClanPremissionManagement />}
+        {selectedSection === 'levelManagement' && <LevelManagement />}
+        {selectedSection === 'vatPhamManagement' && <VatPhamManagement />}
+        {selectedSection === 'wheelManagement' && <WheelManagement />}
+        {selectedSection === 'giftCodeManagement' && <GiftCodeManagement />} {/* Add this line */}
+      </MainContent>
+    </Container>
   );
 };
 
