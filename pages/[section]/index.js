@@ -13,6 +13,8 @@ import NghiSuDien from '@/components/user-components/NghiSuDien';
 import BaoKhoPhong from '@/components/user-components/BaoKhoPhong';
 import LanhSuDuong from '@/components/user-components/LanhSuDuong';
 import Layout from '@/components/Layout';
+import LuyenKhiThat from '@/components/user-components/LuyenKhiThat';
+import DuocVien from '@/components/user-components/DuocVien';
 
 const SectionPage = () => {
   const router = useRouter();
@@ -34,6 +36,8 @@ const SectionPage = () => {
         return <QuyThi />;
       case 'luyen-dan-that':
         return <LuyenDanThat />;
+        case 'luyen-khi-that':
+        return <LuyenKhiThat />;
       case 'nhiem-vu-duong':
         return <NhiemVuDuong />;
       case 'dao-khoang':
@@ -46,6 +50,8 @@ const SectionPage = () => {
         return <BaoKhoPhong />;
       case 'lanh-su-duong':
         return <LanhSuDuong />;
+        case 'duoc-vien':
+        return <DuocVien />;
       default:
         return <HoSo />;
     }

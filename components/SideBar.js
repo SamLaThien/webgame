@@ -120,11 +120,20 @@ const Sidebar = () => {
             <StyledLink href="/luyen-dan-that" passHref>
               <Button className={activeSection === '/luyen-dan-that' ? 'active' : ''}>Luyện đan thất</Button>
             </StyledLink>
+            <StyledLink href="/luyen-khi-that" passHref>
+              <Button className={activeSection === '/luyen-khi-that' ? 'active' : ''}>Luyện khí thất</Button>
+            </StyledLink>
             <StyledLink href="/nhiem-vu-duong" passHref>
               <Button className={activeSection === '/nhiem-vu-duong' ? 'active' : ''}>Nhiệm vụ đường</Button>
             </StyledLink>
             <StyledLink href="/dao-khoang" passHref>
               <Button className={activeSection === '/dao-khoang' ? 'active' : ''}>Đào khoáng</Button>
+            </StyledLink>
+            <StyledLink href="/duoc-vien" passHref>
+              <Button className={activeSection === '/duoc-vien' ? 'active' : ''}>Dược viên</Button>
+            </StyledLink>
+            <StyledLink href="/nhan-vat" passHref>
+              <Button className={activeSection === '/nhan-vat' ? 'active' : ''}>Nhân vật</Button>
             </StyledLink>
           </>
         )}
