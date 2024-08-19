@@ -118,6 +118,7 @@ const DotPha = () => {
   const [loading, setLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState({});
 
+
   useEffect(() => {
     const fetchUserAndLevel = async () => {
       try {
@@ -269,6 +270,7 @@ const handleLevelUp = async () => {
 
   const expProgress = (user.exp / levelData.exp) * 100;
   const canLevelUp = user.exp >= levelData.exp;
+  const isDoKiep = user.level % 10 === 0;
 
   const levelRangeKey = Object.keys(levelItemChances).find((range) => {
     const [min, max] = range.split('-').map(Number);
@@ -325,7 +327,7 @@ const handleLevelUp = async () => {
                 </CheckboxContainer>
               ))}
               <DotPhaButton onClick={handleLevelUp} disabled={!canLevelUp}>
-                Đột phá
+                {isDoKiep ? "Độ kiếp" : "Đột phá"}
               </DotPhaButton>
               <Notice>
                 - Các vật phẩm dùng để đột phá cảnh giới có thể kiếm tại vòng
