@@ -285,11 +285,14 @@ const NghiSuDien = () => {
 
 
 const getChatBoxUrl = () => {
+  if (!user) {
+    console.error("User object is null or undefined");
+    return '';
+  }
     const baseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
     const cboxBoxId = process.env.NEXT_PUBLIC_CBOX_BOXID;
     const cboxBoxTag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
-    const ngoaiHieu = user.ngoai_hieu ? user.ngoai_hieu : user.username;
-    const secret = "Y5tLcYKb2VsVwXyJ";  // Your secret key
+    const ngoaiHieu = user.ngoai_hieu || user.username || 'default_username';    const secret = "Y5tLcYKb2VsVwXyJ";  // Your secret key
 
     // Define the parameters
     const params = {
