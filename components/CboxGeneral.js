@@ -35,7 +35,7 @@ const CboxGeneral = () => {
     const baseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
     const boxid = process.env.NEXT_PUBLIC_CBOX_BOXID;
     const boxtag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
-    const ngoaiHieu = user?.ngoai_hieu || 'Guest';
+    const ngoaiHieu = user?.ngoai_hieu || user.username;
 
     const params = {
       boxid,
