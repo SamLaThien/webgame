@@ -4,7 +4,10 @@ import axios from "axios";
 import BoltIcon from "@mui/icons-material/Bolt";
 import { Bolt, Error } from "@mui/icons-material";
 import ErrorIcon from "@mui/icons-material/Error";
-import { levelItemChances, consistentItemChances } from '@/utils/levelItemChances';
+import {
+  levelItemChances,
+  consistentItemChances,
+} from "@/utils/levelItemChances";
 
 const Container = styled.div`
   background: white;
@@ -48,7 +51,6 @@ const Title = styled.h2`
 const ProgressBar = styled.div`
   width: 100%;
   background: #e0e0e0;
-  border-radius: 8px;
   overflow: hidden;
   margin-bottom: 20px;
 `;
@@ -61,6 +63,9 @@ const Progress = styled.div`
 
 const Info = styled.p`
   margin: 10px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   span {
     font-weight: bold;
     color: #0070f3;
@@ -112,22 +117,30 @@ const CheckboxLabel = styled.label`
 
 const ContainerWrapper = styled.div``;
 
+const Exp = styled.div``;
+const ExpPercent = styled.div``;
+
+
 const DotPha = () => {
   const [user, setUser] = useState(null);
   const [levelData, setLevelData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState({});
 
-
   useEffect(() => {
     const fetchUserAndLevel = async () => {
       try {
         const storedUser = JSON.parse(localStorage.getItem("user"));
         if (storedUser) {
-          const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
+          const { data: userData } = await axios.get(
+            `/api/user/clan/user-info?userId=${storedUser.id}`
+          );
           setUser(userData);
 
-          const { data: fetchedLevelData } = await axios.post(`/api/user/dot-pha/level-info`, { level: userData.level });
+          const { data: fetchedLevelData } = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: userData.level }
+          );
           setLevelData(fetchedLevelData);
         }
       } catch (error) {
@@ -141,7 +154,7 @@ const DotPha = () => {
   }, []);
 
   const handleCheckboxChange = (itemId) => {
-    setCheckedItems(prevState => ({
+    setCheckedItems((prevState) => ({
       ...prevState,
       [itemId]: !prevState[itemId],
     }));
@@ -149,116 +162,143 @@ const DotPha = () => {
 
   const logUserActivity = async (userId, actionType, actionDetails) => {
     try {
-        await axios.post('/api/user/log/dot-pha-log', {
-            userId,        
-            actionType,   
-            actionDetails, 
-        });
+      await axios.post("/api/user/log/dot-pha-log", {
+        userId,
+        actionType,
+        actionDetails,
+      });
     } catch (error) {
-        console.error("Error logging user activity:", error);
+      console.error("Error logging user activity:", error);
     }
-};
+  };
 
-
-const handleLevelUp = async () => {
-  if (user && levelData && user.exp >= levelData.exp) {
+  const handleLevelUp = async () => {
+    if (user && levelData && user.exp >= levelData.exp) {
       try {
-          const requiredItemIds = levelData.vatpham_bat_buoc_id ? levelData.vatpham_bat_buoc_id.split(",") : [];
+        const requiredItemIds = levelData.vatpham_bat_buoc_id
+          ? levelData.vatpham_bat_buoc_id.split(",")
+          : [];
 
-          if (requiredItemIds.length > 0) {
-              const { data: requiredItemsData } = await axios.get(`/api/user/dot-pha/check-required-item`, {
-                  params: {
-                      userId: user.id,
-                      itemIds: requiredItemIds.join(","),
-                  },
-              });
+        if (requiredItemIds.length > 0) {
+          const { data: requiredItemsData } = await axios.get(
+            `/api/user/dot-pha/check-required-item`,
+            {
+              params: {
+                userId: user.id,
+                itemIds: requiredItemIds.join(","),
+              },
+            }
+          );
 
-              if (!requiredItemsData.hasRequiredItems) {
-                  alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
-                  return;
-              }
+          if (!requiredItemsData.hasRequiredItems) {
+            alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
+            return;
           }
+        }
 
-          let successChance = levelData.ty_le_dot_pha_thanh_cong;
-          console.log("Base ti le dot pha thanh cong:", successChance);
+        let successChance = levelData.ty_le_dot_pha_thanh_cong;
+        console.log("Base ti le dot pha thanh cong:", successChance);
 
-          const levelRangeKey = Object.keys(levelItemChances).find((range) => {
-              const [min, max] = range.split('-').map(Number);
-              return user.level >= min && user.level <= max;
+        const levelRangeKey = Object.keys(levelItemChances).find((range) => {
+          const [min, max] = range.split("-").map(Number);
+          return user.level >= min && user.level <= max;
+        });
+
+        const selectedItems = Object.keys(checkedItems).filter(
+          (itemId) => checkedItems[itemId]
+        );
+
+        if (selectedItems.length > 0) {
+          const { data: usedItemsData } = await axios.get(
+            `/api/user/dot-pha/check-used-items`,
+            {
+              params: {
+                userId: user.id,
+                usedItemIds: selectedItems.join(","),
+              },
+            }
+          );
+
+          const usedItemsLog = usedItemsData
+            .map(
+              (item) => `${getItemNameById(item.vat_pham_id)} x${item.so_luong}`
+            )
+            .join(", ");
+          await logUserActivity(
+            user.id,
+            "Item Use",
+            `đã sử dụng: ${usedItemsLog}`
+          );
+
+          usedItemsData.forEach((item) => {
+            const itemChance =
+              levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
+              consistentItemChances[item.vat_pham_id];
+            if (itemChance) {
+              successChance += itemChance;
+              console.log(
+                `Added chance from item ${item.vat_pham_id}:`,
+                itemChance,
+                "New successChance:",
+                successChance
+              );
+            }
+          });
+        }
+
+        if (Math.random() * 100 <= successChance) {
+          const nextLevel = user.level + 1;
+          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+
+          await axios.post("/api/user/dot-pha/level-up", {
+            userId: user.id,
+            newLevel: nextLevel,
+            newTaiSan,
+            expUsed: levelData.exp,
+            currentExp: user.exp,
           });
 
-          const selectedItems = Object.keys(checkedItems).filter(itemId => checkedItems[itemId]);
+          setUser((prevUser) => ({
+            ...prevUser,
+            level: nextLevel,
+            exp: prevUser.exp - levelData.exp,
+            tai_san: newTaiSan,
+          }));
 
-          if (selectedItems.length > 0) {
-              const { data: usedItemsData } = await axios.get(`/api/user/dot-pha/check-used-items`, {
-                  params: {
-                      userId: user.id,
-                      usedItemIds: selectedItems.join(","),
-                  },
-              });
+          const { data: fetchedLevelData } = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: nextLevel }
+          );
+          setLevelData(fetchedLevelData);
 
-              const usedItemsLog = usedItemsData.map(item => `${getItemNameById(item.vat_pham_id)} x${item.so_luong}`).join(', ');
-              await logUserActivity(user.id, 'Item Use', `Đã sử dụng: ${usedItemsLog}`);
+          await logUserActivity(
+            user.id,
+            "Dot Pha Success",
+            `đã đột phá thành công lên cấp ${nextLevel}!`
+          );
+        } else {
+          const expLoss = Math.floor(
+            user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
+          );
+          const newExp = Math.max(0, user.exp - expLoss);
 
-              usedItemsData.forEach(item => {
-                  const itemChance = levelItemChances[levelRangeKey]?.[item.vat_pham_id] || consistentItemChances[item.vat_pham_id];
-                  if (itemChance) {
-                      successChance += itemChance;
-                      console.log(`Added chance from item ${item.vat_pham_id}:`, itemChance, "New successChance:", successChance);
-                  }
-              });
-          }
+          setUser((prevUser) => ({
+            ...prevUser,
+            exp: newExp,
+          }));
 
-          if (Math.random() * 100 <= successChance) {
-              const nextLevel = user.level + 1;
-              const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
-
-              await axios.post("/api/user/dot-pha/level-up", {
-                  userId: user.id,
-                  newLevel: nextLevel,
-                  newTaiSan,
-                  expUsed: levelData.exp,
-                  currentExp: user.exp,
-              });
-
-              setUser((prevUser) => ({
-                  ...prevUser,
-                  level: nextLevel,
-                  exp: prevUser.exp - levelData.exp,
-                  tai_san: newTaiSan,
-              }));
-
-              const { data: fetchedLevelData } = await axios.post(`/api/user/dot-pha/level-info`, { level: nextLevel });
-              setLevelData(fetchedLevelData);
-
-              await logUserActivity(user.id, 'Dot Pha Success', `Đã đột phá thành công lên cấp ${nextLevel}!`);
-          } else {
-              const expLoss = Math.floor(user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100));
-              const newExp = Math.max(0, user.exp - expLoss);
-
-              setUser((prevUser) => ({
-                  ...prevUser,
-                  exp: newExp,
-              }));
-
-              await logUserActivity(user.id, 'Dot Pha Fail', `Đã thất bại trong việc đột phá và mất ${expLoss} kinh nghiệm.`);
-          }
-
+          await logUserActivity(
+            user.id,
+            "Dot Pha Fail",
+            `đã thất bại trong việc đột phá và mất ${expLoss} kinh nghiệm.`
+          );
+        }
       } catch (error) {
-          console.error("Error handling Đột Phá:", error);
-          alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
+        console.error("Error handling Đột Phá:", error);
+        alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
       }
-  }
-};
-
-
-
-
-
-  
-  
-  
-  
+    }
+  };
 
   if (loading) {
     return <Container>Loading...</Container>;
@@ -267,13 +307,13 @@ const handleLevelUp = async () => {
   if (!user || !levelData) {
     return <Container>Error loading data.</Container>;
   }
-
+  const expProgress1 = Math.min((user.exp / levelData.exp) * 100, 100);
   const expProgress = (user.exp / levelData.exp) * 100;
   const canLevelUp = user.exp >= levelData.exp;
   const isDoKiep = user.level % 10 === 0;
 
   const levelRangeKey = Object.keys(levelItemChances).find((range) => {
-    const [min, max] = range.split('-').map(Number);
+    const [min, max] = range.split("-").map(Number);
     return user.level >= min && user.level <= max;
   });
 
@@ -290,42 +330,54 @@ const handleLevelUp = async () => {
                 Cảnh giới hiện tại: <span>{levelData.tu_vi}</span>
               </Info>
               <Info>Tiến độ tu luyện</Info>
+              <Info>
+                <Exp>
+                  {user.exp}/{levelData.exp}
+                </Exp>
+                <ExpPercent>{expProgress1}%</ExpPercent>
+              </Info>
               <ProgressBar>
                 <Progress width={expProgress} />
               </ProgressBar>
-              <Info>
-                {user.exp}/{levelData.exp}
-              </Info>
+              
               <MandatoryItems>
                 Vật phẩm bắt buộc: {levelData.vatpham_bat_buoc}
               </MandatoryItems>
               <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
-              {Object.entries(levelItemChances[levelRangeKey]).map(([itemId, itemChance]) => (
-                <CheckboxContainer key={itemId}>
-                  <input
-                    type="checkbox"
-                    id={`item-${itemId}`}
-                    checked={!!checkedItems[itemId]}
-                    onChange={() => handleCheckboxChange(itemId)}
-                  />
-                  <CheckboxLabel htmlFor={`item-${itemId}`}>
-                    {getItemNameById(itemId)} ({itemChance > 0 ? `+${itemChance}%` : "Không khả dụng ở cấp này"})
-                  </CheckboxLabel>
-                </CheckboxContainer>
-              ))}
-              {Object.entries(consistentItemChances).map(([itemId, itemChance]) => (
-                <CheckboxContainer key={itemId}>
-                  <input
-                    type="checkbox"
-                    id={`item-${itemId}`}
-                    checked={!!checkedItems[itemId]}
-                    onChange={() => handleCheckboxChange(itemId)}
-                  />
-                  <CheckboxLabel htmlFor={`item-${itemId}`}>
-                    {getItemNameById(itemId)} (+{itemChance}%)
-                  </CheckboxLabel>
-                </CheckboxContainer>
-              ))}
+              {Object.entries(levelItemChances[levelRangeKey]).map(
+                ([itemId, itemChance]) => (
+                  <CheckboxContainer key={itemId}>
+                    <input
+                      type="checkbox"
+                      id={`item-${itemId}`}
+                      checked={!!checkedItems[itemId]}
+                      onChange={() => handleCheckboxChange(itemId)}
+                    />
+                    <CheckboxLabel htmlFor={`item-${itemId}`}>
+                      {getItemNameById(itemId)} (
+                      {itemChance > 0
+                        ? `+${itemChance}%`
+                        : "Không khả dụng ở cấp này"}
+                      )
+                    </CheckboxLabel>
+                  </CheckboxContainer>
+                )
+              )}
+              {Object.entries(consistentItemChances).map(
+                ([itemId, itemChance]) => (
+                  <CheckboxContainer key={itemId}>
+                    <input
+                      type="checkbox"
+                      id={`item-${itemId}`}
+                      checked={!!checkedItems[itemId]}
+                      onChange={() => handleCheckboxChange(itemId)}
+                    />
+                    <CheckboxLabel htmlFor={`item-${itemId}`}>
+                      {getItemNameById(itemId)} (+{itemChance}%)
+                    </CheckboxLabel>
+                  </CheckboxContainer>
+                )
+              )}
               <DotPhaButton onClick={handleLevelUp} disabled={!canLevelUp}>
                 {isDoKiep ? "Độ kiếp" : "Đột phá"}
               </DotPhaButton>
@@ -382,15 +434,15 @@ export default DotPha;
 
 const getItemNameById = (itemId) => {
   const itemNames = {
-    35: 'Huyết Khí Đan',
-    38: 'Đế Giai Thuẫn',
-    39: 'Tị Lôi Châu',
-    40: 'Thanh Tâm Đan',
-    41: 'Hộ Linh Trận',
-    42: 'Tân Lôi Trận',
-    43: 'Sa Ngọc Châu',
-    44: 'Hoàng Kim Lệnh',
-    45: 'Hoả Ngọc Châu',
+    35: "Huyết Khí Đan",
+    38: "Đế Giai Thuẫn",
+    39: "Tị Lôi Châu",
+    40: "Thanh Tâm Đan",
+    41: "Hộ Linh Trận",
+    42: "Tân Lôi Trận",
+    43: "Sa Ngọc Châu",
+    44: "Hoàng Kim Lệnh",
+    45: "Hoả Ngọc Châu",
     // Add other items here as needed
   };
   return itemNames[itemId] || `Item ${itemId}`;

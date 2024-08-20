@@ -168,23 +168,26 @@ const ProgressContainer = styled.div`
 
 const ProgressBarContainer = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+
 `;
 
 const ProgressBarLabel = styled.div`
   font-size: 14px;
   color: #333;
   font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
 `;
 
 const ProgressBar = styled.div`
   flex: 1;
-  margin-left: 10px;
   background-color: #e0e0e0;
   overflow: hidden;
   position: relative;
   height: 20px;
+  z-index: 10;
 `;
 
 const Progress = styled.div`
@@ -242,10 +245,16 @@ const Button = styled.button`
     background-color: #93b6c8;
   }
 `;
-
+const Percent = styled.div`
+  z-index: 10;
+  background-color: none;
+  position: absolute;
+  text-align: center;
+  color: white;
+`;
 const MemberPage = ({ id }) => {
   const [user, setUser] = useState(null);
-  const [levelData, setLevelData] = useState(null); // Initialize levelData in state
+  const [levelData, setLevelData] = useState(null); 
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -320,12 +329,12 @@ const MemberPage = ({ id }) => {
           <Section>
             <SectionTitle>Tu luyện & Vật phẩm</SectionTitle>
             <ProgressContainer>
+              <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
               <ProgressBarContainer>
-                <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
                 <ProgressBar>
                   <Progress width={expProgress} />
                 </ProgressBar>
-                {expProgress}%
+                <Percent>{expProgress}%</Percent>
               </ProgressBarContainer>
             </ProgressContainer>
             <ItemsContainer>
