@@ -155,7 +155,7 @@ const LanhSuDuong = () => {
 
   return (
     <Container>
-      <Title>Lãnh Sự Đường</Title>
+      {/* <Title>Lãnh Sự Đường</Title> */}
       <Tabs>
         <Tab active={activeTab === 'info'} onClick={() => setActiveTab('info')}>Thông tin</Tab>
         <Tab active={activeTab === 'assign'} onClick={() => setActiveTab('assign')}>Phân vai trò</Tab>

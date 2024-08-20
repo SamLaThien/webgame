@@ -21,6 +21,7 @@ const CboxGeneral = () => {
         if (storedUser) {
           const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
           setUser(userData);
+          console.log("User info" + userData);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -35,7 +36,7 @@ const CboxGeneral = () => {
     const baseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
     const boxid = process.env.NEXT_PUBLIC_CBOX_BOXID;
     const boxtag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
-    const ngoaiHieu = user?.ngoai_hieu || user.username;
+    const ngoaiHieu = user.ngoai_hieu ? user.ngoai_hieu : user.username;
 
     const params = {
       boxid,

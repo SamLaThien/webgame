@@ -288,7 +288,7 @@ const getChatBoxUrl = () => {
     const baseUrl = process.env.NEXT_PUBLIC_CBOX_BASE_URL;
     const cboxBoxId = process.env.NEXT_PUBLIC_CBOX_BOXID;
     const cboxBoxTag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
-    const ngoaiHieu = user?.ngoai_hieu || 'UserName'; // Default to 'UserName' if undefined
+    const ngoaiHieu = user.ngoai_hieu ? user.ngoai_hieu : user.username;
     const secret = "Y5tLcYKb2VsVwXyJ";  // Your secret key
 
     // Define the parameters
