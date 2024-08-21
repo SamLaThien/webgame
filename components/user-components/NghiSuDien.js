@@ -3,6 +3,7 @@ import styled from "styled-components";
 import axios from "axios";
 import ViewInArOutlinedIcon from '@mui/icons-material/ViewInArOutlined';
 import cryptoJs from "crypto-js";
+import { useRouter } from "next/router";
 
 const Container = styled.div`
   display: flex;
@@ -156,7 +157,7 @@ const NghiSuDien = () => {
   const [activeTab, setActiveTab] = useState("hoatDong");
   const [user, setUser] = useState(null);
   const [seconds, setSeconds] = useState(0);
-
+const router = useRouter();
   useEffect(() => {
     setActivities([
       {
@@ -198,15 +199,19 @@ const NghiSuDien = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
-          const { data: userData } = await axios.get(
-            `/api/user/clan/user-info?userId=${storedUser.id}`
-          );
-          setUser(userData);
+          const userInfo = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
+          setUser("This is info" + JSON.stringify(userInfo.data));
+          console
+          if (parseInt(userInfo.data.clan_role) !== 6 && parseInt(userInfo.data.clan_role) !== 7) {
+            router.push('/ho-so');
+          }
+          const membersInfo = await axios.get(`/api/user/clan/members?userId=${storedUser.id}`);
+          setMembers(membersInfo.data);
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error('Error fetching user info:', error);
       }
     };
 
