@@ -201,12 +201,13 @@ const RuongChuaDo = () => {
         Tăng HP
       </Tab>
       <Tab isActive={activeTab === 3} onClick={() => setActiveTab(3)}>
-        Công Pháp
+                Đột Phá
+
       </Tab>
-      <Tab isActive={activeTab === 4} onClick={() => setActiveTab(4)}>
-        Đột Phá
-      </Tab>
-      <Tab isActive={activeTab === 5} onClick={() => setActiveTab(5)}>
+      {/* <Tab isActive={activeTab === 4} onClick={() => setActiveTab(4)}>
+      Công Pháp
+      </Tab> */}
+      {/* <Tab isActive={activeTab === 5} onClick={() => setActiveTab(5)}>
         Binh Khí
       </Tab>
       <Tab isActive={activeTab === 6} onClick={() => setActiveTab(6)}>
@@ -214,6 +215,9 @@ const RuongChuaDo = () => {
       </Tab>
       <Tab isActive={activeTab === 7} onClick={() => setActiveTab(7)}>
         Linh Thảo
+      </Tab> */}
+      <Tab isActive={activeTab === 8} onClick={() => setActiveTab(8)}>
+        Phụ trợ
       </Tab>
     </TabContainer>
   );

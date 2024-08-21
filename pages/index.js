@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Layout from '../components/Layout';
-import CboxGeneral from '../components/CboxGeneral'; // Import CboxGeneral
+import CboxGeneral from '../components/CboxGeneral';
 import { useRouter } from 'next/router';
 
 const MainContent = styled.div`
@@ -12,36 +12,42 @@ const MainContent = styled.div`
 const Home = () => {
   const router = useRouter();
   const [isInClan, setIsInClan] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setIsMounted(true);
-
     const fetchUserData = async () => {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user) {
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      if (storedUser) {
         setIsLoggedIn(true);
-        const clanResponse = await fetch(`/api/user/clan/check-if-clan-member?userId=${user.id}`);
+        const clanResponse = await fetch(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`);
         const clanData = await clanResponse.json();
+        const userInfoResponse = await fetch(`/api/user/clan/user-info?userId=${storedUser.id}`);
+        const userInfo = await userInfoResponse.json();
+        setUser(userInfo);
         setIsInClan(clanData.isInClan);
+      } else {
+        router.push('/login');
       }
+      setLoading(false);
     };
 
-    if (isMounted) {
-      fetchUserData();
-    }
-  }, [isMounted]);
+    fetchUserData();
+  }, [router]);
+
+  if (loading) {
+    return <div>Loading...</div>; 
+  }
 
   return (
-    <Layout>
+    <Layout isLoggedIn={isLoggedIn} user={user}>
       <MainContent>
         {isLoggedIn ? (
-          <>
-            <CboxGeneral /> {/* Include CboxGeneral */}
-          </>
+          <CboxGeneral />
         ) : (
-                  <div></div>        )}
+          <div></div>
+        )}
       </MainContent>
     </Layout>
   );

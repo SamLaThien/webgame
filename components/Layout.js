@@ -1,6 +1,6 @@
-import styled from 'styled-components';
-import Header from './Header';
-import Sidebar from './SideBar';
+import styled from "styled-components";
+import Header from "./Header";
+import Sidebar from "./SideBar";
 
 const Container = styled.div`
   display: flex;
@@ -31,7 +31,7 @@ const ContentWrapper = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-start; 
+  align-items: flex-start;
 `;
 
 const ContentArea = styled.div`
@@ -41,7 +41,7 @@ const ContentArea = styled.div`
   flex-direction: row;
   justify-content: space-between;
   gap: 20px;
-  @media( max-width: 749px){
+  @media (max-width: 749px) {
     flex-direction: column;
     padding: 20px;
   }
@@ -55,8 +55,11 @@ const BackImage = styled.img`
   width: 100vw;
 `;
 
-const Layout = ({ children }) => (
-  <Container>
+const Layout = ({ children, isLoggedIn, user }) => {
+  // console.log("This is fetch use from Layout" + JSON.stringify(user));
+
+  return (
+    <Container>
     <Header />
     <Background>
       <BackImage src="/home-bg-2.jfif" alt="Background" />
@@ -64,12 +67,14 @@ const Layout = ({ children }) => (
     <Main>
       <ContentWrapper>
         <ContentArea>
-          <Sidebar /> {/* Add the Sidebar here */}
-          <MainContent>{children}</MainContent> {/* Main content area */}
+          {isLoggedIn && <Sidebar user={user} />}
+          <MainContent>{children}</MainContent>
         </ContentArea>
       </ContentWrapper>
     </Main>
   </Container>
-);
+  )
+}
+
 
 export default Layout;

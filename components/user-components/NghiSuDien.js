@@ -121,18 +121,18 @@ const Tab = styled.button`
 const TabContent = styled.div`
   display: ${(props) => (props.active ? "block" : "none")};
   border-radius: 0 0 8px 8px;
-  padding: 20px;
+  padding: 0;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 11px;
-  margin: 10px 0;
+  margin: 0;
   border: 1px solid #ddd;
   box-sizing: border-box;
   height: 100%;
   font-size: 16px;
-  margin-right: 10px;
+  margin-bottom: 10px;
 `;
 
 const Button = styled.button`

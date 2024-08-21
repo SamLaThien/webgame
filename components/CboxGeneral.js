@@ -7,7 +7,7 @@ import axios from 'axios';
 const StyledIframe = styled.iframe`
   background: white;
   width: 100%;
-  height: 450px;
+  height: 80vh;
   border: none;
 `;
 

@@ -24,15 +24,29 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     id: clan.id,
     name: clan.name,
-    owner: clan.owner
+    owner: clan.owner,
+    accountant_id: clan.accountant_id,
+    clan_money: clan.clan_money,
+    clan_mana: clan.clan_mana,
+    clan_color: clan.clan_color,
+    clan_icon: null // Handle icon separately since it's a file
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, clan_icon: e.target.files[0] });
+  };
+
   const handleSave = () => {
-    onSave(formData);
+    const updatedFormData = new FormData();
+    for (const key in formData) {
+      updatedFormData.append(key, formData[key]);
+    }
+
+    onSave(updatedFormData);
     onClose();
   };
 
@@ -49,6 +63,7 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
           onChange={handleChange}
           fullWidth
           margin="normal"
+          disabled
         />
         <TextField
           label="Tên"
@@ -66,6 +81,44 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
           fullWidth
           margin="normal"
         />
+        <TextField
+          label="Kế toán"
+          name="accountant_id"
+          value={formData.accountant_id}
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Ngân quỹ"
+          name="clan_money"
+          type="number"
+          value={formData.clan_money}
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Mana của bang hội"
+          name="clan_mana"
+          type="number"
+          value={formData.clan_mana}
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Màu sắc bang hội"
+          name="clan_color"
+          value={formData.clan_color}
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
+        />
+        <Box mt={2}>
+          <input type="file" onChange={handleFileChange} accept="image/*" />
+          {clan.clan_icon && <img src={clan.clan_icon} alt="Clan Icon" style={{ width: '100px', height: '100px', marginTop: '10px' }} />}
+        </Box>
         <Box mt={2}>
           <StyledButton onClick={handleSave} variant="contained">
             Lưu

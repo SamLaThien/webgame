@@ -29,6 +29,11 @@ const ClanDetailModal = ({ clan, onClose }) => {
         <Typography>ID: {clan.id}</Typography>
         <Typography>Tên: {clan.name}</Typography>
         <Typography>Chủ sở hữu: {clan.owner}</Typography>
+        <Typography>Kế toán: {clan.accountant_id}</Typography>
+        <Typography>Ngân quỹ: {clan.clan_money}</Typography>
+        <Typography>Mana: {clan.clan_mana}</Typography>
+        <Typography>Màu sắc: {clan.clan_color}</Typography>
+        {clan.clan_icon && <img src={clan.clan_icon} alt="Clan Icon" style={{ width: '100px', height: '100px' }} />}
         <Box mt={2}>
           <StyledButton onClick={onClose} variant="contained">
             Đóng

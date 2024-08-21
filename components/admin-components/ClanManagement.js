@@ -74,13 +74,10 @@ const ClanManagement = () => {
       .catch(error => console.error('Lỗi khi cập nhật bang hội:', error));
   };
 
-  const handleCreateClan = (newClan) => {
+  const handleCreateClan = (newClanFormData) => {
     fetch(`/api/admin/clan`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(newClan)
+      body: newClanFormData 
     })
       .then(response => response.json())
       .then(data => {
@@ -89,6 +86,7 @@ const ClanManagement = () => {
       })
       .catch(error => console.error('Lỗi khi tạo bang hội:', error));
   };
+  
 
   const handleDeleteClan = (clanId) => {
     fetch(`/api/admin/clan/${clanId}`, {

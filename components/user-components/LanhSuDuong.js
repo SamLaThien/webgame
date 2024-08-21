@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useRouter } from 'next/router';
 
 const Container = styled.div`
   background: white;
   padding: 20px;
-  border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #93B6C8;
+
 `;
 
 const Title = styled.h2`
-  margin-bottom: 20px;
+  margin: 20 20 20 0;
 `;
 
 const Tabs = styled.div`
@@ -35,17 +37,17 @@ const Tab = styled.button`
 `;
 
 const Content = styled.div`
-  background: #f5f5f5;
-  padding: 20px;
+  background: white;
+  padding: 0;
   border-radius: 0 0 8px 8px;
   border-top: 2px solid #93B6C8;
+  padding-top: 20px;
 `;
 
 const RoleSelect = styled.select`
   padding: 10px;
   margin-bottom: 20px;
   border: 1px solid #ccc;
-  border-radius: 8px;
   width: 100%;
 `;
 
@@ -78,6 +80,7 @@ const LanhSuDuong = () => {
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
   const [newRole, setNewRole] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -85,7 +88,11 @@ const LanhSuDuong = () => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const userInfo = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
-          setUser(userInfo.data);
+          setUser("This is info" + JSON.stringify(userInfo.data));
+          console
+          if (parseInt(userInfo.data.clan_role) !== 6 && parseInt(userInfo.data.clan_role) !== 7) {
+            router.push('/ho-so');
+          }
           const membersInfo = await axios.get(`/api/user/clan/members?userId=${storedUser.id}`);
           setMembers(membersInfo.data);
         }
@@ -118,15 +125,14 @@ const LanhSuDuong = () => {
       case 'info':
         return (
           <div>
-            <h3>Vai trò: {user?.clan_role ? roles.find(role => role.value === user.clan_role)?.label : 'Chưa có'}</h3>
+            {/* <h3>Vai trò: {user?.clan_role ? roles.find(role => role.value === user.clan_role)?.label : 'Chưa có'}</h3>
             <p>Điểm cống hiến nhiệm vụ: {user?.task_contribution_points}</p>
-            <p>Điểm cống hiến bang: {user?.clan_contribution_points}</p>
+            <p>Điểm cống hiến bang: {user?.clan_contribution_points}</p> */}
           </div>
         );
       case 'assign':
         return (
           <div>
-            <h3>Phân vai trò bang</h3>
             <RoleSelect onChange={(e) => setSelectedMember(e.target.value)} value={selectedMember}>
               <option value="">Chọn thành viên</option>
               {members.map((member) => (
