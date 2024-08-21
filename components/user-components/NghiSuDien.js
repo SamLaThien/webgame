@@ -202,8 +202,7 @@ const router = useRouter();
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const userInfo = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
-          setUser("This is info" + JSON.stringify(userInfo.data));
-          console
+          setUser(userInfo.data);
           if (parseInt(userInfo.data.clan_role) !== 6 && parseInt(userInfo.data.clan_role) !== 7) {
             router.push('/ho-so');
           }
@@ -222,14 +221,14 @@ const router = useRouter();
     if (user) {
       console.log("Starting timer for EXP update...");
       const interval = setInterval(() => {
-        setSeconds((prevSeconds) => prevSeconds + 1);
+        setSeconds((prevSeconds) => prevSeconds + 1800);
         console.log(
           `Timer: ${Math.floor(seconds / 60)} minute(s) and ${
             seconds % 60
           } second(s)`
         );
 
-        if (seconds !== 0 && seconds % 1800 === 0) {
+        if (seconds !== 0 && seconds % 1 === 0) {
           console.log("10 seconds reached. Preparing to update EXP...");
           updateExp();
         }
