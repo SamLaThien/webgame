@@ -86,7 +86,9 @@ const TableCell = styled.td`
 
 const ActionButton = styled.button`
   padding: 5px 10px;
-  margin: 5px;
+  margin: 0;
+  margin-right: 10px;
+  margin-bottom: 10px;
   background-color: ${({ color }) => color || "#0070f3"};
   color: white;
   border: none;
@@ -98,15 +100,18 @@ const ActionButton = styled.button`
 `;
 
 const Input = styled.input`
-  padding: 5px;
-  width: 80px;
+  padding: 5px 10px;
+  width: 75px;
   margin-right: 10px;
+  margin-bottom: 10px;
+
 `;
 
 const RuongChuaDo = () => {
   const [items, setItems] = useState([]);
   const [activeTab, setActiveTab] = useState(1);
   const [message, setMessage] = useState("");
+  const [donationAmount, setDonationAmount] = useState({});
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -118,9 +123,9 @@ const RuongChuaDo = () => {
           );
 
           if (data.message) {
-            setMessage(data.message); 
+            setMessage(data.message);
           } else {
-            setItems(data); 
+            setItems(data);
           }
         }
       } catch (error) {
@@ -133,7 +138,7 @@ const RuongChuaDo = () => {
 
   const logUserActivity = async (userId, actionType, actionDetails) => {
     try {
-      await axios.post('/api/user/log/dot-pha-log', {
+      await axios.post("/api/user/log/dot-pha-log", {
         userId,
         actionType,
         actionDetails,
@@ -142,53 +147,100 @@ const RuongChuaDo = () => {
       console.error("Error logging user activity:", error);
     }
   };
-  
 
   const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
     try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (!storedUser) return;
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser) return;
 
-        const useAmount = isMultiple ? 10 : 1;
+      const useAmount = isMultiple ? 10 : 1;
 
-        if (soLuong < useAmount) {
-            alert("Not enough items to use.");
-            return;
-        }
+      if (soLuong < useAmount) {
+        alert("Not enough items to use.");
+        return;
+      }
 
-        const { data } = await axios.post("/api/user/ruong-do/use-item", {
-            userId: storedUser.id,
-            ruongDoId,
-            vatPhamId,
-            useAmount,
-        });
+      const { data } = await axios.post("/api/user/ruong-do/use-item", {
+        userId: storedUser.id,
+        ruongDoId,
+        vatPhamId,
+        useAmount,
+      });
 
-        if (data.success) {
-            // Update the items in the UI
-            setItems((prevItems) =>
-                prevItems.map((item) =>
-                    item.ruong_do_id === ruongDoId
-                        ? { ...item, so_luong: item.so_luong - useAmount }
-                        : item
-                )
-            );
+      if (data.success) {
+        // Update the items in the UI
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.ruong_do_id === ruongDoId
+              ? { ...item, so_luong: item.so_luong - useAmount }
+              : item
+          )
+        );
 
-            // Log the activity
-            const itemName = items.find(item => item.vat_pham_id === vatPhamId)?.vat_pham_name || 'Unknown Item';
-            await logUserActivity(
-                storedUser.id,
-                'Item Use',
-                `đã sử dụng ${itemName} x${useAmount}`
-            );
-        } else {
-            alert(data.message || "Error using item");
-        }
+        // Log the activity
+        const itemName =
+          items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
+          "Unknown Item";
+        await logUserActivity(
+          storedUser.id,
+          "Item Use",
+          `đã sử dụng ${itemName} x${useAmount}`
+        );
+      } else {
+        alert(data.message || "Error using item");
+      }
     } catch (error) {
-        console.error("Error using item:", error);
+      console.error("Error using item:", error);
     }
-};
+  };
 
-  
+ 
+  const handleDonationAmountChange = (e, vatPhamId) => {
+    const value = e.target.value;
+    setDonationAmount((prev) => ({ ...prev, [vatPhamId]: value }));
+  };
+
+  const handleDonateItem = async (ruongDoId, vatPhamId, availableQuantity) => {
+    const amountToDonate = parseInt(donationAmount[vatPhamId]);
+
+    if (!amountToDonate || amountToDonate <= 0) {
+      alert("Please enter a valid amount to donate.");
+      return;
+    }
+
+    if (amountToDonate > availableQuantity) {
+      alert("You cannot donate more than you have.");
+      return;
+    }
+
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser) return;
+
+      const { data } = await axios.post("/api/user/ruong-do/donate-item", {
+        userId: storedUser.id,
+        ruongDoId,
+        vatPhamId,
+        donationAmount: parseInt(amountToDonate),
+      });
+
+      if (data.success) {
+        // Update the items in the UI
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.ruong_do_id === ruongDoId
+              ? { ...item, so_luong: item.so_luong - amountToDonate }
+              : item
+          )
+        );
+        alert("Item donated successfully!");
+      } else {
+        alert(data.message || "Error donating item");
+      }
+    } catch (error) {
+      console.error("Error donating item:", error);
+    }
+  };
 
   const categorizedItems = items.filter((item) => item.phan_loai === activeTab);
 
@@ -201,8 +253,7 @@ const RuongChuaDo = () => {
         Tăng HP
       </Tab>
       <Tab isActive={activeTab === 3} onClick={() => setActiveTab(3)}>
-                Đột Phá
-
+        Đột Phá
       </Tab>
       {/* <Tab isActive={activeTab === 4} onClick={() => setActiveTab(4)}>
       Công Pháp
@@ -236,8 +287,8 @@ const RuongChuaDo = () => {
           <ItemTable>
             <thead>
               <tr>
-                <TableHeader style={{ width: "30%" }}>Vật phẩm</TableHeader>
-                <TableHeader style={{ width: "30%" }}>
+                <TableHeader style={{ width: "25%" }}>Vật phẩm</TableHeader>
+                <TableHeader style={{ width: "35%" }}>
                   Giới thiệu và rao bán
                 </TableHeader>
                 <TableHeader style={{ width: "25%" }}>Sử dụng</TableHeader>
@@ -298,8 +349,25 @@ const RuongChuaDo = () => {
                     <ActionButton color="#4caf50" hoverColor="#388e3c">
                       Hành trang
                     </ActionButton>
-                    <Input placeholder="Số lượng" />
-                    <ActionButton color="#f44336" hoverColor="#e53935">
+                    <Input
+                      type="number"
+                      placeholder="Số lượng"
+                      value={donationAmount[item.vat_pham_id] || ""}
+                      onChange={(e) =>
+                        handleDonationAmountChange(e, item.vat_pham_id)
+                      }
+                    />
+                    <ActionButton
+                      color="#f44336"
+                      hoverColor="#e53935"
+                      onClick={() =>
+                        handleDonateItem(
+                          item.ruong_do_id,
+                          item.vat_pham_id,
+                          item.so_luong
+                        )
+                      }
+                    >
                       Nộp bang
                     </ActionButton>
                   </TableCell>

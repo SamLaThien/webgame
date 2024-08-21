@@ -39,21 +39,32 @@ const SearchInput = styled.input`
   margin-bottom: 20px;
   border: 1px solid #ccc;
   width: 100%;
+  box-sizing: border-box;
+
 `;
 
 const ItemGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
 `;
 
 const ItemCard = styled.div`
-  border: 1px solid #ddd;
+  border: 1px dashed #ddd;
+  border-right-width: 0; 
+  border-bottom-width: 0;
   padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
+  background-color: white;
+
+  &:nth-child(4n) { 
+    border-right-width: 1px; 
+  }
+
+  &:nth-last-child(-n+4) { 
+    border-bottom-width: 1px; 
+  }
 `;
+
 
 const ItemName = styled.h3`
   font-size: 16px;
@@ -82,6 +93,8 @@ const Input = styled.input`
   margin-bottom: 10px;
   width: 100%;
   border: 1px solid #ccc;
+  box-sizing: border-box;
+
 `;
 
 const TransferButton = styled.button`
@@ -139,7 +152,7 @@ const BaoKhoPhong = () => {
 
       if (isPasswordMatch) {
         setIsAuthenticated(true);
-        const { data } = await axios.get(`/api/clan/ruong-do?clanId=${user.clan_id}`);
+        const { data } = await axios.get(`/api/user/clan/ruong-do?userId=${user.id}`);
         setItems(data);
         setFilteredItems(data);
       } else {
@@ -151,9 +164,10 @@ const BaoKhoPhong = () => {
   };
 
   useEffect(() => {
-    const results = items.filter((item) =>
-      item.vat_pham_name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const results = items.filter((item) => {
+      const itemName = item.vat_pham_name || ""; 
+      return itemName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
     setFilteredItems(results);
   }, [searchTerm, items]);
 
@@ -213,7 +227,7 @@ const BaoKhoPhong = () => {
         <ItemGrid>
           {filteredItems.map((item) => (
             <ItemCard key={item.id}>
-              <ItemName>{item.vat_pham_name}</ItemName>
+              <ItemName>{item.Name}</ItemName>
               <ItemQuantity>Số lượng: {item.so_luong}</ItemQuantity>
               <ExpGainText>Sử dụng sẽ tăng thêm: 200 exp</ExpGainText>
               <Input placeholder="Số lượng" />

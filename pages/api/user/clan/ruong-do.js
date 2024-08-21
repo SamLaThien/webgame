@@ -19,16 +19,18 @@ export default async function handler(req, res) {
 
         const clanId = results[0].clan_id;
 
-        db.query('SELECT id, name, owner, accountant_id, password FROM clans WHERE id = ?', [clanId], (clanError, clanResults) => {
+        const query = `
+          SELECT crd.*, vp.Name 
+          FROM clan_ruong_do crd
+          JOIN vat_pham vp ON crd.vat_pham_id = vp.ID
+          WHERE crd.clan_id = ?
+        `;
+
+        db.query(query, [clanId], (clanError, items) => {
           if (clanError) {
             return res.status(500).json({ message: 'Internal server error', error: clanError.message });
           }
-          if (clanResults.length === 0) {
-            return res.status(404).json({ message: 'Clan not found' });
-          }
-
-          const clanInfo = clanResults[0];
-          res.status(200).json(clanInfo);
+          res.status(200).json(items);
         });
       });
     } catch (error) {
