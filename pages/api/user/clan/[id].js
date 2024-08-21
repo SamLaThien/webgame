@@ -1,4 +1,4 @@
-// pages/api/admin/clan-requests/[id].js
+// pages/api/adin/clan-requests/[id].js
 import db from '@/lib/db';
 
 export default async function handler(req, res) {
@@ -12,14 +12,12 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Update the status of the request
       db.query('UPDATE clan_requests SET status = ? WHERE id = ?', [action, id], (updateError) => {
         if (updateError) {
           return res.status(500).json({ message: 'Internal server error', error: updateError.message });
         }
 
         if (action === 'approved') {
-          // Add the user to the clan_members table
           db.query('INSERT INTO clan_members (clan_id, member_id) VALUES (?, ?)', [clan_id, user_id], (insertError) => {
             if (insertError) {
               return res.status(500).json({ message: 'Internal server error', error: insertError.message });

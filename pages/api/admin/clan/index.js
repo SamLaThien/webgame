@@ -3,6 +3,7 @@ import axios from 'axios';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import bcrypt from 'bcryptjs/dist/bcrypt';
 
 export const config = {
   api: {
@@ -56,13 +57,14 @@ export default async function handler(req, res) {
       }
 
       // Accessing the fields from req.body after multer has processed it
-      const { id, name, owner, clan_money, accountant_id, clan_color } = req.body;
+      const { id, name, owner, clan_money, accountant_id, clan_color, password } = req.body;
 
-      if (!name || !owner || !accountant_id || !clan_color) {
+      if (!name || !owner || !accountant_id || !clan_color || !password) {
         return res.status(400).json({ message: 'Name, owner, accountant, and clan color are required' });
       }
 
       try {
+        const hashedPassword = await bcrypt.hash(password, 10);
         const newId = id || null;
         const clanMana = 10000000; // Set default mana to 10 million
         const iconPath = req.file ? `/clan_icon/${newId}.png` : null;
@@ -81,13 +83,12 @@ export default async function handler(req, res) {
               db.query('ROLLBACK', () => {});
               return res.status(500).json({ message: 'Error creating Cbox channel', error: data[1] });
             }
-
             const threadId = data[1];
             const threadKey = data[2];
 
             db.query(
-              'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_color, clan_icon, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [newId, name, owner, clan_money, accountant_id, clanMana, clan_color, iconPath, threadId, threadKey],
+                'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_color, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [newId, name, owner, clan_money, accountant_id, clanMana, clan_color, iconPath, hashedPassword, threadId, threadKey],
               (clanError, clanResults) => {
                 if (clanError) {
                   db.query('ROLLBACK', () => {});

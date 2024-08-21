@@ -5,7 +5,6 @@ import ReCAPTCHA from 'react-google-recaptcha';
 const FormContainer = styled.div`
   background-color: white;  
   padding: 20px;
-  border-radius: 8px;
   border: 1px solid #93B6C8; 
   max-width: 400px;
   width: 100%;
@@ -30,7 +29,6 @@ const Input = styled.input`
   padding: 10px;
   margin: 10px 0;
   border: 1px solid #93B6C8; 
-  border-radius: 4px;
   background-color: #ffffff;  
   color: #333;  
 `;
@@ -41,7 +39,6 @@ const Button = styled.button`
   background-color: #93B6C8;  
   color: white;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
   margin-top: 10px;
 

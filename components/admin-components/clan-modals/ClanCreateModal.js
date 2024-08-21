@@ -52,6 +52,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
   const [clanMana, setClanMana] = useState(10000000);  // Default 10 million mana
   const [clanColor, setClanColor] = useState('');
   const [clanIconFile, setClanIconFile] = useState(null);
+  const [clanPassword, setClanPassword] = useState(''); // Add password state
   const [ownerSearchResults, setOwnerSearchResults] = useState([]);
   const [accountantSearchResults, setAccountantSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -90,8 +91,8 @@ const ClanCreateModal = ({ onClose, onSave }) => {
   }, [accountantUsername]);
 
   const handleSave = () => {
-    if (!name || !ownerId || !clanId || !accountantId || !clanColor || !clanIconFile) {
-      alert('ID bang hội, tên, chủ sở hữu, kế toán, màu sắc bang hội và biểu tượng là bắt buộc');
+    if (!name || !ownerId || !clanId || !accountantId || !clanColor || !clanIconFile || !clanPassword) {
+      alert('ID bang hội, tên, chủ sở hữu, kế toán, màu sắc bang hội, biểu tượng và mật khẩu là bắt buộc');
       return;
     }
   
@@ -104,6 +105,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     formData.append('accountant_id', accountantId);
     formData.append('clan_color', clanColor);
     formData.append('clan_icon', clanIconFile);
+    formData.append('password', clanPassword); // Add password to form data
   
     onSave(formData); 
   };
@@ -204,6 +206,15 @@ const ClanCreateModal = ({ onClose, onSave }) => {
             onChange={(e) => setClanIconFile(e.target.files[0])}
             accept="image/*"
             style={{ marginTop: '16px', flex: 1 }}
+          />
+        </FieldContainer>
+        <FieldContainer>
+          <HalfWidthTextField
+            label="Mật khẩu bang hội"
+            type="password"
+            value={clanPassword}
+            onChange={(e) => setClanPassword(e.target.value)}
+            margin="normal"
           />
         </FieldContainer>
         <StyledButton onClick={handleSave} variant="contained">
