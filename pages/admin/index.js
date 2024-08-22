@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 import Layout from '@/components/Layout';
 import UserManagement from '@/components/admin-components/UserManagement';
 import ClanManagement from '@/components/admin-components/ClanManagement';
 import LevelManagement from '@/components/admin-components/LevelManagement';
 import ClanPremissionManagement from '@/components/admin-components/ClanPremissionManagement';
 import VatPhamManagement from '@/components/admin-components/VatPhamManagement';
-import WheelManagement from '@/components/admin-components/WheelManagement'; // Import the new component
+import WheelManagement from '@/components/admin-components/WheelManagement';
 import GiftCodeManagement from '@/components/admin-components/GiftCodeManagement';
-
+import jwt from 'jsonwebtoken';
 const Container = styled.div`
   display: flex;
   width: 100%;
@@ -32,12 +33,15 @@ const SidebarSection = styled.div`
 const SectionTitle = styled.div`
   cursor: pointer;
   padding: 10px;
-  background-color: none;
   color: black;
   border-radius: 4px;
   margin-bottom: 5px;
 
   &:hover {
+    background-color: #93B6C8;
+  }
+
+  &.active {
     background-color: #93B6C8;
   }
 `;
@@ -61,7 +65,7 @@ const Button = styled.button`
   text-align: left;
 
   &:hover {
-    background-color: red;
+    background-color: #e57373;
   }
 
   &.active {
@@ -75,17 +79,41 @@ const AdminPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.role === 1) {
-        setUser(parsedUser);
-      } else {
-        router.push('/');
+    const fetchUserInfo = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const decodedToken = jwt.decode(token);
+          console.log("Decoded Token:", decodedToken);
+
+          if (decodedToken && decodedToken.userId) {
+            const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${decodedToken.userId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+
+            console.log("User data fetched successfully:", userData); 
+            setUser(userData);
+
+          
+            if (userData.role !== 1) {
+              console.error("User is not an admin, redirecting to login");
+              router.push('/login');
+            }
+          } else {
+            console.error("Invalid token, redirecting to login");
+            router.push('/login');
+          }
+        } else {
+          console.error('No token found in localStorage, redirecting to login');
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        router.push('/login');
       }
-    } else {
-      router.push('/login');
-    }
+    };
+
+    fetchUserInfo();
   }, [router]);
 
   const handleLogout = () => {
@@ -94,19 +122,20 @@ const AdminPage = () => {
     router.push('/');
   };
 
-  if (!user) return null;
+  if (!user) return <p>Loading...</p>; 
+
 
   return (
     <Container>
       <Sidebar>
         <SidebarSection>
-          <SectionTitle onClick={() => setSelectedSection('userManagement')}>Quản lý người dùng</SectionTitle>
-          <SectionTitle onClick={() => setSelectedSection('clanManagement')}>Quản lý bang hội</SectionTitle>
-          <SectionTitle onClick={() => setSelectedSection('clanPermissionManagement')}>Quản lý quyền hạn bang</SectionTitle>
-          <SectionTitle onClick={() => setSelectedSection('levelManagement')}>Quản lý cấp độ</SectionTitle>
-          <SectionTitle onClick={() => setSelectedSection('vatPhamManagement')}>Quản lý vật phẩm</SectionTitle>
-          <SectionTitle onClick={() => setSelectedSection('wheelManagement')}>Quản lý vòng quay</SectionTitle>
-          <SectionTitle onClick={() => setSelectedSection('giftCodeManagement')}>Quản lý Gift Code</SectionTitle> {/* Add this line */}
+          <SectionTitle className={selectedSection === 'userManagement' ? 'active' : ''} onClick={() => setSelectedSection('userManagement')}>Quản lý người dùng</SectionTitle>
+          <SectionTitle className={selectedSection === 'clanManagement' ? 'active' : ''} onClick={() => setSelectedSection('clanManagement')}>Quản lý bang hội</SectionTitle>
+          <SectionTitle className={selectedSection === 'clanPermissionManagement' ? 'active' : ''} onClick={() => setSelectedSection('clanPermissionManagement')}>Quản lý quyền hạn bang</SectionTitle>
+          <SectionTitle className={selectedSection === 'levelManagement' ? 'active' : ''} onClick={() => setSelectedSection('levelManagement')}>Quản lý cấp độ</SectionTitle>
+          <SectionTitle className={selectedSection === 'vatPhamManagement' ? 'active' : ''} onClick={() => setSelectedSection('vatPhamManagement')}>Quản lý vật phẩm</SectionTitle>
+          <SectionTitle className={selectedSection === 'wheelManagement' ? 'active' : ''} onClick={() => setSelectedSection('wheelManagement')}>Quản lý vòng quay</SectionTitle>
+          <SectionTitle className={selectedSection === 'giftCodeManagement' ? 'active' : ''} onClick={() => setSelectedSection('giftCodeManagement')}>Quản lý Gift Code</SectionTitle>
         </SidebarSection>
         <Button onClick={handleLogout}>Đăng xuất</Button>
       </Sidebar>
@@ -117,7 +146,7 @@ const AdminPage = () => {
         {selectedSection === 'levelManagement' && <LevelManagement />}
         {selectedSection === 'vatPhamManagement' && <VatPhamManagement />}
         {selectedSection === 'wheelManagement' && <WheelManagement />}
-        {selectedSection === 'giftCodeManagement' && <GiftCodeManagement />} {/* Add this line */}
+        {selectedSection === 'giftCodeManagement' && <GiftCodeManagement />}
       </MainContent>
     </Container>
   );

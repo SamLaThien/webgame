@@ -4,6 +4,7 @@ import UserDetailModal from './user-modals/UserDetailModal';
 import UserEditModal from './user-modals/UserEditModal';
 import UserBanModal from './user-modals/UserBanModal';
 import UserDeleteModal from './user-modals/UserDeleteModal';
+import axios from 'axios';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -12,17 +13,28 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/user')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Fetched users:', data);
-        setUsers(data);
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No token found, redirecting to login');
+          return;
+        }
+
+        const response = await axios.get('/api/admin/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        setUsers(response.data);
         setLoading(false);
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching users:', error);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   const handleOpenModal = (user, type) => {
@@ -35,35 +47,52 @@ const UserManagement = () => {
     setModalType(null);
   };
 
-  const handleSaveUser = (updatedUser) => {
-    fetch(`/api/admin/user/${updatedUser.id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(updatedUser)
-    })
-    .then(response => response.json())
-    .then(data => {
-      setUsers(users.map(user => (user.id === updatedUser.id ? updatedUser : user)));
-      handleCloseModal();
-    })
-    .catch(error => console.error('Error updating user:', error));
+  const handleSaveUser = async (updatedUser) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found, redirecting to login');
+        return;
+      }
+
+      const response = await axios.post(`/api/admin/user/${updatedUser.id}`, updatedUser, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 200) {
+        setUsers(users.map(user => (user.id === updatedUser.id ? updatedUser : user)));
+        handleCloseModal();
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
   };
 
-  const handleBanUser = (user) => {
-    fetch(`/api/admin/user/${user.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ ban: user.ban === 1 ? 0 : 1 })
-    })
-    .then(response => response.json())
-    .then(data => {
-      setUsers(users.map(u => u.id === user.id ? { ...u, ban: user.ban === 1 ? 0 : 1 } : u));
-    })
-    .catch(error => console.error('Error banning user:', error));
+  const handleBanUser = async (user) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found, redirecting to login');
+        return;
+      }
+
+      const response = await axios.put(`/api/admin/user/${user.id}`, {
+        ban: user.ban === 1 ? 0 : 1
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 200) {
+        setUsers(users.map(u => u.id === user.id ? { ...u, ban: user.ban === 1 ? 0 : 1 } : u));
+      }
+    } catch (error) {
+      console.error('Error banning user:', error);
+    }
   };
 
   if (loading) {

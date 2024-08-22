@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button, TextField, CircularProgress, MenuItem } from '@mui/material';
 import styled from 'styled-components';
+import axios from 'axios';
 
 const ModalContent = styled.div`
   padding: 20px;
@@ -52,50 +53,60 @@ const ClanCreateModal = ({ onClose, onSave }) => {
   const [clanMana, setClanMana] = useState(10000000);  // Default 10 million mana
   const [clanColor, setClanColor] = useState('');
   const [clanIconFile, setClanIconFile] = useState(null);
-  const [clanPassword, setClanPassword] = useState(''); // Add password state
+  const [clanPassword, setClanPassword] = useState('');
   const [ownerSearchResults, setOwnerSearchResults] = useState([]);
   const [accountantSearchResults, setAccountantSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [clanId, setClanId] = useState('');
 
   useEffect(() => {
-    if (ownerUsername) {
-      setLoading(true);
-      fetch(`/api/admin/search-user?username=${ownerUsername}`)
-        .then(response => response.json())
-        .then(data => {
-          setOwnerSearchResults(data);
-          setLoading(false);
-        })
-        .catch(error => {
+    const fetchOwnerResults = async () => {
+      if (ownerUsername) {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        try {
+          const response = await axios.get(`/api/admin/search-user?username=${ownerUsername}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setOwnerSearchResults(response.data);
+        } catch (error) {
           console.error('Error searching for owner:', error);
+        } finally {
           setLoading(false);
-        });
-    }
+        }
+      }
+    };
+
+    fetchOwnerResults();
   }, [ownerUsername]);
 
   useEffect(() => {
-    if (accountantUsername) {
-      setLoading(true);
-      fetch(`/api/admin/search-user?username=${accountantUsername}`)
-        .then(response => response.json())
-        .then(data => {
-          setAccountantSearchResults(data);
-          setLoading(false);
-        })
-        .catch(error => {
+    const fetchAccountantResults = async () => {
+      if (accountantUsername) {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        try {
+          const response = await axios.get(`/api/admin/search-user?username=${accountantUsername}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setAccountantSearchResults(response.data);
+        } catch (error) {
           console.error('Error searching for accountant:', error);
+        } finally {
           setLoading(false);
-        });
-    }
+        }
+      }
+    };
+
+    fetchAccountantResults();
   }, [accountantUsername]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name || !ownerId || !clanId || !accountantId || !clanColor || !clanIconFile || !clanPassword) {
       alert('ID bang hội, tên, chủ sở hữu, kế toán, màu sắc bang hội, biểu tượng và mật khẩu là bắt buộc');
       return;
     }
-  
+
     const formData = new FormData();
     formData.append('id', clanId);
     formData.append('name', name);
@@ -105,9 +116,26 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     formData.append('accountant_id', accountantId);
     formData.append('clan_color', clanColor);
     formData.append('clan_icon', clanIconFile);
-    formData.append('password', clanPassword); // Add password to form data
-  
-    onSave(formData); 
+    formData.append('password', clanPassword);
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('User is not authenticated');
+      return;
+    }
+
+    try {
+      await axios.post('/api/admin/clan', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      onSave(); // Call onSave to update the parent component after successful save
+    } catch (error) {
+      console.error('Error saving clan:', error);
+      alert('Lỗi khi lưu bang hội');
+    }
   };
 
   return (

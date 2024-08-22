@@ -5,6 +5,7 @@ import ClanDetailModal from './clan-modals/ClanDetailModal';
 import ClanEditModal from './clan-modals/ClanEditModal';
 import ClanDeleteModal from './clan-modals/ClanDeleteModal';
 import ClanCreateModal from './clan-modals/ClanCreateModal';
+import axios from 'axios';
 
 const Container = styled.div`
   padding: 20px;
@@ -36,16 +37,26 @@ const ClanManagement = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/clan')
-      .then(response => response.json())
-      .then(data => {
-        setClans(data);
+    const fetchClans = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      try {
+        const response = await axios.get('/api/admin/clan', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setClans(response.data);
         setLoading(false);
-      })
-      .catch(error => {
-        console.error('Lỗi khi lấy danh sách bang hội:', error);
+      } catch (error) {
+        console.error('Error fetching clans:', error);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchClans();
   }, []);
 
   const handleOpenModal = (clan, type) => {
@@ -58,48 +69,57 @@ const ClanManagement = () => {
     setModalType(null);
   };
 
-  const handleSaveClan = (updatedClan) => {
-    fetch(`/api/admin/clan/${updatedClan.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(updatedClan)
-    })
-      .then(response => response.json())
-      .then(data => {
-        setClans(clans.map(clan => (clan.id === updatedClan.id ? updatedClan : clan)));
-        handleCloseModal();
-      })
-      .catch(error => console.error('Lỗi khi cập nhật bang hội:', error));
+  const handleSaveClan = async (updatedClan) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
+
+    try {
+      const response = await axios.put(`/api/admin/clan/${updatedClan.id}`, updatedClan, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClans(clans.map(clan => (clan.id === updatedClan.id ? updatedClan : clan)));
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error updating clan:', error);
+    }
   };
 
-  const handleCreateClan = (newClanFormData) => {
-    fetch(`/api/admin/clan`, {
-      method: 'POST',
-      body: newClanFormData 
-    })
-      .then(response => response.json())
-      .then(data => {
-        setClans([...clans, data]);
-        handleCloseModal();
-      })
-      .catch(error => console.error('Lỗi khi tạo bang hội:', error));
-  };
-  
+  const handleCreateClan = async (newClanFormData) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
 
-  const handleDeleteClan = (clanId) => {
-    fetch(`/api/admin/clan/${clanId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-      .then(response => response.json())
-      .then(() => {
-        setClans(clans.filter(clan => clan.id !== clanId));
-      })
-      .catch(error => console.error('Lỗi khi xóa bang hội:', error));
+    try {
+      const response = await axios.post(`/api/admin/clan`, newClanFormData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClans([...clans, response.data]);
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error creating clan:', error);
+    }
+  };
+
+  const handleDeleteClan = async (clanId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/admin/clan/${clanId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClans(clans.filter(clan => clan.id !== clanId));
+    } catch (error) {
+      console.error('Error deleting clan:', error);
+    }
   };
 
   if (loading) {

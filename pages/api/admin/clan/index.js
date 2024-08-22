@@ -3,12 +3,12 @@ import axios from 'axios';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import bcrypt from 'bcryptjs/dist/bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 export const config = {
   api: {
-    bodyParser: false, 
+    bodyParser: false,
   },
 };
 
@@ -40,19 +40,35 @@ const upload = multer({
 const CBOX_API_URL = 'https://www.cbox.ws/apis/threads.php?id=3-3539544-KPxXBl&key=e6ac3abc945bd9c844774459b6d2385a&act=mkthread';
 
 export default async function handler(req, res) {
+  const { method } = req;
   const { authorization } = req.headers;
+
   if (!authorization) {
     return res.status(401).json({ message: 'Authorization header is required' });
   }
 
   const token = authorization.split(' ')[1];
+  let userId;
+
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    userId = decoded.userId;
+
+    const [user] = await new Promise((resolve, reject) => {
+      db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
+
+    if (!user || user.role !== 1) {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
   }
 
-  if (req.method === 'GET') {
+  if (method === 'GET') {
     try {
       db.query('SELECT * FROM clans', (error, results) => {
         if (error) {
@@ -63,7 +79,7 @@ export default async function handler(req, res) {
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-  } else if (req.method === 'POST') {
+  } else if (method === 'POST') {
     upload.single('clan_icon')(req, res, async function (err) {
       if (err) {
         return res.status(400).json({ message: err.message });
@@ -162,8 +178,49 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Internal server error', error: error.message });
       }
     });
+  } else if (method === 'PUT') {
+    const { id } = req.query;
+    const { name, owner, clan_money, accountant_id, clan_color, password } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: 'Clan ID is required' });
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      db.query(
+        'UPDATE clans SET name = ?, owner = ?, clan_money = ?, accountant_id = ?, clan_color = ?, password = ? WHERE id = ?',
+        [name, owner, clan_money, accountant_id, clan_color, hashedPassword, id],
+        (error) => {
+          if (error) {
+            return res.status(500).json({ message: 'Internal server error', error: error.message });
+          }
+          res.status(200).json({ message: 'Clan updated successfully' });
+        }
+      );
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+  } else if (method === 'DELETE') {
+    const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({ message: 'Clan ID is required' });
+    }
+
+    try {
+      db.query('DELETE FROM clans WHERE id = ?', [id], (error) => {
+        if (error) {
+          return res.status(500).json({ message: 'Internal server error', error: error.message });
+        }
+        res.status(200).json({ message: 'Clan deleted successfully' });
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
   } else {
-    res.setHeader('Allow', ['GET', 'POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+    res.status(405).end(`Method ${method} Not Allowed`);
   }
 }
