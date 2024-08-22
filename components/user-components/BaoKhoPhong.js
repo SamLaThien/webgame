@@ -40,7 +40,6 @@ const SearchInput = styled.input`
   border: 1px solid #ccc;
   width: 100%;
   box-sizing: border-box;
-
 `;
 
 const ItemGrid = styled.div`
@@ -50,21 +49,20 @@ const ItemGrid = styled.div`
 
 const ItemCard = styled.div`
   border: 1px dashed #ddd;
-  border-right-width: 0; 
+  border-right-width: 0;
   border-bottom-width: 0;
   padding: 10px;
   position: relative;
   background-color: white;
 
-  &:nth-child(4n) { 
-    border-right-width: 1px; 
+  &:nth-child(4n) {
+    border-right-width: 1px;
   }
 
-  &:nth-last-child(-n+4) { 
-    border-bottom-width: 1px; 
+  &:nth-last-child(-n + 4) {
+    border-bottom-width: 1px;
   }
 `;
-
 
 const ItemName = styled.h3`
   font-size: 16px;
@@ -94,7 +92,6 @@ const Input = styled.input`
   width: 100%;
   border: 1px solid #ccc;
   box-sizing: border-box;
-
 `;
 
 const TransferButton = styled.button`
@@ -128,13 +125,18 @@ const BaoKhoPhong = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const userInfo = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
+        const token = localStorage.getItem("token");
+        if (token) {
+          const userInfo = await axios.get(`/api/user/clan/user-info`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           setUser(userInfo.data);
 
-          if (parseInt(userInfo.data.clan_role) !== 6 && parseInt(userInfo.data.clan_role) !== 7) {
-            router.push('/ho-so');
+          if (
+            parseInt(userInfo.data.clan_role) !== 6 &&
+            parseInt(userInfo.data.clan_role) !== 7
+          ) {
+            router.push("/ho-so");
           }
         }
       } catch (error) {
@@ -147,12 +149,26 @@ const BaoKhoPhong = () => {
 
   const handlePasswordSubmit = async () => {
     try {
-      const response = await axios.get(`/api/user/clan/get-clan-info?userId=${user.id}`);
-      const isPasswordMatch = await bcrypt.compare(password, response.data.password);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("User is not logged in");
+        return;
+      }
+
+      const response = await axios.get(`/api/user/clan/get-clan-info`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const isPasswordMatch = await bcrypt.compare(
+        password,
+        response.data.password
+      );
 
       if (isPasswordMatch) {
         setIsAuthenticated(true);
-        const { data } = await axios.get(`/api/user/clan/ruong-do?userId=${user.id}`);
+        const { data } = await axios.get(`/api/user/clan/ruong-do`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setItems(data);
         setFilteredItems(data);
       } else {
@@ -165,21 +181,37 @@ const BaoKhoPhong = () => {
 
   useEffect(() => {
     const results = items.filter((item) => {
-      const itemName = item.vat_pham_name || ""; 
+      const itemName = item.vat_pham_name || "";
       return itemName.toLowerCase().includes(searchTerm.toLowerCase());
     });
     setFilteredItems(results);
   }, [searchTerm, items]);
 
   const handleTransferItem = async (vatPhamId, soLuong, memberId) => {
+    if (!soLuong || !memberId || soLuong <= 0 || memberId <= 0) {
+      alert('Please enter valid quantity and member ID.');
+      return;
+    }
+  
     try {
-      const { data } = await axios.post("/api/clan/ruong-do/transfer", {
-        userId: user.id,
-        vatPhamId,
-        soLuong,
-        memberId,
-      });
-
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('User is not logged in');
+        return;
+      }
+  
+      const { data } = await axios.post(
+        '/api/user/clan/transfer',
+        {
+          vatPhamId,
+          soLuong: parseInt(soLuong, 10),
+          memberId: parseInt(memberId, 10),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
       if (data.success) {
         setItems((prevItems) =>
           prevItems.map((item) =>
@@ -188,14 +220,15 @@ const BaoKhoPhong = () => {
               : item
           )
         );
-        alert("Item transferred successfully!");
+        alert('Item transferred successfully!');
       } else {
-        alert(data.message || "Error transferring item");
+        alert(data.message || 'Error transferring item');
       }
     } catch (error) {
-      console.error("Error transferring item:", error);
+      console.error('Error transferring item:', error);
     }
   };
+  
 
   if (!isAuthenticated) {
     return (
@@ -230,11 +263,44 @@ const BaoKhoPhong = () => {
               <ItemName>{item.Name}</ItemName>
               <ItemQuantity>Số lượng: {item.so_luong}</ItemQuantity>
               <ExpGainText>Sử dụng sẽ tăng thêm: 200 exp</ExpGainText>
-              <Input placeholder="Số lượng" />
-              <Input placeholder="ID Thành Viên" />
+
+              {/* Input for quantity to transfer */}
+              <Input
+                type="number"
+                placeholder="Số lượng"
+                value={item.transferQuantity || ""}
+                onChange={(e) => {
+                  const newItems = filteredItems.map((i) =>
+                    i.id === item.id
+                      ? { ...i, transferQuantity: e.target.value }
+                      : i
+                  );
+                  setFilteredItems(newItems);
+                }}
+              />
+
+              {/* Input for the recipient's user ID */}
+              <Input
+                type="number"
+                placeholder="ID Thành Viên"
+                value={item.transferMemberId || ""}
+                onChange={(e) => {
+                  const newItems = filteredItems.map((i) =>
+                    i.id === item.id
+                      ? { ...i, transferMemberId: e.target.value }
+                      : i
+                  );
+                  setFilteredItems(newItems);
+                }}
+              />
+
               <TransferButton
                 onClick={() =>
-                  handleTransferItem(item.vat_pham_id, item.so_luong, 1) // Replace 1 with the actual member ID input
+                  handleTransferItem(
+                    item.vat_pham_id,
+                    item.transferQuantity,
+                    item.transferMemberId
+                  )
                 }
               >
                 Chuyển

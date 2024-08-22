@@ -1,11 +1,27 @@
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
-  const { userId, accountantId, amount } = req.body;
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
+  }
+
+  const token = authorization.split(' ')[1];
+  let userId;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    userId = decoded.userId;
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
+  }
+
+  const { accountantId, amount } = req.body;
 
   if (!userId || !accountantId || !amount || amount <= 0) {
     return res.status(400).json({ message: 'Invalid or missing parameters' });
@@ -43,7 +59,7 @@ export default async function handler(req, res) {
 
     const userIdentifier = user.ngoai_hieu || user.username;
 
-    console.log('Starting transaction');
+    // Start transaction
     await new Promise((resolve, reject) => {
       db.query('START TRANSACTION', (err) => {
         if (err) reject(err);
@@ -51,7 +67,7 @@ export default async function handler(req, res) {
       });
     });
 
-    console.log('Updating user tai_san');
+    // Update user tai_san
     await new Promise((resolve, reject) => {
       db.query(
         'UPDATE users SET tai_san = tai_san - ? WHERE id = ?',
@@ -65,7 +81,7 @@ export default async function handler(req, res) {
       );
     });
 
-    console.log('Transferring money to accountant');
+    // Transfer money to accountant
     await new Promise((resolve, reject) => {
       db.query(
         'UPDATE users SET tai_san = tai_san + ? WHERE id = ?',
@@ -79,7 +95,7 @@ export default async function handler(req, res) {
       );
     });
 
-    console.log('Logging the donation activity');
+    // Log the donation activity
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details, timestamp) VALUES (?, (SELECT clan_id FROM clan_members WHERE member_id = ?), ?, ?, NOW())',
@@ -93,7 +109,7 @@ export default async function handler(req, res) {
       );
     });
 
-    console.log('Committing transaction');
+    // Commit transaction
     await new Promise((resolve, reject) => {
       db.query('COMMIT', (err) => {
         if (err) reject(err);

@@ -83,8 +83,7 @@ const Header = () => {
           if (response.status === 200) {
             const userData = response.data;
             setUser(userData);
-            console.log("This is Header response" + JSON.stringify(userData));
-          } else {
+            } else {
             console.error('Failed to fetch user data:', response.statusText);
           }
         } catch (error) {

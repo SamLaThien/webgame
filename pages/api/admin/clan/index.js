@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import bcrypt from 'bcryptjs/dist/bcrypt';
+import jwt from 'jsonwebtoken';
 
 export const config = {
   api: {
@@ -39,6 +40,18 @@ const upload = multer({
 const CBOX_API_URL = 'https://www.cbox.ws/apis/threads.php?id=3-3539544-KPxXBl&key=e6ac3abc945bd9c844774459b6d2385a&act=mkthread';
 
 export default async function handler(req, res) {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
+  }
+
+  const token = authorization.split(' ')[1];
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+
   if (req.method === 'GET') {
     try {
       db.query('SELECT * FROM clans', (error, results) => {
@@ -56,7 +69,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: err.message });
       }
 
-      // Accessing the fields from req.body after multer has processed it
       const { id, name, owner, clan_money, accountant_id, clan_color, password } = req.body;
 
       if (!name || !owner || !accountant_id || !clan_color || !password) {
@@ -66,10 +78,9 @@ export default async function handler(req, res) {
       try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newId = id || null;
-        const clanMana = 10000000; // Set default mana to 10 million
+        const clanMana = 10000000; 
         const iconPath = req.file ? `/clan_icon/${newId}.png` : null;
 
-        // Start transaction
         db.query('START TRANSACTION', async (startError) => {
           if (startError) {
             return res.status(500).json({ message: 'Internal server error', error: startError.message });
@@ -87,8 +98,8 @@ export default async function handler(req, res) {
             const threadKey = data[2];
 
             db.query(
-                'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_color, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [newId, name, owner, clan_money, accountant_id, clanMana, clan_color, iconPath, hashedPassword, threadId, threadKey],
+              'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_color, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [newId, name, owner, clan_money, accountant_id, clanMana, clan_color, iconPath, hashedPassword, threadId, threadKey],
               (clanError, clanResults) => {
                 if (clanError) {
                   db.query('ROLLBACK', () => {});
@@ -156,4 +167,3 @@ export default async function handler(req, res) {
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
-  

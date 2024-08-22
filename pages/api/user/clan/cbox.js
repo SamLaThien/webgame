@@ -1,15 +1,21 @@
-// pages/api/clan/cbox.js
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
-  const { userId } = req.query;
-
-  if (!userId) {
-    return res.status(400).json({ message: 'Missing userId' });
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
   }
 
+  const token = authorization.split(' ')[1];
   try {
-    // First, get the clan ID from the clan_members table
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'Invalid token data' });
+    }
+
     const [clanMember] = await new Promise((resolve, reject) => {
       db.query('SELECT clan_id FROM clan_members WHERE member_id = ?', [userId], (error, results) => {
         if (error) {
@@ -25,7 +31,6 @@ export default async function handler(req, res) {
 
     const clanId = clanMember.clan_id;
 
-    // Then, get the clan information using the clan ID
     const [clan] = await new Promise((resolve, reject) => {
       db.query('SELECT cbox_thread_id, cbox_thread_key FROM clans WHERE id = ?', [clanId], (error, results) => {
         if (error) {

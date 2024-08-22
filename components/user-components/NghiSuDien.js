@@ -164,14 +164,16 @@ const NghiSuDien = () => {
   useEffect(() => {
     const fetchClanChatInfo = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const response = await axios.get(
-            `/api/user/clan/cbox?userId=${storedUser.id}`
-          );
-          const activityResponse = await axios.get(
-            `/api/user/clan/activity-logs?userId=${storedUser.id}`
-          );
+        const token = localStorage.getItem("token");
+        if (token) {
+          const response = await axios.get(`/api/user/clan/cbox`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+  
+          const activityResponse = await axios.get(`/api/user/clan/activity-logs`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
           setActivities(activityResponse.data);
           const { cbox_thread_id, cbox_thread_key } = response.data;
           setCboxThreadId(cbox_thread_id);
@@ -181,43 +183,49 @@ const NghiSuDien = () => {
         console.error("Error fetching clan chat info:", error);
       }
     };
-
+  
     fetchClanChatInfo();
   }, []);
-
+  
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const userInfo = await axios.get(
-            `/api/user/clan/user-info?userId=${storedUser.id}`
-          );
+        const token = localStorage.getItem("token");
+        if (token) {
+          const userInfo = await axios.get(`/api/user/clan/user-info`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+  
           setUser(userInfo.data);
+  
           if (
             parseInt(userInfo.data.clan_role) !== 6 &&
             parseInt(userInfo.data.clan_role) !== 7
           ) {
             router.push("/ho-so");
           }
-          const membersInfo = await axios.get(
-            `/api/user/clan/members?userId=${storedUser.id}`
-          );
+  
+          const membersInfo = await axios.get(`/api/user/clan/members`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+  
           setMembers(membersInfo.data);
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
       }
     };
-
+  
     fetchUserData();
   }, []);
+  
 
   useEffect(() => {
     if (user) {
       console.log("Starting timer for EXP update...");
       const interval = setInterval(() => {
-        setSeconds((prevSeconds) => prevSeconds + 1800);
+        setSeconds((prevSeconds) => prevSeconds + 1);
         console.log(
           `Timer: ${Math.floor(seconds / 60)} minute(s) and ${
             seconds % 60
@@ -225,7 +233,6 @@ const NghiSuDien = () => {
         );
 
         if (seconds !== 0 && seconds % 1800 === 0) {
-          console.log("10 seconds reached. Preparing to update EXP...");
           updateExp();
         }
       }, 1000);
@@ -238,7 +245,7 @@ const NghiSuDien = () => {
     try {
       const cap = Math.floor(user.level / 10) + 1;
       let tile = 1;
-
+  
       switch (cap) {
         case 1:
           tile = 1.1;
@@ -270,18 +277,31 @@ const NghiSuDien = () => {
         default:
           tile = 1;
       }
-
+  
       const expToAdd = 1 / (48 * tile);
-      const response = await axios.post("/api/user/dot-pha/update", {
-        userId: user.id,
-        expToAdd: expToAdd,
-      });
-
-      setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + expToAdd }));
+      const token = localStorage.getItem('token');
+  
+      const response = await axios.post(
+        "/api/user/dot-pha/update",
+        { expToAdd },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      if (response.status === 200) {
+        setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + expToAdd }));
+      } else {
+        console.error("Failed to update exp:", response.data.message);
+      }
     } catch (error) {
       console.error("Error updating exp:", error);
     }
   };
+  
+
   const handleMoneyDonation = async () => {
     if (!donationAmount || isNaN(donationAmount) || Number(donationAmount) <= 0) {
       alert("Please enter a valid amount.");
@@ -289,16 +309,28 @@ const NghiSuDien = () => {
     }
   
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      const response = await axios.get(`/api/user/clan/get-clan-info?userId=${storedUser.id}`);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("User is not authenticated");
+        return;
+      }
+  
+      const response = await axios.get(`/api/user/clan/get-clan-info`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
   
       if (response.data) {
         const { accountant_id } = response.data;
-        const { data } = await axios.post("/api/user/clan/donate-money", {
-          userId: storedUser.id,
-          amount: Number(donationAmount),
-          accountantId: accountant_id,
-        });
+        const { data } = await axios.post(
+          "/api/user/clan/donate-money",
+          {
+            amount: Number(donationAmount),
+            accountantId: accountant_id,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
   
         if (data.message === "Donation successful") {
           alert("Money donated successfully!");
@@ -314,6 +346,7 @@ const NghiSuDien = () => {
       alert("An error occurred during the donation process.");
     }
   };
+  
   
 
   const getChatBoxUrl = () => {

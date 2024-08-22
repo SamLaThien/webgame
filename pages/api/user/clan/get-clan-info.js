@@ -1,41 +1,59 @@
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    const { userId } = req.query;
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: `Method ${req.method} not allowed` });
+  }
 
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
+  }
 
-    try {
+  const token = authorization.split(' ')[1];
+  let userId;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    userId = decoded.userId;
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
+  }
+
+  try {
+    const userClanResult = await new Promise((resolve, reject) => {
       db.query('SELECT clan_id FROM clan_members WHERE member_id = ?', [userId], (error, results) => {
         if (error) {
-          return res.status(500).json({ message: 'Internal server error', error: error.message });
+          return reject(error);
         }
-        if (results.length === 0) {
-          return res.status(404).json({ message: 'User is not a member of any clan' });
-        }
-
-        const clanId = results[0].clan_id;
-
-        db.query('SELECT id, name, owner, accountant_id, password FROM clans WHERE id = ?', [clanId], (clanError, clanResults) => {
-          if (clanError) {
-            return res.status(500).json({ message: 'Internal server error', error: clanError.message });
-          }
-          if (clanResults.length === 0) {
-            return res.status(404).json({ message: 'Clan not found' });
-          }
-
-          const clanInfo = clanResults[0];
-          res.status(200).json(clanInfo);
-        });
+        resolve(results);
       });
-    } catch (error) {
-      return res.status(500).json({ message: 'Internal server error', error: error.message });
+    });
+
+    if (userClanResult.length === 0) {
+      return res.status(404).json({ message: 'User is not a member of any clan' });
     }
-  } else {
-    res.setHeader('Allow', ['GET']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+
+    const clanId = userClanResult[0].clan_id;
+
+    const clanInfoResult = await new Promise((resolve, reject) => {
+      db.query('SELECT id, name, owner, accountant_id, password FROM clans WHERE id = ?', [clanId], (error, results) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(results);
+      });
+    });
+
+    if (clanInfoResult.length === 0) {
+      return res.status(404).json({ message: 'Clan not found' });
+    }
+
+    const clanInfo = clanInfoResult[0];
+    return res.status(200).json(clanInfo);
+  } catch (error) {
+    console.error('Error fetching clan info:', error);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 }
