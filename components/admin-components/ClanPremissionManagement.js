@@ -1,45 +1,53 @@
-// components/admin-components/ClanPremissionManagement.js
 import { useState, useEffect } from 'react';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress } from '@mui/material';
+import axios from 'axios';
 
 const ClanPremissionManagement = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/clan-requests')
-      .then(response => response.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setRequests(data);
+    const fetchRequests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/admin/clan-requests', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (Array.isArray(response.data)) {
+          setRequests(response.data);
         } else {
-          console.error('Unexpected response format:', data);
+          console.error('Unexpected response format:', response.data);
         }
         setLoading(false);
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching requests:', error);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchRequests();
   }, []);
 
-  const handleAction = (requestId, action, userId, clanId) => {
-    fetch(`/api/admin/clan-requests/${requestId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ action, user_id: userId, clan_id: clanId })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.message.includes('Request')) {
-          setRequests(requests.map(req => req.id === requestId ? { ...req, status: action } : req));
-        } else {
-          console.error('Error updating request:', data.message);
-        }
-      })
-      .catch(error => console.error('Error updating request:', error));
+  const handleAction = async (requestId, action, userId, clanId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`/api/admin/clan-requests/${requestId}`, {
+        action,
+        user_id: userId,
+        clan_id: clanId,
+      }, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+
+      if (response.data.message.includes('Request')) {
+        setRequests(requests.map(req => req.id === requestId ? { ...req, status: action } : req));
+      } else {
+        console.error('Error updating request:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error updating request:', error);
+    }
   };
 
   if (loading) {

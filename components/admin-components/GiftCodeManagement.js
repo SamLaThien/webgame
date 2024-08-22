@@ -23,6 +23,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
+import axios from "axios";
 
 const Container = styled.div`
   padding: 20px;
@@ -58,7 +59,7 @@ const GiftCodeManagement = () => {
   const [exp, setExp] = useState(0);
   const [taiSan, setTaiSan] = useState(0);
   const [lifetime, setLifetime] = useState(new Date());
-  const [timeCanUse, setTimeCanUse] = useState(1); // New state for time_can_use
+  const [timeCanUse, setTimeCanUse] = useState(1);
   const [vatphams, setVatphams] = useState([]);
   const [selectedVatphams, setSelectedVatphams] = useState([]);
   const [currentVatphamId, setCurrentVatphamId] = useState("");
@@ -75,17 +76,23 @@ const GiftCodeManagement = () => {
   }, []);
 
   const fetchVatphams = () => {
-    fetch("/api/admin/gift-code/vat-pham")
-      .then((response) => response.json())
-      .then((data) => setVatphams(data))
+    const token = localStorage.getItem("token");
+    axios
+      .get("/api/admin/gift-code/vat-pham", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => setVatphams(response.data))
       .catch((error) => console.error("Error fetching vatphams:", error));
   };
 
   const fetchGiftCodes = () => {
-    fetch("/api/admin/gift-code")
-      .then((response) => response.json())
-      .then((data) => {
-        setAllGiftCodes(data);
+    const token = localStorage.getItem("token");
+    axios
+      .get("/api/admin/gift-code", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setAllGiftCodes(response.data);
         setLoading(false);
       })
       .catch((error) => {
@@ -111,6 +118,7 @@ const GiftCodeManagement = () => {
   };
 
   const saveGiftCode = () => {
+    const token = localStorage.getItem("token");
     const payload = {
       code: giftCode,
       exp,
@@ -125,16 +133,17 @@ const GiftCodeManagement = () => {
       : "/api/admin/gift-code";
     const method = editMode ? "PUT" : "POST";
 
-    fetch(url, {
+    axios({
       method,
+      url,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(payload),
+      data: payload,
     })
-      .then((response) => response.json())
-      .then((data) => {
-        setMessage(data.message);
+      .then((response) => {
+        setMessage(response.data.message);
         fetchGiftCodes();
         resetForm();
       })
@@ -164,12 +173,13 @@ const GiftCodeManagement = () => {
   };
 
   const handleDelete = (id) => {
-    fetch(`/api/admin/gift-code?id=${id}`, {
-      method: "DELETE",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setMessage(data.message);
+    const token = localStorage.getItem("token");
+    axios
+      .delete(`/api/admin/gift-code?id=${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setMessage(response.data.message);
         fetchGiftCodes();
       })
       .catch((error) => console.error("Error:", error));
@@ -298,8 +308,8 @@ const GiftCodeManagement = () => {
                 <TableCell>Exp</TableCell>
                 <TableCell>Tai San</TableCell>
                 <TableCell>Lifetime</TableCell>
-                <TableCell>Active</TableCell> {/* Display Active Status */}
-                <TableCell>Time Can Use</TableCell> {/* Display Time Can Use */}
+                <TableCell>Active</TableCell>
+                <TableCell>Time Can Use</TableCell>
                 <TableCell>Vatpham</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
@@ -315,10 +325,8 @@ const GiftCodeManagement = () => {
                   </TableCell>
                   <TableCell>
                     {giftCode.active ? "Active" : "Inactive"}
-                  </TableCell>{" "}
-                  {/* Display Active Status */}
-                  <TableCell>{giftCode.time_can_use}</TableCell>{" "}
-                  {/* Display Time Can Use */}
+                  </TableCell>
+                  <TableCell>{giftCode.time_can_use}</TableCell>
                   <TableCell>
                     {giftCode.vat_pham_names &&
                       giftCode.vat_pham_names

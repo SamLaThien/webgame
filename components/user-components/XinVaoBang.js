@@ -143,9 +143,9 @@ const XinVaoBang = () => {
           setCurrentClanId(userClanId);
     
           if (roleResponse.data.role_id === "6" || roleResponse.data.role_id === "7") {
-            const requestResponse = await axios.get(`/api/admin/clan-requests`, {
+            const requestResponse = await axios.get(`/api/user/clan/get-clan-requests`, {
               headers: { Authorization: `Bearer ${token}` },
-            });
+            }); 
             setRequests(Array.isArray(requestResponse.data) ? requestResponse.data : []);
           }
         } catch (error) {

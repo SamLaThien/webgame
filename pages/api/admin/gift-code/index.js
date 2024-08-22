@@ -1,18 +1,43 @@
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
+  }
+
+  const token = authorization.split(' ')[1];
+  let userId;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    userId = decoded.userId;
+
+    const [user] = await new Promise((resolve, reject) => {
+      db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
+
+    if (!user || user.role !== 1) {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
+  }
+
   if (req.method === 'POST') {
-    // Create a new gift code
-    const { code, exp, tai_san, lifetime, vatphams } = req.body;
+    const { code, exp, tai_san, lifetime, vatphams, time_can_use } = req.body;
 
     if (!code || !lifetime || !vatphams || vatphams.length === 0) {
       return res.status(400).json({ message: 'Required fields are missing' });
     }
 
     try {
-      // Insert into gift_codes table
-      const giftCodeQuery = 'INSERT INTO gift_codes (code, exp, tai_san, lifetime) VALUES (?, ?, ?, ?)';
-      const giftCodeValues = [code, exp || 0, tai_san || 0, lifetime];
+      const giftCodeQuery = 'INSERT INTO gift_codes (code, exp, tai_san, lifetime, time_can_use) VALUES (?, ?, ?, ?, ?)';
+      const giftCodeValues = [code, exp || 0, tai_san || 0, lifetime, time_can_use || 1];
       db.query(giftCodeQuery, giftCodeValues, (error, results) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -20,7 +45,6 @@ export default async function handler(req, res) {
 
         const giftCodeId = results.insertId;
 
-        // Insert associated vatpham into gift_code_vatpham table
         const vatphamQueries = vatphams.map(({ vat_pham_id, quantity }) => {
           return new Promise((resolve, reject) => {
             const vatphamQuery = 'INSERT INTO gift_code_vatpham (gift_code_id, vat_pham_id, quantity) VALUES (?, ?, ?)';
@@ -45,9 +69,7 @@ export default async function handler(req, res) {
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
   } else if (req.method === 'GET') {
-    // Fetch all gift codes
     try {
       const query = `
         SELECT gc.*, GROUP_CONCAT(vp.Name SEPARATOR ', ') as vat_pham_names
@@ -65,32 +87,27 @@ export default async function handler(req, res) {
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
   } else if (req.method === 'PUT') {
-    // Edit an existing gift code
-    const { id, code, exp, tai_san, lifetime, vatphams } = req.body;
+    const { id, code, exp, tai_san, lifetime, vatphams, time_can_use } = req.body;
 
     if (!id || !code || !lifetime || !vatphams || vatphams.length === 0) {
       return res.status(400).json({ message: 'Required fields are missing' });
     }
 
     try {
-      // Update gift_codes table
-      const updateQuery = 'UPDATE gift_codes SET code = ?, exp = ?, tai_san = ?, lifetime = ? WHERE id = ?';
-      const updateValues = [code, exp || 0, tai_san || 0, lifetime, id];
+      const updateQuery = 'UPDATE gift_codes SET code = ?, exp = ?, tai_san = ?, lifetime = ?, time_can_use = ? WHERE id = ?';
+      const updateValues = [code, exp || 0, tai_san || 0, lifetime, time_can_use || 1, id];
       db.query(updateQuery, updateValues, (error) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
 
-        // Delete existing vatphams for this gift code
         const deleteVatphamQuery = 'DELETE FROM gift_code_vatpham WHERE gift_code_id = ?';
         db.query(deleteVatphamQuery, [id], (deleteError) => {
           if (deleteError) {
             return res.status(500).json({ message: 'Internal server error', error: deleteError.message });
           }
 
-          // Insert the updated vatpham associations
           const vatphamQueries = vatphams.map(({ vat_pham_id, quantity }) => {
             return new Promise((resolve, reject) => {
               const vatphamQuery = 'INSERT INTO gift_code_vatpham (gift_code_id, vat_pham_id, quantity) VALUES (?, ?, ?)';
@@ -116,9 +133,7 @@ export default async function handler(req, res) {
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
   } else if (req.method === 'DELETE') {
-    // Delete a gift code
     const { id } = req.query;
 
     if (!id) {
@@ -136,7 +151,6 @@ export default async function handler(req, res) {
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
   } else {
     res.setHeader('Allow', ['POST', 'GET', 'PUT', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);

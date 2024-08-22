@@ -1,7 +1,34 @@
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   const { id } = req.query;
+
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
+  }
+
+  const token = authorization.split(' ')[1];
+  let userId;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    userId = decoded.userId;
+
+    const [user] = await new Promise((resolve, reject) => {
+      db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
+
+    if (!user || user.role !== 1) {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
+  }
 
   if (req.method === 'PUT') {
     const {
@@ -16,7 +43,6 @@ export default async function handler(req, res) {
       text_color,
     } = req.body;
 
-    // Construct dynamic query parts based on provided fields
     const fieldsToUpdate = [];
     const values = [];
 
@@ -57,7 +83,6 @@ export default async function handler(req, res) {
       values.push(text_color);
     }
 
-    // If no fields are provided, return an error
     if (fieldsToUpdate.length === 0) {
       return res.status(400).json({ message: 'No fields provided for update' });
     }
@@ -65,7 +90,7 @@ export default async function handler(req, res) {
     try {
       const query = `UPDATE wheel_slots SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
       values.push(id);
-      db.query(query, values, (error, results) => {
+      db.query(query, values, (error) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
@@ -77,7 +102,7 @@ export default async function handler(req, res) {
   } else if (req.method === 'DELETE') {
     try {
       const query = 'DELETE FROM wheel_slots WHERE id = ?';
-      db.query(query, [id], (error, results) => {
+      db.query(query, [id], (error) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
         }

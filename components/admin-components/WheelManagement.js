@@ -1,462 +1,356 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import dynamic from 'next/dynamic';
-
-const Wheel = dynamic(() => import('react-custom-roulette').then(mod => mod.Wheel), { ssr: false });
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import {
+  Button,
+  TextField,
+  Typography,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  CircularProgress,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
+import axios from "axios";
 
 const Container = styled.div`
-  display: flex;
-  justify-content: space-between;
   padding: 20px;
+  background-color: none;
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const SlotManagementContainer = styled.div`
-  flex: 2;
-  margin-right: 20px;
-  max-width: 800px;
+const Title = styled.h1`
+  color: #333;
 `;
 
-const EditPanel = styled.div`
-  flex: 1;
-  position: sticky;
-  top: 20px;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+const GenerateButton = styled(Button)`
+  && {
+    margin-top: 20px;
+    background-color: #93b6c8;
+    color: white;
+    &:hover {
+      background-color: #45a049;
+    }
+  }
 `;
 
-const SlotItem = styled.div`
+const VatphamContainer = styled.div`
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-`;
-
-const ItemRow = styled.div`
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
-`;
-
-const Button = styled.button`
-  padding: 5px 10px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  cursor: pointer;
-`;
-
-const TestButton = styled(Button)`
-  margin-top: 20px;
-`;
-
-const ResultContainer = styled.div`
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #e0e0e0;
-  border-radius: 5px;
-`;
-
-const EditForm = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
-const EditInput = styled.input`
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-`;
-
-const Select = styled.select`
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-`;
-
-const FilterContainer = styled.div`
   margin-bottom: 10px;
 `;
 
-const AddItemButton = styled(Button)`
-  background-color: #008CBA;
-  margin-top: 10px;
-`;
-
-const Message = styled.div`
-  margin-top: 20px;
-  padding: 10px;
-  color: white;
-  background-color: ${(props) => (props.type === 'error' ? '#ff4d4f' : '#52c41a')};
-  border-radius: 5px;
-  text-align: center;
-`;
-
-const WheelManagement = () => {
-  const [wheelSlots, setWheelSlots] = useState([]);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [selectedStyle, setSelectedStyle] = useState(null);
-  const [mustSpin, setMustSpin] = useState(false);
-  const [prizeNumber, setPrizeNumber] = useState(0);
-  const [result, setResult] = useState(null);
-  const [vatPhamList, setVatPhamList] = useState([]);
-  const [filteredVatPhamList, setFilteredVatPhamList] = useState([]);
-  const [selectedPhanLoai, setSelectedPhanLoai] = useState('');
-  const [message, setMessage] = useState('');
+const GiftCodeManagement = () => {
+  const [giftCode, setGiftCode] = useState("");
+  const [exp, setExp] = useState(0);
+  const [taiSan, setTaiSan] = useState(0);
+  const [lifetime, setLifetime] = useState(new Date());
+  const [timeCanUse, setTimeCanUse] = useState(1);
+  const [vatphams, setVatphams] = useState([]);
+  const [selectedVatphams, setSelectedVatphams] = useState([]);
+  const [currentVatphamId, setCurrentVatphamId] = useState("");
+  const [currentQuantity, setCurrentQuantity] = useState(1);
+  const [message, setMessage] = useState("");
+  const [allGiftCodes, setAllGiftCodes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [editingGiftCodeId, setEditingGiftCodeId] = useState(null);
 
   useEffect(() => {
-    fetch('/api/admin/wheel-slot-groups')
-      .then(res => res.json())
-      .then(groups => {
-        if (Array.isArray(groups)) {
-          fetch('/api/admin/wheel-slots')
-            .then(res => res.json())
-            .then(slots => {
-              if (Array.isArray(slots)) {
-                const groupedSlots = groups.map(group => ({
-                  ...group,
-                  items: slots.filter(slot => slot.slot_number === group.slot_number),
-                }));
-
-                setWheelSlots(groupedSlots);
-              }
-            });
-        }
-      });
-
-    // Fetch vat_pham data
-    fetch('/api/admin/vat-pham')
-      .then(res => res.json())
-      .then(data => {
-        setVatPhamList(data);
-        setFilteredVatPhamList(data); // Initially, show all items
-      });
+    fetchVatphams();
+    fetchGiftCodes();
   }, []);
 
-  const handleEditSlot = (slot) => {
-    setSelectedSlot(slot);
+  const fetchVatphams = () => {
+    const token = localStorage.getItem("token");
+    axios
+      .get("/api/admin/gift-code/vat-pham", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => setVatphams(response.data))
+      .catch((error) => console.error("Error fetching vatphams:", error));
   };
 
-  const handleEditStyle = (slot) => {
-    setSelectedStyle(slot);
+  const fetchGiftCodes = () => {
+    const token = localStorage.getItem("token");
+    axios
+      .get("/api/admin/gift-code", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setAllGiftCodes(response.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching gift codes:", error);
+        setLoading(false);
+      });
   };
 
-  const handleDeleteItem = (slotNumber, itemId) => {
-    const updatedSlot = {
-      ...selectedSlot,
-      items: selectedSlot.items.filter(item => item.id !== itemId),
-    };
-
-    setSelectedSlot(updatedSlot);
-    setWheelSlots(wheelSlots.map(slot =>
-      slot.slot_number === slotNumber ? updatedSlot : slot
-    ));
+  const generateGiftCode = () => {
+    const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    setGiftCode(newCode);
   };
 
-  const handleAddItem = () => {
-    const newItem = {
-      id: Date.now(),
-      option_text: '',
-      prize_rate: 0,
-      lower_bound: '',
-      higher_bound: '',
-    };
-
-    const updatedSlot = {
-      ...selectedSlot,
-      items: [...selectedSlot.items, newItem],
-    };
-
-    setSelectedSlot(updatedSlot);
-  };
-
-  const handleChangeItem = (itemId, key, value) => {
-    const updatedItems = selectedSlot.items.map(item =>
-      item.id === itemId ? { ...item, [key]: value } : item
-    );
-
-    setSelectedSlot({ ...selectedSlot, items: updatedItems });
-  };
-
-  const handlePhanLoaiChange = (e) => {
-    const phanLoai = e.target.value;
-    setSelectedPhanLoai(phanLoai);
-
-    if (phanLoai) {
-      const filteredItems = vatPhamList.filter(item => item.phan_loai === parseInt(phanLoai, 10));
-      setFilteredVatPhamList(filteredItems);
-    } else {
-      setFilteredVatPhamList(vatPhamList); // Show all items if no filter is selected
+  const addVatpham = () => {
+    if (currentVatphamId && currentQuantity > 0) {
+      setSelectedVatphams([
+        ...selectedVatphams,
+        { vat_pham_id: currentVatphamId, quantity: currentQuantity },
+      ]);
+      setCurrentVatphamId("");
+      setCurrentQuantity(1);
     }
   };
 
-  const handleVatPhamSelect = (itemId, value) => {
-    const selectedVatPham = vatPhamList.find(item => item.ID === parseInt(value, 10));
-
-    if (!selectedVatPham) {
-      console.error(`Item with ID ${value} not found in vatPhamList`);
-      return;
-    }
-
-    const updatedItems = selectedSlot.items.map(item =>
-      item.id === itemId ? { ...item, option_text: selectedVatPham.Name, item_id: selectedVatPham.ID } : item
-    );
-
-    setSelectedSlot({ ...selectedSlot, items: updatedItems });
-  };
-
-  const handleUpdateItems = (e) => {
-    e.preventDefault();
-
-    const updatedSlot = {
-      slot_number: selectedSlot.slot_number,
-      items: selectedSlot.items.map(item => ({
-        id: item.id,
-        option_text: item.option_text,
-        prize_rate: item.prize_rate,
-        lower_bound: item.lower_bound,
-        higher_bound: item.higher_bound,
-        item_id: item.item_id,
-      })),
+  const saveGiftCode = () => {
+    const token = localStorage.getItem("token");
+    const payload = {
+      code: giftCode,
+      exp,
+      tai_san: taiSan,
+      lifetime: lifetime.toISOString().slice(0, 19).replace("T", " "),
+      vatphams: selectedVatphams,
+      time_can_use: timeCanUse,
     };
 
-    fetch(`/api/admin/wheel-slots/${selectedSlot.slot_number}`, {
-      method: 'PUT',
+    const url = editMode
+      ? `/api/admin/gift-code?id=${editingGiftCodeId}`
+      : "/api/admin/gift-code";
+    const method = editMode ? "PUT" : "POST";
+
+    axios({
+      method,
+      url,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(updatedSlot),
-    }).then((response) => {
-      if (!response.ok) {
-        setMessage({ type: 'error', text: 'Failed to update slot' });
-        return;
-      }
-      setMessage({ type: 'success', text: 'Slot updated successfully' });
-      setWheelSlots(wheelSlots.map(slot =>
-        slot.slot_number === selectedSlot.slot_number ? updatedSlot : slot
-      ));
-      setSelectedSlot(null);
-    });
+      data: payload,
+    })
+      .then((response) => {
+        setMessage(response.data.message);
+        fetchGiftCodes();
+        resetForm();
+      })
+      .catch((error) => console.error("Error:", error));
   };
 
-  const handleUpdateStyle = (e) => {
-    e.preventDefault();
-
-    const updatedStyle = {};
-
-    if (selectedStyle.slot_number) updatedStyle.slot_number = selectedStyle.slot_number;
-    if (selectedStyle.group_name) updatedStyle.group_name = selectedStyle.group_name;
-    if (selectedStyle.background_color) updatedStyle.background_color = selectedStyle.background_color;
-    if (selectedStyle.text_color) updatedStyle.text_color = selectedStyle.text_color;
-
-    fetch(`/api/admin/wheel-slot-groups/${selectedStyle.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updatedStyle),
-    }).then((response) => {
-      if (!response.ok) {
-        setMessage({ type: 'error', text: 'Failed to update style' });
-        return;
-      }
-      setMessage({ type: 'success', text: 'Style updated successfully' });
-      setWheelSlots(wheelSlots.map(slot =>
-        slot.slot_number === selectedStyle.slot_number ? selectedStyle : slot
-      ));
-      setSelectedStyle(null);
-    });
+  const resetForm = () => {
+    setGiftCode("");
+    setExp(0);
+    setTaiSan(0);
+    setLifetime(new Date());
+    setTimeCanUse(1);
+    setSelectedVatphams([]);
+    setEditMode(false);
+    setEditingGiftCodeId(null);
   };
 
-  const handleSpinClick = () => {
-    const newPrizeNumber = Math.floor(Math.random() * wheelSlots.length);
-    setPrizeNumber(newPrizeNumber);
-    setMustSpin(true);
+  const handleEdit = (giftCode) => {
+    setGiftCode(giftCode.code);
+    setExp(giftCode.exp);
+    setTaiSan(giftCode.tai_san);
+    setLifetime(new Date(giftCode.lifetime));
+    setTimeCanUse(giftCode.time_can_use);
+    setSelectedVatphams(giftCode.vatphams || []);
+    setEditingGiftCodeId(giftCode.id);
+    setEditMode(true);
   };
 
-  const calculatePrize = (slot) => {
-    if (!slot) {
-      return 'Error: Slot data missing';
-    }
-  
-    if (slot.prize_type === 1) {
-      const itemWithBounds = slot.items.find(item => item.lower_bound !== undefined && item.higher_bound !== undefined);
-      
-      if (itemWithBounds) {
-        const min = itemWithBounds.lower_bound;
-        const max = itemWithBounds.higher_bound;
-
-        if (min !== null && max !== null && min <= max) {
-          return Math.floor(Math.random() * (max - min + 1)) + min;
-        } else {
-          return 'Invalid Range';
-        }
-      } else {
-        return 'Error: Bounds missing';
-      }
-    } else if (slot.prize_type !== undefined) {
-      const items = slot.items || [];
-      let totalWeight = items.reduce((sum, item) => sum + item.prize_rate, 0);
-      let randomNum = Math.random() * totalWeight;
-
-      for (let item of items) {
-        if (randomNum < item.prize_rate) {
-          return item.option_text;
-        }
-        randomNum -= item.prize_rate;
-      }
-      return null;
-    } else {
-      return 'Error: prize_type missing';
-    }
-  };
-
-  const handleStopSpinning = () => {
-    setMustSpin(false);
-    const selectedSlot = wheelSlots[prizeNumber];
-
-    if (selectedSlot) {
-      const prizeValue = calculatePrize(selectedSlot);
-      setResult(`You won: ${prizeValue}`);
-    } else {
-      console.error('Selected Slot is undefined');
-    }
+  const handleDelete = (id) => {
+    const token = localStorage.getItem("token");
+    axios
+      .delete(`/api/admin/gift-code?id=${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setMessage(response.data.message);
+        fetchGiftCodes();
+      })
+      .catch((error) => console.error("Error:", error));
   };
 
   return (
     <Container>
-      <SlotManagementContainer>
-        <h2>Preview Wheel</h2>
-        {wheelSlots.length > 0 && (
-          <>
-            <Wheel
-              mustStartSpinning={mustSpin}
-              prizeNumber={prizeNumber}
-              data={wheelSlots.map(slot => ({
-                option: slot.group_name,
-                style: {
-                  backgroundColor: slot.background_color,
-                  textColor: slot.text_color,
-                }
-              }))}
-              onStopSpinning={handleStopSpinning}
-            />
-            <TestButton onClick={handleSpinClick}>Test Spin</TestButton>
-            {result && (
-              <ResultContainer>
-                <h3>Congratulations!</h3>
-                <p>{result}</p>
-              </ResultContainer>
-            )}
-          </>
-        )}
-        <h3>Manage Wheel Slots</h3>
-        {wheelSlots.map(slot => (
-          <SlotItem key={slot.slot_number}>
-            <span>
-              Slot {slot.slot_number}: {slot.group_name} - {slot.items?.length || 0} items
-            </span>
-            <Button onClick={() => handleEditSlot(slot)}>Edit Items</Button>
-            <Button onClick={() => handleEditStyle(slot)}>Edit Style</Button>
-          </SlotItem>
+      <Title>Generate Gift Code</Title>
+      <TextField
+        label="Gift Code"
+        value={giftCode}
+        fullWidth
+        variant="outlined"
+        InputProps={{
+          readOnly: true,
+        }}
+        margin="normal"
+      />
+      <GenerateButton onClick={generateGiftCode}>Generate Code</GenerateButton>
+
+      <TextField
+        label="Experience (Exp)"
+        value={exp}
+        onChange={(e) => setExp(e.target.value)}
+        fullWidth
+        variant="outlined"
+        margin="normal"
+      />
+      <TextField
+        label="Money (Tai San)"
+        value={taiSan}
+        onChange={(e) => setTaiSan(e.target.value)}
+        fullWidth
+        variant="outlined"
+        margin="normal"
+      />
+      <TextField
+        label="Time Can Use"
+        value={timeCanUse}
+        onChange={(e) => setTimeCanUse(e.target.value)}
+        type="number"
+        variant="outlined"
+        margin="normal"
+      />
+      <div style={{ margin: "20px 0" }}>
+        <ReactDatePicker
+          selected={lifetime}
+          onChange={(date) => setLifetime(date)}
+          showTimeSelect
+          timeFormat="HH:mm:ss"
+          timeIntervals={15}
+          dateFormat="yyyy-MM-dd HH:mm:ss"
+          customInput={
+            <TextField fullWidth variant="outlined" margin="normal" />
+          }
+        />
+      </div>
+
+      {selectedVatphams &&
+        selectedVatphams.length > 0 &&
+        selectedVatphams.map((vatpham, index) => (
+          <VatphamContainer key={index}>
+            <Typography variant="body1">
+              {vatphams.find((vp) => vp.ID === vatpham.vat_pham_id)?.Name}
+            </Typography>
+            <Typography variant="body1">
+              {" "}
+              - Quantity: {vatpham.quantity}
+            </Typography>
+          </VatphamContainer>
         ))}
-        {message && <Message type={message.type}>{message.text}</Message>}
-      </SlotManagementContainer>
-      {selectedSlot && (
-        <EditPanel>
-          <h3>Edit Slot Items for Slot {selectedSlot.slot_number}</h3>
-          <EditForm onSubmit={handleUpdateItems}>
-            <h4>Items</h4>
-            <FilterContainer>
-              <label>Filter by Phan Loai: </label>
-              <Select value={selectedPhanLoai} onChange={handlePhanLoaiChange}>
-                <option value=''>All</option>
-                {Array.from(new Set(vatPhamList.map(item => item.phan_loai))).map(phan_loai => (
-                  <option key={phan_loai} value={phan_loai}>{phan_loai}</option>
-                ))}
-              </Select>
-            </FilterContainer>
-            {selectedSlot.items.map(item => (
-              <ItemRow key={item.id}>
-                <Select
-                  value={item.option_text}
-                  onChange={(e) => handleVatPhamSelect(item.id, e.target.value)}
-                >
-                  <option value=''>Select Vat Pham</option>
-                  {filteredVatPhamList.map(vatPham => (
-                    <option key={vatPham.ID} value={vatPham.ID}>{vatPham.Name}</option>
-                  ))}
-                </Select>
-                <EditInput
-                  type="text"
-                  value={item.option_text}
-                  onChange={(e) => handleChangeItem(item.id, 'option_text', e.target.value)}
-                  placeholder="Option Text"
-                />
-                {selectedSlot.prize_type === 1 && (
-                  <>
-                    <EditInput
-                      type="number"
-                      value={item.lower_bound}
-                      onChange={(e) => handleChangeItem(item.id, 'lower_bound', e.target.value)}
-                      placeholder="Lower Bound"
-                    />
-                    <EditInput
-                      type="number"
-                      value={item.higher_bound}
-                      onChange={(e) => handleChangeItem(item.id, 'higher_bound', e.target.value)}
-                      placeholder="Higher Bound"
-                    />
-                  </>
-                )}
-                <EditInput
-                  type="number"
-                  value={item.prize_rate}
-                  onChange={(e) => handleChangeItem(item.id, 'prize_rate', e.target.value)}
-                  placeholder="Prize Rate"
-                />
-                <Button onClick={() => handleDeleteItem(selectedSlot.slot_number, item.id)}>Delete</Button>
-              </ItemRow>
+
+      <VatphamContainer>
+        <FormControl variant="outlined" fullWidth>
+          <InputLabel>Vatpham</InputLabel>
+          <Select
+            label="Vatpham"
+            value={currentVatphamId}
+            onChange={(e) => setCurrentVatphamId(e.target.value)}
+          >
+            {vatphams.map((vp) => (
+              <MenuItem key={vp.ID} value={vp.ID}>
+                {vp.Name}
+              </MenuItem>
             ))}
-            <AddItemButton onClick={handleAddItem}>Add New Item</AddItemButton>
-            <Button type="submit">Update Items</Button>
-          </EditForm>
-        </EditPanel>
+          </Select>
+        </FormControl>
+        <TextField
+          label="Quantity"
+          value={currentQuantity}
+          onChange={(e) => setCurrentQuantity(e.target.value)}
+          type="number"
+          variant="outlined"
+          margin="normal"
+          style={{ width: "100px", marginLeft: "10px" }}
+        />
+        <IconButton
+          color="primary"
+          onClick={addVatpham}
+          style={{ marginLeft: "10px" }}
+        >
+          <AddIcon />
+        </IconButton>
+      </VatphamContainer>
+
+      {giftCode && (
+        <GenerateButton onClick={saveGiftCode}>
+          {editMode ? "Update" : "Save"} Code
+        </GenerateButton>
       )}
-      {selectedStyle && (
-        <EditPanel>
-          <h3>Edit Style for Slot {selectedStyle.slot_number}</h3>
-          <EditForm onSubmit={handleUpdateStyle}>
-            <EditInput
-              type="text"
-              value={selectedStyle.group_name}
-              onChange={(e) => setSelectedStyle({ ...selectedStyle, group_name: e.target.value })}
-              placeholder="Group Name"
-            />
-            <EditInput
-              type="color"
-              value={selectedStyle.background_color}
-              onChange={(e) => setSelectedStyle({ ...selectedStyle, background_color: e.target.value })}
-              placeholder="Background Color"
-            />
-            <EditInput
-              type="color"
-              value={selectedStyle.text_color}
-              onChange={(e) => setSelectedStyle({ ...selectedStyle, text_color: e.target.value })}
-              placeholder="Text Color"
-            />
-            <Button type="submit">Update Style</Button>
-          </EditForm>
-        </EditPanel>
+      {message && (
+        <Typography color="primary" variant="h6">
+          {message}
+        </Typography>
+      )}
+
+      <Title>All Gift Codes</Title>
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Code</TableCell>
+                <TableCell>Exp</TableCell>
+                <TableCell>Tai San</TableCell>
+                <TableCell>Lifetime</TableCell>
+                <TableCell>Active</TableCell>
+                <TableCell>Time Can Use</TableCell>
+                <TableCell>Vatpham</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {allGiftCodes.map((giftCode) => (
+                <TableRow key={giftCode.id}>
+                  <TableCell>{giftCode.code}</TableCell>
+                  <TableCell>{giftCode.exp}</TableCell>
+                  <TableCell>{giftCode.tai_san}</TableCell>
+                  <TableCell>
+                    {new Date(giftCode.lifetime).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {giftCode.active ? "Active" : "Inactive"}
+                  </TableCell>
+                  <TableCell>{giftCode.time_can_use}</TableCell>
+                  <TableCell>
+                    {giftCode.vat_pham_names &&
+                      giftCode.vat_pham_names
+                        .split(",")
+                        .map((name, index) => (
+                          <div key={index}>{name.trim()}</div>
+                        ))}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleEdit(giftCode)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(giftCode.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </Container>
   );
 };
 
-export default WheelManagement;
+export default GiftCodeManagement;
