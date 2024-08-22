@@ -1,13 +1,23 @@
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
+  const { authorization } = req.headers;
   const { clanId } = req.query;
 
-  if (!clanId) {
-    return res.status(400).json({ message: "Clan ID is required" });
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
   }
 
+  const token = authorization.split(' ')[1];
+
   try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!clanId) {
+      return res.status(400).json({ message: "Clan ID is required" });
+    }
+
     const query = 'SELECT * FROM clans WHERE id = ?';
     db.query(query, [clanId], (error, results) => {
       if (error) {

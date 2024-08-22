@@ -73,10 +73,9 @@ const UserInfoItem = styled.p`
 `;
 
 const Section = styled.div`
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255);
   padding: 20px;
   border-radius: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
   border: 1px solid #93b6c8;
   box-sizing: border-box;
@@ -158,31 +157,26 @@ const HoSo = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserData = async () => {
       try {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const userId = JSON.parse(storedUser).id;
-          console.log("Retrieved userId from localStorage:", userId);
-          if (!userId) {
-            console.error("User ID is not found in localStorage");
-            router.push("/login");
-            return;
-          }
-          const response = await axios.post("/api/user", { userId });
+        const token = localStorage.getItem("token");
+        if (token) {
+          const response = await axios.get("/api/user", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
 
           if (response.status === 200) {
             setUser(response.data);
             console.log("User data fetched successfully:", response.data);
 
             if (response.data.bang_hoi) {
-              fetchClanInfo(response.data.bang_hoi);
+              fetchClanInfo(response.data.bang_hoi, token);
             }
           } else {
             console.error("Failed to fetch user data:", response.statusText);
           }
         } else {
-          console.error("No user found in localStorage, redirecting to login");
+          console.error("No token found in localStorage, redirecting to login");
           router.push("/login");
         }
       } catch (error) {
@@ -190,11 +184,12 @@ const HoSo = () => {
       }
     };
 
-    const fetchClanInfo = async (clanId) => {
+    const fetchClanInfo = async (clanId, token) => {
       try {
-        const response = await axios.get(
-          `/api/user/ho-so/get-clan-name?clanId=${clanId}`
-        );
+        const response = await axios.get(`/api/user/ho-so/get-clan-name?clanId=${clanId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
         if (response.status === 200) {
           setClanInfo(response.data);
           console.log("Clan data fetched successfully:", response.data);
@@ -206,7 +201,7 @@ const HoSo = () => {
       }
     };
 
-    fetchUser();
+    fetchUserData();
   }, [router]);
 
   const handleAvatarChange = (e) => {
@@ -228,22 +223,29 @@ const HoSo = () => {
       console.log("User ID is undefined or null.");
       return;
     }
-
+  
     if (user.tai_san < 1000) {
       alert("Không đủ bạc để đổi avatar");
       setModalIsOpen(false);
       return;
     }
-
+  
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to update your avatar.");
+      return;
+    }
+  
     const formData = new FormData();
     formData.append("avatar", avatarFile);
-
+  
     try {
-      const response = await fetch(`/api/profile?userId=${user.id}`, {
+      const response = await fetch(`/api/profile`, {
         method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         const updatedUser = {
@@ -261,10 +263,10 @@ const HoSo = () => {
       console.error("Error:", error);
       alert("Failed to update avatar");
     }
-
+  
     setModalIsOpen(false);
   };
-
+  
   const handleConfirmSave = async () => {
     const cost = confirmType === "ngoai_hieu" ? 25000 : 0;
     if (user.tai_san < cost) {
@@ -272,10 +274,20 @@ const HoSo = () => {
       setConfirmModalIsOpen(false);
       return;
     }
+  
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to update your profile.");
+      return;
+    }
+  
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           userId: user.id,
           [confirmType]:
@@ -283,7 +295,7 @@ const HoSo = () => {
           tai_san: user.tai_san - cost,
         }),
       });
-
+  
       if (response.ok) {
         const updatedUser = {
           ...user,
@@ -301,9 +313,10 @@ const HoSo = () => {
       console.error("Error:", error);
       alert("Failed to update");
     }
-
+  
     setConfirmModalIsOpen(false);
   };
+  
 
   const handleNgoaiHieuChange = () => {
     setConfirmType("ngoai_hieu");
@@ -317,9 +330,16 @@ const HoSo = () => {
 
   const handleGiftCodeRedeem = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setErrorMessage("You must be logged in to redeem a gift code.");
+        return;
+      }
+
       const response = await axios.post("/api/user/ho-so/redeem-gift-code", {
-        userId: user.id,
         giftCode: giftCode,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.data.success) {

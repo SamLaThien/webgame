@@ -16,6 +16,7 @@ import Layout from "@/components/Layout";
 import LuyenKhiThat from "@/components/user-components/LuyenKhiThat";
 import DuocVien from "@/components/user-components/DuocVien";
 import LanhSuDuong from "@/components/user-components/LanhSuDuong";
+import axios from "axios";
 
 const SectionPage = () => {
   const router = useRouter();
@@ -24,36 +25,53 @@ const SectionPage = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const validateToken = async () => {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        console.log("No token found, redirecting to login.");
+        router.push("/login");
+        return;
+      }
+  
       try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
+        const { data } = await axios.get("/api/user/validate-token", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (data.isValid) {
+          console.log("Token is valid, fetching user data.");
+  
+          const userInfoResponse = await axios.get(`/api/user/clan/user-info?userId=${data.userId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+  
+          const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${data.userId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+  
+          setUser({ ...userInfoResponse.data, isInClan: clanResponse.data.isInClan });
           setIsLoggedIn(true);
-
-          const clanResponse = await fetch(
-            `/api/user/clan/check-if-clan-member?userId=${storedUser.id}`
-          );
-          const clanData = await clanResponse.json();
-
-          const userInfoResponse = await fetch(
-            `/api/user/clan/user-info?userId=${storedUser.id}`
-          );
-          const userInfo = await userInfoResponse.json();
-
-          setUser({ ...userInfo, isInClan: clanData.isInClan });
-          // console.log("This is fetch use from section" + JSON.stringify(user));
+          console.log("User data and clan status set.");
         } else {
+          console.log("Token is invalid, redirecting to login.");
           router.push("/login");
         }
-        SectionPage;
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error during token validation or fetching user data:", error);
         router.push("/login");
       }
     };
-
-    fetchUserData();
+  
+    validateToken();
   }, [router]);
+  console.log("User data" + JSON.stringify(user));
 
   const getCurrentComponent = () => {
     switch (section) {

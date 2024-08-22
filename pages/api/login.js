@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import db from '../../lib/db';
+import cryptoJs from 'crypto-js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -48,9 +49,18 @@ export default async function handler(req, res) {
         return res.status(401).json({ message: 'Invalid username or password' });
       }
 
-      const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign(
+        { userId: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
 
-      res.status(200).json({ message: 'Login successful', token, user: { id: user.id, name: user.username, image: user.image, role: user.role , ngoai_hieu: user.ngoai_hieu} });
+      const encryptedUserData = cryptoJs.AES.encrypt(
+        JSON.stringify({ id: user.id, name: user.username, image: user.image, role: user.role, ngoai_hieu: user.ngoai_hieu }),
+        process.env.AES_SECRET_KEY
+      ).toString();
+
+      res.status(200).json({ message: 'Login successful', token, user: encryptedUserData });
     });
   } catch (error) {
     return res.status(500).json({ message: 'Internal server error', error });

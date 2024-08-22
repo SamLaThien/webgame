@@ -126,11 +126,13 @@ const TinNhan = () => {
   useEffect(() => {
     const fetchUserLogs = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const { data } = await axios.get(
-            `/api/user/log/get-log-by-id?userId=${storedUser.id}`
-          );
+        const token = localStorage.getItem('token'); 
+        if (token) {
+          const { data } = await axios.get(`/api/user/log/get-log-by-id`, {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+            },
+          });
           setLogs(data.logs);
         }
       } catch (error) {
@@ -143,7 +145,6 @@ const TinNhan = () => {
     }
   }, [activeTab]);
 
-  // Pagination logic
   const indexOfLastLog = currentPage * logsPerPage;
   const indexOfFirstLog = indexOfLastLog - logsPerPage;
   const currentLogs = logs.slice(indexOfFirstLog, indexOfLastLog);

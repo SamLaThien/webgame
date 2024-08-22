@@ -77,7 +77,6 @@ const Sidebar = ({ isLoggedIn, user }) => {
       [section]: !prevState[section],
     }));
   };
-  // console.log("This is fetch use from SIDEBAR" + JSON.stringify(user));
 
   return (
     <SidebarContainer>

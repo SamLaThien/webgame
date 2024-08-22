@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Layout from '@/components/Layout';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 
 const Container = styled.div`
   display: flex;
@@ -27,20 +28,43 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      if (storedUser) {
-        setIsLoggedIn(true);
-        const userInfoResponse = await fetch(`/api/user/clan/user-info?userId=${storedUser.id}`);
-        const userInfo = await userInfoResponse.json();
-        setUser(userInfo);
-      } else {
-        router.push('/login');
+    const validateTokenAndFetchUserData = async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        router.push('/login'); 
+        return;
       }
+
+      try {
+        const { data } = await axios.get("/api/user/validate-token", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!data.isValid) {
+          router.push('/login'); 
+          return;
+        }
+
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const userInfoResponse = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setUser(userInfoResponse.data);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Token validation or user data fetching error:", error);
+        router.push('/login'); 
+      }
+
       setLoading(false);
     };
 
-    fetchUserData();
+    validateTokenAndFetchUserData();
   }, [router]);
 
   if (loading) {

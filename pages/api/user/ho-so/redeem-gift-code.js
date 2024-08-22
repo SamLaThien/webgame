@@ -1,18 +1,29 @@
 import db from '@/lib/db';
 import moment from 'moment';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { userId, giftCode } = req.body;
-
-  if (!userId || !giftCode) {
-    return res.status(400).json({ message: 'User ID and gift code are required' });
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(401).json({ message: 'Authorization header is required' });
   }
 
+  const token = authorization.split(' ')[1];
+
   try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const { giftCode } = req.body;
+
+    if (!userId || !giftCode) {
+      return res.status(400).json({ message: 'User ID and gift code are required' });
+    }
+
     // Check when the user was created
     const userQuery = `SELECT created_at FROM users WHERE id = ?`;
     db.query(userQuery, [userId], async (error, results) => {

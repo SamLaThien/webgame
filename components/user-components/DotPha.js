@@ -8,6 +8,7 @@ import {
   levelItemChances,
   consistentItemChances,
 } from "@/utils/levelItemChances";
+import { useRouter } from "next/router";
 
 const Container = styled.div`
   background: white;
@@ -61,7 +62,7 @@ const Progress = styled.div`
   height: 20px;
 `;
 
-const Info = styled.p`
+const Info = styled.div`
   margin: 10px 0;
   display: flex;
   flex-direction: row;
@@ -72,7 +73,7 @@ const Info = styled.p`
   }
 `;
 
-const MandatoryItems = styled.p`
+const MandatoryItems = styled.div`
   margin: 10px 0;
   color: red;
   font-weight: bold;
@@ -126,32 +127,64 @@ const DotPha = () => {
   const [levelData, setLevelData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState({});
-
+  const router = useRouter();
   useEffect(() => {
-    const fetchUserAndLevel = async () => {
+    const validateTokenAndFetchItems = async () => {
+      const token = localStorage.getItem("token");
+    
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+    
       try {
+        const { data } = await axios.get("/api/user/validate-token", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+    
+        if (!data.isValid) {
+          router.push("/login");
+          return;
+        }
+    
         const storedUser = JSON.parse(localStorage.getItem("user"));
         if (storedUser) {
           const { data: userData } = await axios.get(
-            `/api/user/clan/user-info?userId=${storedUser.id}`
+            `/api/user/clan/user-info?userId=${storedUser.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           setUser(userData);
-
+    
           const { data: fetchedLevelData } = await axios.post(
             `/api/user/dot-pha/level-info`,
-            { level: userData.level }
+            { level: userData.level },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           setLevelData(fetchedLevelData);
+        } else {
+          router.push("/login");
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error validating token or fetching data:", error);
+        router.push("/login");
       } finally {
         setLoading(false);
       }
     };
+    
 
-    fetchUserAndLevel();
-  }, []);
+    validateTokenAndFetchItems();
+  }, [router]);
 
   const handleCheckboxChange = (itemId) => {
     setCheckedItems((prevState) => ({
@@ -160,145 +193,172 @@ const DotPha = () => {
     }));
   };
 
-  const logUserActivity = async (userId, actionType, actionDetails) => {
+  const logUserActivity = async (actionType, actionDetails) => {
     try {
-      await axios.post("/api/user/log/dot-pha-log", {
-        userId,
-        actionType,
-        actionDetails,
-      });
-    } catch (error) {
-      console.error("Error logging user activity:", error);
-    }
-  };
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-  const handleLevelUp = async () => {
-    if (user && levelData && user.exp >= levelData.exp) {
-      try {
-        const requiredItemIds = levelData.vatpham_bat_buoc_id
-          ? levelData.vatpham_bat_buoc_id.split(",")
-          : [];
-
-        if (requiredItemIds.length > 0) {
-          const { data: requiredItemsData } = await axios.get(
-            `/api/user/dot-pha/check-required-item`,
+        await axios.post(
+            "/api/user/log/dot-pha-log",
+            { actionType, actionDetails },
             {
-              params: {
-                userId: user.id,
-                itemIds: requiredItemIds.join(","),
-              },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             }
-          );
+        );
+    } catch (error) {
+        console.error("Error logging user activity:", error);
+    }
+};
 
-          if (!requiredItemsData.hasRequiredItems) {
-            alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
-            return;
+const handleLevelUp = async () => {
+  if (user && levelData && user.exp >= levelData.exp) {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const requiredItemIds = levelData.vatpham_bat_buoc_id
+        ? levelData.vatpham_bat_buoc_id.split(",")
+        : [];
+
+      if (requiredItemIds.length > 0) {
+        const { data: requiredItemsData } = await axios.get(
+          `/api/user/dot-pha/check-required-item`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              userId: user.id, // Pass userId here
+              itemIds: requiredItemIds.join(","),
+            },
           }
-        }
-
-        let successChance = levelData.ty_le_dot_pha_thanh_cong;
-        console.log("Base ti le dot pha thanh cong:", successChance);
-
-        const levelRangeKey = Object.keys(levelItemChances).find((range) => {
-          const [min, max] = range.split("-").map(Number);
-          return user.level >= min && user.level <= max;
-        });
-
-        const selectedItems = Object.keys(checkedItems).filter(
-          (itemId) => checkedItems[itemId]
         );
 
-        if (selectedItems.length > 0) {
-          const { data: usedItemsData } = await axios.get(
-            `/api/user/dot-pha/check-used-items`,
-            {
-              params: {
-                userId: user.id,
-                usedItemIds: selectedItems.join(","),
-              },
-            }
-          );
-
-          const usedItemsLog = usedItemsData
-            .map(
-              (item) => `${getItemNameById(item.vat_pham_id)} x${item.so_luong}`
-            )
-            .join(", ");
-          await logUserActivity(
-            user.id,
-            "Item Use",
-            `đã sử dụng: ${usedItemsLog}`
-          );
-
-          usedItemsData.forEach((item) => {
-            const itemChance =
-              levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
-              consistentItemChances[item.vat_pham_id];
-            if (itemChance) {
-              successChance += itemChance;
-              console.log(
-                `Added chance from item ${item.vat_pham_id}:`,
-                itemChance,
-                "New successChance:",
-                successChance
-              );
-            }
-          });
+        if (!requiredItemsData.hasRequiredItems) {
+          alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
+          return;
         }
+      }
 
-        if (Math.random() * 100 <= successChance) {
-          const nextLevel = user.level + 1;
-          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+      let successChance = levelData.ty_le_dot_pha_thanh_cong;
+      console.log("Base ti le dot pha thanh cong:", successChance);
 
-          await axios.post("/api/user/dot-pha/level-up", {
+      const levelRangeKey = Object.keys(levelItemChances).find((range) => {
+        const [min, max] = range.split("-").map(Number);
+        return user.level >= min && user.level <= max;
+      });
+
+      const selectedItems = Object.keys(checkedItems).filter(
+        (itemId) => checkedItems[itemId]
+      );
+
+      if (selectedItems.length > 0) {
+        const { data: usedItemsData } = await axios.get(
+          `/api/user/dot-pha/check-used-items`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              userId: user.id, // Pass userId here
+              usedItemIds: selectedItems.join(","),
+            },
+          }
+        );
+
+        const usedItemsLog = usedItemsData
+          .map(
+            (item) => `${getItemNameById(item.vat_pham_id)} x${item.so_luong}`
+          )
+          .join(", ");
+        await logUserActivity(
+          "Item Use",
+          `đã sử dụng: ${usedItemsLog}`
+        );
+
+        usedItemsData.forEach((item) => {
+          const itemChance =
+            levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
+            consistentItemChances[item.vat_pham_id];
+          if (itemChance) {
+            successChance += itemChance;
+            console.log(
+              `Added chance from item ${item.vat_pham_id}:`,
+              itemChance,
+              "New successChance:",
+              successChance
+            );
+          }
+        });
+      }
+
+      if (Math.random() * 100 <= successChance) {
+        const nextLevel = user.level + 1;
+        const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+
+        await axios.post(
+          "/api/user/dot-pha/level-up",
+          {
             userId: user.id,
             newLevel: nextLevel,
             newTaiSan,
             expUsed: levelData.exp,
             currentExp: user.exp,
-          });
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-          setUser((prevUser) => ({
-            ...prevUser,
-            level: nextLevel,
-            exp: prevUser.exp - levelData.exp,
-            tai_san: newTaiSan,
-          }));
+        setUser((prevUser) => ({
+          ...prevUser,
+          level: nextLevel,
+          exp: prevUser.exp - levelData.exp,
+          tai_san: newTaiSan,
+        }));
 
-          const { data: fetchedLevelData } = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: nextLevel }
-          );
-          setLevelData(fetchedLevelData);
+        const { data: fetchedLevelData } = await axios.post(
+          `/api/user/dot-pha/level-info`,
+          { level: nextLevel },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setLevelData(fetchedLevelData);
 
-          await logUserActivity(
-            user.id,
-            "Dot Pha Success",
-            `đã đột phá thành công lên cấp ${nextLevel}!`
-          );
-        } else {
-          const expLoss = Math.floor(
-            user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
-          );
-          const newExp = Math.max(0, user.exp - expLoss);
+        await logUserActivity(
+          "Dot Pha Success",
+          `đã đột phá thành công lên cấp ${nextLevel}!`
+        );
+      } else {
+        const expLoss = Math.floor(
+          user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
+        );
+        const newExp = Math.max(0, user.exp - expLoss);
 
-          setUser((prevUser) => ({
-            ...prevUser,
-            exp: newExp,
-          }));
+        setUser((prevUser) => ({
+          ...prevUser,
+          exp: newExp,
+        }));
 
-          await logUserActivity(
-            user.id,
-            "Dot Pha Fail",
-            `đã thất bại trong việc đột phá và mất ${expLoss} kinh nghiệm.`
-          );
-        }
-      } catch (error) {
-        console.error("Error handling Đột Phá:", error);
-        alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
+        await logUserActivity(
+          "Dot Pha Fail",
+          `đã thất bại trong việc đột phá và mất ${expLoss} kinh nghiệm.`
+        );
       }
+    } catch (error) {
+      console.error("Error handling Đột Phá:", error);
+      alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
     }
-  };
+  }
+};
+
 
   if (loading) {
     return <Container>Loading...</Container>;

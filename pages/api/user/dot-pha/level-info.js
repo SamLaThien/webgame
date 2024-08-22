@@ -1,4 +1,5 @@
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -7,7 +8,16 @@ export default async function handler(req, res) {
 
   let { level } = req.body;
 
-  // If level is null, set it to 0
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Authorization token is required' });
+    }
+    jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token', error: error.message });
+  }
+
   if (level === null || level === undefined) {
     level = 0;
   }
@@ -34,17 +44,15 @@ export default async function handler(req, res) {
 
           const vatPhamNames = vatPhamResults.map(item => item.Name).join(', ');
 
-          // Include both names and IDs in the response
           levelData.vatpham_bat_buoc = vatPhamNames;
           levelData.vatpham_bat_buoc_id = vatPhamIds.join(',');
 
           res.status(200).json(levelData);
         });
       } else {
-        // Return only the level data if there are no required items
         res.status(200).json({
           ...levelData,
-          vatpham_bat_buoc_id: '' // No required items
+          vatpham_bat_buoc_id: '' 
         });
       }
     });

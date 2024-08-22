@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import cryptoJs from 'crypto-js';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
 
 const StyledIframe = styled.iframe`
   background: white;
@@ -17,11 +18,15 @@ const CboxGeneral = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
-          setUser(userData);
-          console.log("User info" + userData);
+        const token = localStorage.getItem("token");
+        if (token) {
+          const decodedToken = jwt.decode(token);
+          if (decodedToken && decodedToken.userId) {
+            const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${decodedToken.userId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            setUser(userData);
+          }
         }
       } catch (error) {
         console.error("Error fetching user data:", error);

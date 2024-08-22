@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import db from '@/lib/db';
 
 export default async function handler(req, res) {
@@ -5,14 +6,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
-  const { userId, ruongDoId, vatPhamId, donationAmount } = req.body;
+  const token = req.headers.authorization?.split(' ')[1];
 
-  if (!userId || !ruongDoId || !vatPhamId || !donationAmount) {
-    return res.status(400).json({ message: 'Missing required fields' });
+  if (!token) {
+    return res.status(401).json({ message: 'Authorization token is required' });
   }
 
   try {
-    console.log('Starting transaction');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+    const { ruongDoId, vatPhamId, donationAmount } = req.body;
+
+    if (!ruongDoId || !vatPhamId || !donationAmount) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
     await new Promise((resolve, reject) => {
       db.query('START TRANSACTION', (err) => {
         if (err) reject(err);
@@ -20,11 +28,10 @@ export default async function handler(req, res) {
       });
     });
 
-    console.log('Fetching user item quantity');
     const results = await new Promise((resolve, reject) => {
       db.query(
-        'SELECT so_luong FROM ruong_do WHERE id = ?',
-        [ruongDoId],
+        'SELECT so_luong FROM ruong_do WHERE id = ? AND user_id = ?',
+        [ruongDoId, userId],
         (error, results) => {
           if (error) {
             return reject(error);
@@ -35,7 +42,6 @@ export default async function handler(req, res) {
     });
 
     if (!results || results.length === 0) {
-      console.log('Item not found in user inventory');
       await new Promise((resolve, reject) => {
         db.query('ROLLBACK', (err) => {
           if (err) reject(err);
@@ -48,7 +54,6 @@ export default async function handler(req, res) {
     const userItemQuantity = results[0].so_luong;
 
     if (userItemQuantity < donationAmount) {
-      console.log('Not enough quantity to donate:', { userItemQuantity, donationAmount });
       await new Promise((resolve, reject) => {
         db.query('ROLLBACK', (err) => {
           if (err) reject(err);
@@ -58,11 +63,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Not enough quantity to donate' });
     }
 
-    console.log('Updating user inventory');
     await new Promise((resolve, reject) => {
       db.query(
-        'UPDATE ruong_do SET so_luong = so_luong - ? WHERE id = ?',
-        [donationAmount, ruongDoId],
+        'UPDATE ruong_do SET so_luong = so_luong - ? WHERE id = ? AND user_id = ?',
+        [donationAmount, ruongDoId, userId],
         (error) => {
           if (error) {
             return reject(error);
@@ -72,7 +76,6 @@ export default async function handler(req, res) {
       );
     });
 
-    console.log('Fetching clan ID');
     const clanResult = await new Promise((resolve, reject) => {
       db.query(
         'SELECT clan_id FROM clan_members WHERE member_id = ?',
@@ -87,7 +90,6 @@ export default async function handler(req, res) {
     });
 
     if (!clanResult || clanResult.length === 0) {
-      console.log('User is not a member of any clan');
       await new Promise((resolve, reject) => {
         db.query('ROLLBACK', (err) => {
           if (err) reject(err);
@@ -99,7 +101,6 @@ export default async function handler(req, res) {
 
     const clanId = clanResult[0].clan_id;
 
-    console.log('Checking if item exists in clan inventory');
     const clanItemResults = await new Promise((resolve, reject) => {
       db.query(
         'SELECT so_luong FROM clan_ruong_do WHERE clan_id = ? AND vat_pham_id = ?',
@@ -114,7 +115,6 @@ export default async function handler(req, res) {
     });
 
     if (clanItemResults.length > 0) {
-      console.log('Updating existing item quantity in clan inventory');
       await new Promise((resolve, reject) => {
         db.query(
           'UPDATE clan_ruong_do SET so_luong = so_luong + ? WHERE clan_id = ? AND vat_pham_id = ?',
@@ -128,7 +128,6 @@ export default async function handler(req, res) {
         );
       });
     } else {
-      console.log('Inserting item into clan inventory');
       await new Promise((resolve, reject) => {
         db.query(
           'INSERT INTO clan_ruong_do (clan_id, vat_pham_id, so_luong) VALUES (?, ?, ?)',
@@ -143,7 +142,6 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('Fetching user ngoai_hieu and item name');
     const userAndItemDetails = await new Promise((resolve, reject) => {
       db.query(
         'SELECT u.ngoai_hieu, u.username, v.Name FROM users u, vat_pham v WHERE u.id = ? AND v.ID = ?',
@@ -156,11 +154,10 @@ export default async function handler(req, res) {
         }
       );
     });
-    
+
     const { ngoai_hieu, username, Name } = userAndItemDetails[0];
     const displayName = ngoai_hieu || username;
-    
-    console.log('Logging activity in clan_activity_logs');
+
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details) VALUES (?, ?, ?, ?)',
@@ -173,9 +170,7 @@ export default async function handler(req, res) {
         }
       );
     });
-    
 
-    console.log('Committing transaction');
     await new Promise((resolve, reject) => {
       db.query('COMMIT', (err) => {
         if (err) reject(err);
@@ -185,7 +180,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ message: 'Donation successful' });
   } catch (error) {
-    console.error('Error during transaction:', error);
     await new Promise((resolve, reject) => {
       db.query('ROLLBACK', (err) => {
         if (err) reject(err);

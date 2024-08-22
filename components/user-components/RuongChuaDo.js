@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import { useRouter } from "next/router";
 
 const Container = styled.div`
   background: white;
@@ -112,63 +113,115 @@ const RuongChuaDo = () => {
   const [activeTab, setActiveTab] = useState(1);
   const [message, setMessage] = useState("");
   const [donationAmount, setDonationAmount] = useState({});
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const { data } = await axios.get(
-            `/api/user/ruong-do?userId=${storedUser.id}`
-          );
+    const validateTokenAndFetchItems = async () => {
+      const token = localStorage.getItem("token");
 
-          if (data.message) {
-            setMessage(data.message);
-          } else {
-            setItems(data);
-          }
+      if (!token) {
+        router.push("/login"); 
+        return;
+      }
+
+      try {
+        const { data } = await axios.get("/api/user/validate-token", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!data.isValid) {
+          router.push("/login"); 
+          return;
         }
+
+        const itemsResponse = await axios.get('/api/user/ruong-do', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setItems(itemsResponse.data);
+
       } catch (error) {
-        console.error("Error fetching ruong do items:", error);
+        console.error("Error during token validation or item fetching:", error);
+        router.push("/login"); 
       }
     };
 
-    fetchItems();
-  }, []);
+    validateTokenAndFetchItems();
+  }, [router]);
 
-  const logUserActivity = async (userId, actionType, actionDetails) => {
+
+  // useEffect(() => {
+  //   const fetchItems = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+  //       const { data } = await axios.get('/api/user/ruong-do', {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+  //       setItems(data);
+  //     } catch (error) {
+  //       console.error("Error fetching ruong do items:", error);
+  //     }
+  //   };
+    
+
+  //   fetchItems();
+  // }, []);
+
+  const logUserActivity = async (actionType, actionDetails) => {
     try {
-      await axios.post("/api/user/log/dot-pha-log", {
-        userId,
-        actionType,
-        actionDetails,
-      });
+      const token = localStorage.getItem("token");
+      if (!token) return;
+  
+      await axios.post(
+        "/api/user/log/dot-pha-log",
+        {
+          actionType,
+          actionDetails,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
     } catch (error) {
       console.error("Error logging user activity:", error);
     }
   };
+  
 
   const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser) return;
-
+      const token = localStorage.getItem("token");
+      if (!token) return;
+  
       const useAmount = isMultiple ? 10 : 1;
-
+  
       if (soLuong < useAmount) {
         alert("Not enough items to use.");
         return;
       }
-
-      const { data } = await axios.post("/api/user/ruong-do/use-item", {
-        userId: storedUser.id,
-        ruongDoId,
-        vatPhamId,
-        useAmount,
-      });
-
+  
+      const { data } = await axios.post(
+        "/api/user/ruong-do/use-item",
+        {
+          ruongDoId,
+          vatPhamId,
+          useAmount,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        }
+      );
+  
       if (data.success) {
-        // Update the items in the UI
         setItems((prevItems) =>
           prevItems.map((item) =>
             item.ruong_do_id === ruongDoId
@@ -176,13 +229,11 @@ const RuongChuaDo = () => {
               : item
           )
         );
-
-        // Log the activity
+  
         const itemName =
           items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
           "Unknown Item";
         await logUserActivity(
-          storedUser.id,
           "Item Use",
           `đã sử dụng ${itemName} x${useAmount}`
         );
@@ -202,30 +253,36 @@ const RuongChuaDo = () => {
 
   const handleDonateItem = async (ruongDoId, vatPhamId, availableQuantity) => {
     const amountToDonate = parseInt(donationAmount[vatPhamId]);
-
+  
     if (!amountToDonate || amountToDonate <= 0) {
       alert("Please enter a valid amount to donate.");
       return;
     }
-
+  
     if (amountToDonate > availableQuantity) {
       alert("You cannot donate more than you have.");
       return;
     }
-
+  
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser) return;
-
-      const { data } = await axios.post("/api/user/ruong-do/donate-item", {
-        userId: storedUser.id,
-        ruongDoId,
-        vatPhamId,
-        donationAmount: parseInt(amountToDonate),
-      });
-
+      const token = localStorage.getItem("token"); // Retrieve JWT token from localStorage
+      if (!token) return;
+  
+      const { data } = await axios.post(
+        "/api/user/ruong-do/donate-item",
+        {
+          ruongDoId,
+          vatPhamId,
+          donationAmount: parseInt(amountToDonate),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include JWT token in the Authorization header
+          },
+        }
+      );
+  
       if (data.success) {
-        // Update the items in the UI
         setItems((prevItems) =>
           prevItems.map((item) =>
             item.ruong_do_id === ruongDoId
@@ -241,7 +298,6 @@ const RuongChuaDo = () => {
       console.error("Error donating item:", error);
     }
   };
-
   const categorizedItems = items.filter((item) => item.phan_loai === activeTab);
 
   const renderTabs = () => (

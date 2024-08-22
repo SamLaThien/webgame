@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Button, Menu, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import axios from 'axios';
 
 const HeaderContainer = styled.header`
   width: calc(100% - 40px);
@@ -39,7 +40,6 @@ const CustomButton = styled(Button)`
       background-color: rgba(255, 255, 255, 0.1);
     }
   }
-  
 `;
 
 const GameMenuContainer = styled.div`
@@ -71,11 +71,29 @@ const Header = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await axios.get('/api/user/clan/user-info', {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          if (response.status === 200) {
+            const userData = response.data;
+            setUser(userData);
+            console.log("This is Header response" + JSON.stringify(userData));
+          } else {
+            console.error('Failed to fetch user data:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
   }, []);
 
   const handleLogout = () => {

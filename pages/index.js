@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Layout from '../components/Layout';
 import CboxGeneral from '../components/CboxGeneral';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 
 const MainContent = styled.div`
   flex: 1;
@@ -17,23 +18,50 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      if (storedUser) {
+    const validateTokenAndFetchUserData = async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        router.push('/login'); 
+        return;
+      }
+
+      try {
+        const { data } = await axios.get("/api/user/validate-token", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!data.isValid) {
+          router.push('/login'); 
+          return;
+        }
+
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const userInfoResponse = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setUser(userInfoResponse.data);
+
+        const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setIsInClan(clanResponse.data.isInClan);
         setIsLoggedIn(true);
-        const clanResponse = await fetch(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`);
-        const clanData = await clanResponse.json();
-        const userInfoResponse = await fetch(`/api/user/clan/user-info?userId=${storedUser.id}`);
-        const userInfo = await userInfoResponse.json();
-        setUser(userInfo);
-        setIsInClan(clanData.isInClan);
-      } else {
+      } catch (error) {
+        console.error("Token validation or user/clan data fetching error:", error);
         router.push('/login');
       }
+
       setLoading(false);
     };
 
-    fetchUserData();
+    validateTokenAndFetchUserData();
   }, [router]);
 
   if (loading) {

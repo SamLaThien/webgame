@@ -23,7 +23,7 @@ const Main = styled.main`
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start; // Align content to the top
+  align-items: flex-start;
   padding-top: calc(200px + 1vh);
 `;
 
@@ -56,7 +56,6 @@ const BackImage = styled.img`
 `;
 
 const Layout = ({ children, isLoggedIn, user }) => {
-  // console.log("This is fetch use from Layout" + JSON.stringify(user));
 
   return (
     <Container>
