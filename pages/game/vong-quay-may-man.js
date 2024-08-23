@@ -9,13 +9,14 @@ const Wheel = dynamic(
   () => import("react-custom-roulette").then((mod) => mod.Wheel),
   { ssr: false }
 );
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0;
   height: 120vh;
-  width: 100vw;
+  width: 100%;
 `;
 
 const WheelContainer = styled.div`
@@ -24,11 +25,15 @@ const WheelContainer = styled.div`
   justify-content: center;
   align-items: center;
   position: relative;
+  padding: 0;
 `;
 const Image = styled.img`
   z-index: -1;
   position: absolute;
   width: 800px;
+  @media (max-width: 749px){
+    width: 500px;
+  }
 `;
 
 const Image2 = styled.img`
@@ -38,6 +43,9 @@ const Image2 = styled.img`
   cursor: pointer;
   &:hover {
     transform: scale(1.1);
+  }
+  @media (max-width: 749px){
+    width: 200px;
   }
 `;
 
@@ -56,6 +64,10 @@ const LowerSection = styled.div`
   display: flex;
   flex-direction: row;
   gap: 20px;
+  padding: 0;
+  @media (max-width: 749px){
+    flex-direction: column;;
+}
 `;
 
 const LogContainer = styled.div`
@@ -65,6 +77,9 @@ const LogContainer = styled.div`
   padding: 20px;
   overflow-y: scroll;
   background-color: white;
+  @media (max-width: 749px){
+    width: 80vw;
+  }
 `;
 const LogTitle = styled.h2`
   text-align: center;
@@ -101,12 +116,22 @@ const VongQuayMayManPage = () => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+  
     // Fetch the wheel data
-    fetch("/api/admin/wheel-slot-groups")
+    fetch("/api/admin/wheel-slot-groups", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((groups) => {
         if (Array.isArray(groups)) {
-          fetch("/api/admin/wheel-slots")
+          fetch("/api/admin/wheel-slots", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
             .then((res) => res.json())
             .then((slots) => {
               if (Array.isArray(slots)) {
@@ -125,8 +150,12 @@ const VongQuayMayManPage = () => {
             });
         }
       });
-
-    fetch("/api/user/game/vong-quay/spin-logs")
+  
+    fetch("/api/user/game/vong-quay/spin-logs", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((logs) => {
         const formattedLogs = logs.map((log) => ({
@@ -136,20 +165,23 @@ const VongQuayMayManPage = () => {
         setSpinLogs(formattedLogs);
       });
   }, []);
+  
 
   const handleSpinClick = async () => {
     try {
+      const token = localStorage.getItem("token");
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const response = await fetch("/api/user/game/vong-quay/tai-san", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ userId: storedUser.id }),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         setTaiSan(data.tai_san); // Update tai_san in the component's state
         const newPrizeIndex = Math.floor(Math.random() * wheelSlots.length);
@@ -162,6 +194,7 @@ const VongQuayMayManPage = () => {
       console.error("Error checking tai_san:", error);
     }
   };
+  
 
   const calculatePrize = (slot) => {
     if (!slot) return "Error: Slot data missing";
@@ -222,21 +255,19 @@ const VongQuayMayManPage = () => {
 
   const logSpinResult = async (prizeCategory, prizeName, quantity) => {
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser || !storedUser.id) {
-        throw new Error("User not found in local storage");
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Token not found in local storage");
       }
 
-      const username = storedUser.name;
-      const userId = storedUser.id;
       const response = await fetch("/api/user/game/vong-quay/spin-logs", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId,
-          username,
           prize_category: prizeCategory,
           prize_name: prizeName,
           quantity,
@@ -254,6 +285,8 @@ const VongQuayMayManPage = () => {
     }
   };
 
+  
+
   function normalizePrizeName(prize) {
     return prize
       .toLowerCase()
@@ -263,28 +296,26 @@ const VongQuayMayManPage = () => {
 
   async function updateUserExpOrBac(prize, amount) {
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser || !storedUser.id) {
-        throw new Error("User not found in local storage");
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        throw new Error("Token not found in local storage");
       }
-
-      const userId = storedUser.id;
+  
       const normalizedPrize = normalizePrizeName(prize);
-
-      console.log("Updating User:", { userId, prize: normalizedPrize, amount }); // Log to verify data
-
+  
       const response = await fetch("/api/user/game/vong-quay/exp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId,
           prize: normalizedPrize,
           amount,
         }),
       });
-
+  
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Failed to update Exp/Bac");
@@ -294,20 +325,26 @@ const VongQuayMayManPage = () => {
       console.error("Error updating Exp/Bac:", error);
     }
   }
+  
+  
+  
+  
 
   async function updateUserItem(vat_pham_id) {
     try {
+      const token = localStorage.getItem("token");
       const storedUser = JSON.parse(localStorage.getItem("user"));
       if (!storedUser || !storedUser.id) {
         throw new Error("User not found in local storage");
       }
-
+  
       const userId = storedUser.id;
-
+  
       const response = await fetch("/api/user/game/vong-quay/item", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId,
@@ -315,7 +352,7 @@ const VongQuayMayManPage = () => {
           so_luong: 1, // Assuming the quantity won is 1
         }),
       });
-
+  
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Failed to add item to Ruong Do");
@@ -325,6 +362,7 @@ const VongQuayMayManPage = () => {
       console.error("Error updating Ruong Do:", error);
     }
   }
+  
 
   return (
     <Layout>
@@ -416,9 +454,21 @@ export default VongQuayMayManPage;
 
 async function getVatPhamId(prizeName) {
   try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Token not found in local storage");
+    }
+
     const response = await fetch(
-      `/api/user/game/vong-quay/vat-pham?name=${encodeURIComponent(prizeName)}`
+      `/api/user/game/vong-quay/vat-pham?name=${encodeURIComponent(prizeName)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
+
     const data = await response.json();
 
     if (response.ok && data && data.ID) {
@@ -435,6 +485,7 @@ async function getVatPhamId(prizeName) {
     return null;
   }
 }
+
 
 // async function updateUserRuongDo(vatPhamId, soLuong) {
 //   try {

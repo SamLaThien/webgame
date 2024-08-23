@@ -170,7 +170,6 @@ const ProgressBarContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-
 `;
 
 const ProgressBarLabel = styled.div`
@@ -252,24 +251,38 @@ const Percent = styled.div`
   text-align: center;
   color: white;
 `;
+
 const MemberPage = ({ id }) => {
   const [user, setUser] = useState(null);
-  const [levelData, setLevelData] = useState(null); 
+  const [levelData, setLevelData] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const response = await axios.get(`/api/user/member/${id}`);
-        const userData = response.data;
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await axios.get(`/api/user/member/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const userData = response.data;
 
-        const levelResponse = await axios.post(`/api/user/dot-pha/level-info`, {
-          level: userData.level,
-        });
+          const levelResponse = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: userData.level },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-        setUser(userData);
-        setLevelData(levelResponse.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+          setUser(userData);
+          setLevelData(levelResponse.data);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
       }
     };
 
