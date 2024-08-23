@@ -14,16 +14,7 @@ export default async function handler(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     userId = decoded.userId;
 
-    const [user] = await new Promise((resolve, reject) => {
-      db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
-        if (error) reject(error);
-        resolve(results);
-      });
-    });
-
-    if (!user || user.role !== 1) {
-      return res.status(403).json({ message: 'Access denied. Admins only.' });
-    }
+    
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
   }
@@ -41,6 +32,16 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   } else if (req.method === 'POST') {
+    const [user] = await new Promise((resolve, reject) => {
+      db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
+
+    if (!user || user.role !== 1) {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
     const { slot_number, group_name, background_color, text_color } = req.body;
     
     if (!slot_number || !group_name || !background_color || !text_color) {
@@ -48,6 +49,16 @@ export default async function handler(req, res) {
     }
     
     try {
+      const [user] = await new Promise((resolve, reject) => {
+        db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
+          if (error) reject(error);
+          resolve(results);
+        });
+      });
+  
+      if (!user || user.role !== 1) {
+        return res.status(403).json({ message: 'Access denied. Admins only.' });
+      }
       const query = 'INSERT INTO wheel_slot_groups (slot_number, group_name, background_color, text_color) VALUES (?, ?, ?, ?)';
       const values = [slot_number, group_name, background_color, text_color];
       db.query(query, values, (error, results) => {
