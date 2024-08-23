@@ -1,17 +1,17 @@
-import db from '@/lib/db';
-import jwt from 'jsonwebtoken';
+import db from "@/lib/db";
+import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
   const { method } = req;
 
-  if (method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
+  if (method !== "GET") {
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Authorization token is required' });
+    return res.status(401).json({ message: "Authorization token is required" });
   }
 
   try {
@@ -26,20 +26,24 @@ export default async function handler(req, res) {
     `;
     db.query(query, [userId], (error, results) => {
       if (error) {
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        return res
+          .status(500)
+          .json({ message: "Internal server error", error: error.message });
       }
 
       if (results.length === 0) {
-        return res.status(200).json({ message: 'Rương đồ trống' });
+        return res.status(200).json({ message: "Rương đồ trống", items: [] });
       }
 
       return res.status(200).json(results);
     });
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: 'Invalid token' });
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid token" });
     }
-    console.error('Error fetching ruong do:', error);
-    return res.status(500).json({ message: 'Internal server error', error: error.message });
+    console.error("Error fetching ruong do:", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 }
