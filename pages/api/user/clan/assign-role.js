@@ -1,17 +1,29 @@
 import db from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { userId, targetUserId, newRole } = req.body;
-
-  if (!userId || !targetUserId || !newRole) {
-    return res.status(400).json({ message: 'All fields are required' });
+  const { authorization } = req.headers;
+  
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Authorization header is required' });
   }
 
+  const token = authorization.split(' ')[1];
+
   try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const { targetUserId, newRole } = req.body;
+
+    if (!userId || !targetUserId || !newRole) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
     // Get the current user's role
     const [user] = await new Promise((resolve, reject) => {
       db.query('SELECT * FROM users WHERE id = ?', [userId], (error, results) => {

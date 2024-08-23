@@ -335,7 +335,7 @@ const MemberPage = ({ id }) => {
               <TaiSanImage src="/gold.png"></TaiSanImage>
               <TaiSanValue>{user.tai_san}</TaiSanValue>
             </TaiSanContainer>
-            <ClanName>{user.clan_name}</ClanName>
+            <ClanName>{user.clan_name || "Chưa vào bang"}</ClanName>
             <ClanRole>{getClanRole(user.clan_role)}</ClanRole>
           </Section>
 

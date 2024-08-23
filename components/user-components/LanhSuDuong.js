@@ -8,11 +8,10 @@ const Container = styled.div`
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #93B6C8;
-
 `;
 
 const Title = styled.h2`
-  margin: 20 20 20 0;
+  margin: 20px 0;
 `;
 
 const Tabs = styled.div`
@@ -85,35 +84,69 @@ const LanhSuDuong = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser) {
-          const userInfo = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`);
-          setUser("This is info" + JSON.stringify(userInfo.data));
-          console
-          if (parseInt(userInfo.data.clan_role) !== 6 && parseInt(userInfo.data.clan_role) !== 7) {
-            router.push('/ho-so');
-          }
-          const membersInfo = await axios.get(`/api/user/clan/members?userId=${storedUser.id}`);
-          setMembers(membersInfo.data);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Authorization token not found');
         }
+
+        const userInfoResponse = await axios.get('/api/user/clan/user-info', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const userInfo = userInfoResponse.data;
+        setUser(userInfo);
+
+        if (![6, 7].includes(parseInt(userInfo.clan_role))) {
+          router.push('/ho-so');
+        }
+
+        const membersInfoResponse = await axios.get('/api/user/clan/members', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setMembers(membersInfoResponse.data);
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
     };
 
     fetchUserInfo();
-  }, []);
+  }, [router]);
 
   const handleAssignRole = async () => {
     try {
-      await axios.post('/api/user/clan/assign-role', {
-        userId: user.id,
-        targetUserId: selectedMember,
-        newRole,
-      });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authorization token not found');
+      }
+
+      await axios.post(
+        '/api/user/clan/assign-role',
+        {
+          userId: user.id,
+          targetUserId: selectedMember,
+          newRole,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       alert('Phân vai trò thành công');
-      const membersInfo = await axios.get(`/api/user/clan/members?userId=${user.id}`);
-      setMembers(membersInfo.data);
+
+      const membersInfoResponse = await axios.get('/api/user/clan/members', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setMembers(membersInfoResponse.data);
     } catch (error) {
       console.error('Error assigning role:', error);
       alert('Phân vai trò thất bại');
@@ -125,9 +158,9 @@ const LanhSuDuong = () => {
       case 'info':
         return (
           <div>
-            {/* <h3>Vai trò: {user?.clan_role ? roles.find(role => role.value === user.clan_role)?.label : 'Chưa có'}</h3>
+            <h3>Vai trò: {user?.clan_role ? roles.find(role => role.value === user.clan_role)?.label : 'Chưa có'}</h3>
             <p>Điểm cống hiến nhiệm vụ: {user?.task_contribution_points}</p>
-            <p>Điểm cống hiến bang: {user?.clan_contribution_points}</p> */}
+            <p>Điểm cống hiến bang: {user?.clan_contribution_points}</p>
           </div>
         );
       case 'assign':
@@ -161,7 +194,7 @@ const LanhSuDuong = () => {
 
   return (
     <Container>
-      {/* <Title>Lãnh Sự Đường</Title> */}
+      <Title>Lãnh Sự Đường</Title>
       <Tabs>
         <Tab active={activeTab === 'info'} onClick={() => setActiveTab('info')}>Thông tin</Tab>
         <Tab active={activeTab === 'assign'} onClick={() => setActiveTab('assign')}>Phân vai trò</Tab>

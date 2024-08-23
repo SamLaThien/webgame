@@ -21,7 +21,6 @@ export default async function handler(req, res) {
     const token = authorization.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET);
     
-    // Query to get user data and also check if the user is in a clan
     db.query(
       `SELECT 
         u.id, u.username, u.email, u.role, u.created_at, u.bio, u.dateOfBirth, u.gender, u.image, 
