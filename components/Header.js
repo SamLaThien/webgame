@@ -184,9 +184,9 @@ const Header = () => {
             >
               <MenuItem onClick={() => router.push('/ho-so')}>Profile</MenuItem>
               {
-              user.role === 1 && 
+              parseInt(user.role) === 1 && 
               <MenuItem onClick={() => router.push('/admin')}>Admin Page</MenuItem>}
-              {user.role === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
+              {parseInt(user.role) === 2 && <MenuItem onClick={() => router.push('/moderator')}>Moderator Panel</MenuItem>}
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </>
