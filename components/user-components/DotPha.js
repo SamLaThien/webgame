@@ -276,7 +276,6 @@ const DotPha = () => {
         }
 
         let successChance = levelData.ty_le_dot_pha_thanh_cong;
-        console.log("Base ti le dot pha thanh cong:", successChance);
 
         const levelRangeKey = Object.keys(levelItemChances).find((range) => {
           const [min, max] = range.split("-").map(Number);
@@ -324,12 +323,7 @@ const DotPha = () => {
               consistentItemChances[item.vat_pham_id];
             if (itemChance) {
               successChance += itemChance;
-              console.log(
-                `Added chance from item ${item.vat_pham_id}:`,
-                itemChance,
-                "New successChance:",
-                successChance
-              );
+           
             }
           });
         }
