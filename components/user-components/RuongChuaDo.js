@@ -105,7 +105,6 @@ const Input = styled.input`
   width: 75px;
   margin-right: 10px;
   margin-bottom: 10px;
-
 `;
 
 const RuongChuaDo = () => {
@@ -120,7 +119,7 @@ const RuongChuaDo = () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        router.push("/login"); 
+        router.push("/login");
         return;
       }
 
@@ -132,26 +131,24 @@ const RuongChuaDo = () => {
         });
 
         if (!data.isValid) {
-          router.push("/login"); 
+          router.push("/login");
           return;
         }
 
-        const itemsResponse = await axios.get('/api/user/ruong-do', {
+        const itemsResponse = await axios.get("/api/user/ruong-do", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         setItems(itemsResponse.data);
-
       } catch (error) {
         console.error("Error during token validation or item fetching:", error);
-        router.push("/login"); 
+        router.push("/login");
       }
     };
 
     validateTokenAndFetchItems();
   }, [router]);
-
 
   // useEffect(() => {
   //   const fetchItems = async () => {
@@ -167,7 +164,6 @@ const RuongChuaDo = () => {
   //       console.error("Error fetching ruong do items:", error);
   //     }
   //   };
-    
 
   //   fetchItems();
   // }, []);
@@ -176,7 +172,7 @@ const RuongChuaDo = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-  
+
       await axios.post(
         "/api/user/log/dot-pha-log",
         {
@@ -193,20 +189,19 @@ const RuongChuaDo = () => {
       console.error("Error logging user activity:", error);
     }
   };
-  
 
   const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-  
+
       const useAmount = isMultiple ? 10 : 1;
-  
+
       if (soLuong < useAmount) {
         alert("Not enough items to use.");
         return;
       }
-  
+
       const { data } = await axios.post(
         "/api/user/ruong-do/use-item",
         {
@@ -216,11 +211,11 @@ const RuongChuaDo = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-  
+
       if (data.success) {
         setItems((prevItems) =>
           prevItems.map((item) =>
@@ -229,7 +224,7 @@ const RuongChuaDo = () => {
               : item
           )
         );
-  
+
         const itemName =
           items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
           "Unknown Item";
@@ -245,7 +240,6 @@ const RuongChuaDo = () => {
     }
   };
 
- 
   const handleDonationAmountChange = (e, vatPhamId) => {
     const value = e.target.value;
     setDonationAmount((prev) => ({ ...prev, [vatPhamId]: value }));
@@ -253,21 +247,21 @@ const RuongChuaDo = () => {
 
   const handleDonateItem = async (ruongDoId, vatPhamId, availableQuantity) => {
     const amountToDonate = parseInt(donationAmount[vatPhamId]);
-  
+
     if (!amountToDonate || amountToDonate <= 0) {
       alert("Please enter a valid amount to donate.");
       return;
     }
-  
+
     if (amountToDonate > availableQuantity) {
       alert("You cannot donate more than you have.");
       return;
     }
-  
+
     try {
       const token = localStorage.getItem("token"); // Retrieve JWT token from localStorage
       if (!token) return;
-  
+
       const { data } = await axios.post(
         "/api/user/ruong-do/donate-item",
         {
@@ -281,7 +275,7 @@ const RuongChuaDo = () => {
           },
         }
       );
-  
+
       if (data.success) {
         setItems((prevItems) =>
           prevItems.map((item) =>
@@ -298,7 +292,9 @@ const RuongChuaDo = () => {
       console.error("Error donating item:", error);
     }
   };
-  const categorizedItems = items.filter((item) => item.phan_loai === activeTab);
+  const categorizedItems = Array.isArray(items)
+    ? items.filter((item) => item.phan_loai === activeTab)
+    : [];
 
   const renderTabs = () => (
     <TabContainer>
@@ -351,84 +347,88 @@ const RuongChuaDo = () => {
               </tr>
             </thead>
             <tbody>
-              {categorizedItems.map((item) => (
-                <TableRow key={item.ruong_do_id}>
-                  <TableCell width="30%">
-                    <div>
-                      {item.vat_pham_name} ({item.so_luong})
-                    </div>
-                    <div>{item.PhamCap}</div>
-                    <div>Hướng dẫn dùng: {item.SuDung}</div>
-                  </TableCell>
-                  <TableCell width="30%">
-                    <Input placeholder="Số lượng" />
-                    <Input placeholder="Số bạc/1c" />
-                    <ActionButton color="#ff9800" hoverColor="#ff5722">
-                      Rao bán
-                    </ActionButton>
-                    <Input placeholder="Số lượng" />
-                    <Input placeholder="ID nhận" />
-                    <ActionButton color="#f44336" hoverColor="#e53935">
-                      Chuyển
-                    </ActionButton>
-                  </TableCell>
-                  <TableCell width="25%">
-                    <ActionButton
-                      color="#4caf50"
-                      hoverColor="#388e3c"
-                      onClick={() =>
-                        handleUseItem(
-                          item.ruong_do_id,
-                          item.vat_pham_id,
-                          item.so_luong,
-                          false
-                        )
-                      }
-                    >
-                      Sử dụng
-                    </ActionButton>
-                    <ActionButton
-                      color="#4caf50"
-                      hoverColor="#388e3c"
-                      onClick={() =>
-                        handleUseItem(
-                          item.ruong_do_id,
-                          item.vat_pham_id,
-                          item.so_luong,
-                          true
-                        )
-                      }
-                    >
-                      Sử dụng X10
-                    </ActionButton>
-                    <Input placeholder="Số lượng" />
-                    <ActionButton color="#4caf50" hoverColor="#388e3c">
-                      Hành trang
-                    </ActionButton>
-                    <Input
-                      type="number"
-                      placeholder="Số lượng"
-                      value={donationAmount[item.vat_pham_id] || ""}
-                      onChange={(e) =>
-                        handleDonationAmountChange(e, item.vat_pham_id)
-                      }
-                    />
-                    <ActionButton
-                      color="#f44336"
-                      hoverColor="#e53935"
-                      onClick={() =>
-                        handleDonateItem(
-                          item.ruong_do_id,
-                          item.vat_pham_id,
-                          item.so_luong
-                        )
-                      }
-                    >
-                      Nộp bang
-                    </ActionButton>
+              {categorizedItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan="3" style={{ textAlign: "center" }}>
+                    Rương đồ trống
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                categorizedItems.map((item) => (
+                  <TableRow key={item.ruong_do_id}>
+                    <TableCell width="30%">
+                      <div>
+                        {item.vat_pham_name} ({item.so_luong})
+                      </div>
+                      <div>{item.PhamCap}</div>
+                      <div>Hướng dẫn dùng: {item.SuDung}</div>
+                    </TableCell>
+                    <TableCell width="30%">
+                      <Input placeholder="Số lượng" />
+                      <Input placeholder="Số bạc/1c" />
+                      <ActionButton color="#ff9800" hoverColor="#ff5722">
+                        Rao bán
+                      </ActionButton>
+                      <Input placeholder="Số lượng" />
+                      <Input placeholder="ID nhận" />
+                      <ActionButton color="#f44336" hoverColor="#e53935">
+                        Chuyển
+                      </ActionButton>
+                    </TableCell>
+                    <TableCell width="25%">
+                      <ActionButton
+                        color="#4caf50"
+                        hoverColor="#388e3c"
+                        onClick={() =>
+                          handleUseItem(
+                            item.ruong_do_id,
+                            item.vat_pham_id,
+                            item.so_luong,
+                            false
+                          )
+                        }
+                      >
+                        Sử dụng
+                      </ActionButton>
+                      <ActionButton
+                        color="#4caf50"
+                        hoverColor="#388e3c"
+                        onClick={() =>
+                          handleUseItem(
+                            item.ruong_do_id,
+                            item.vat_pham_id,
+                            item.so_luong,
+                            true
+                          )
+                        }
+                      >
+                        Sử dụng X10
+                      </ActionButton>
+                      <Input
+                        type="number"
+                        placeholder="Số lượng"
+                        value={donationAmount[item.vat_pham_id] || ""}
+                        onChange={(e) =>
+                          handleDonationAmountChange(e, item.vat_pham_id)
+                        }
+                      />
+                      <ActionButton
+                        color="#f44336"
+                        hoverColor="#e53935"
+                        onClick={() =>
+                          handleDonateItem(
+                            item.ruong_do_id,
+                            item.vat_pham_id,
+                            item.so_luong
+                          )
+                        }
+                      >
+                        Nộp bang
+                      </ActionButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </tbody>
           </ItemTable>
         )}
