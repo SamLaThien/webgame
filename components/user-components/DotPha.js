@@ -230,7 +230,7 @@ const handleLevelUp = async () => {
               Authorization: `Bearer ${token}`,
             },
             params: {
-              userId: user.id, // Pass userId here
+              userId: user.id, 
               itemIds: requiredItemIds.join(","),
             },
           }
@@ -262,15 +262,27 @@ const handleLevelUp = async () => {
               Authorization: `Bearer ${token}`,
             },
             params: {
-              userId: user.id, // Pass userId here
+              userId: user.id, 
               usedItemIds: selectedItems.join(","),
             },
+          }
+        );
+        await axios.post(
+          `/api/user/dot-pha/decrement-item`,
+          {
+            userId: user.id,
+            itemIds: selectedItems.join(","),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            }
           }
         );
 
         const usedItemsLog = usedItemsData
           .map(
-            (item) => `${getItemNameById(item.vat_pham_id)} x${item.so_luong}`
+            (item) => `${getItemNameById(item.vat_pham_id)} x1`
           )
           .join(", ");
         await logUserActivity(

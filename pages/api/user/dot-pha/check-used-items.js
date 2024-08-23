@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   if (!userId || !usedItemIds) {
     return res.status(400).json({ message: 'User ID and used item IDs are required' });
-  }
+  } 
 
   const usedItemIdArray = usedItemIds.split(',').map(id => parseInt(id.trim(), 10));
 
