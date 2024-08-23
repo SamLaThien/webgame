@@ -31,6 +31,41 @@ export const levelItemChances = {
     40: 15, // Thanh Tâm Đan
     41: 5,  // Hộ Linh Trận
   },
+  '51-60': {
+    35: 0,  // Huyết Khí Đan
+    38: 2,  // Đế Giai Thuẫn
+    39: 10, // Tị Lôi Châu
+    40: 15, // Thanh Tâm Đan
+    41: 5,  // Hộ Linh Trận
+  },
+  '61-70': {
+    35: 0,  // Huyết Khí Đan
+    38: 2,  // Đế Giai Thuẫn
+    39: 10, // Tị Lôi Châu
+    40: 15, // Thanh Tâm Đan
+    41: 5,  // Hộ Linh Trận
+  },
+  '71-80': {
+    35: 0,  // Huyết Khí Đan
+    38: 2,  // Đế Giai Thuẫn
+    39: 10, // Tị Lôi Châu
+    40: 15, // Thanh Tâm Đan
+    41: 5,  // Hộ Linh Trận
+  },
+  '81-90': {
+    35: 0,  // Huyết Khí Đan
+    38: 2,  // Đế Giai Thuẫn
+    39: 10, // Tị Lôi Châu
+    40: 15, // Thanh Tâm Đan
+    41: 5,  // Hộ Linh Trận
+  },
+  '91-100': {
+    35: 0,  // Huyết Khí Đan
+    38: 2,  // Đế Giai Thuẫn
+    39: 10, // Tị Lôi Châu
+    40: 15, // Thanh Tâm Đan
+    41: 5,  // Hộ Linh Trận
+  },
 };
 
 export const consistentItemChances = {
