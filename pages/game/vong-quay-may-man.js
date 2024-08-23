@@ -244,8 +244,9 @@ const VongQuayMayManPage = () => {
       console.log("Prize Type: Exp/Bac");
       await updateUserExpOrBac(selectedSlot.option, prizeValue);
     } else if (selectedSlot.items[0]?.prize_type === 2) {
-      console.log("Prize Type: Item");
       const vatPhamId = await getVatPhamId(prizeValue);
+      console.log("Prize Type: Item");
+
       if (vatPhamId) {
         await updateUserItem(vatPhamId, 1);
       }
@@ -288,13 +289,11 @@ const VongQuayMayManPage = () => {
     }
   };
 
-  
-
   function normalizePrizeName(prize) {
     return prize
       .toLowerCase()
-      .normalize("NFD") // Decompose special characters
-      .replace(/[\u0300-\u036f]/g, ""); // Remove diacritical marks
+      .normalize("NFD") 
+      .replace(/[\u0300-\u036f]/g, ""); 
   }
 
   async function updateUserExpOrBac(prize, amount) {
@@ -329,17 +328,14 @@ const VongQuayMayManPage = () => {
     }
   }
   
-  
-  
-  
-
   async function updateUserItem(vat_pham_id) {
     try {
       const token = localStorage.getItem("token");
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser || !storedUser.id) {
-        throw new Error("User not found in local storage");
+      if (!token) {
+        throw new Error("Token not found in local storage");
       }
+      
+      const storedUser = JSON.parse(localStorage.getItem("user"));
   
       const userId = storedUser.id;
   
@@ -352,7 +348,7 @@ const VongQuayMayManPage = () => {
         body: JSON.stringify({
           userId,
           vat_pham_id,
-          so_luong: 1, // Assuming the quantity won is 1
+          so_luong: 1, 
         }),
       });
   
@@ -365,6 +361,7 @@ const VongQuayMayManPage = () => {
       console.error("Error updating Ruong Do:", error);
     }
   }
+  
   
 
   return (
@@ -410,7 +407,7 @@ const VongQuayMayManPage = () => {
             {spinLogs && spinLogs.length > 0 ? (
               spinLogs.map((log, index) => (
                 <LogItem key={index}>
-                  <strong>{log.username}</strong> Quay trúng{" "}
+                  <strong>{log.username}</strong> quay trúng{" "}
                   <strong>{log.prize_category}</strong> ({log.prize_name}) (
                   {log.formattedTime})
                 </LogItem>
