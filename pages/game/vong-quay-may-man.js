@@ -15,8 +15,8 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 0;
-  height: 120vh;
   width: 100%;
+  min-height: 100vh;
 `;
 
 const WheelContainer = styled.div`
@@ -65,6 +65,9 @@ const LowerSection = styled.div`
   flex-direction: row;
   gap: 20px;
   padding: 0;
+  height: 150vh;
+  min-height: 150vh;
+  flex-grow: 1;
   @media (max-width: 749px){
     flex-direction: column;;
 }

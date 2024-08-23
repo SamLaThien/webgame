@@ -14,14 +14,15 @@ export default async function handler(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId; 
 
-    // Fetch the username based on the userId
-    const getUsernameQuery = 'SELECT username FROM users WHERE id = ?';
-    db.query(getUsernameQuery, [userId], (error, results) => {
+    // Fetch the ngoai_hieu and username based on the userId
+    const getUserInfoQuery = 'SELECT ngoai_hieu, username FROM users WHERE id = ?';
+    db.query(getUserInfoQuery, [userId], (error, results) => {
       if (error || results.length === 0) {
         return res.status(500).json({ message: 'Internal server error or user not found', error: error?.message });
       }
 
-      const username = results[0].username;
+      // Use ngoai_hieu if available, otherwise fallback to username
+      const displayName = results[0].ngoai_hieu || results[0].username;
 
       if (req.method === 'POST') {
         const { prize_category, prize_name, quantity } = req.body;
@@ -35,8 +36,8 @@ export default async function handler(req, res) {
             INSERT INTO spin_logs (username, prize_category, prize_name, quantity, timestamp)
             VALUES (?, ?, ?, ?, NOW())
           `;
-          const values = [username, prize_category, prize_name, quantity];
-          db.query(insertLogQuery, values, (insertError, results) => {
+          const values = [displayName, prize_category, prize_name, quantity];
+          db.query(insertLogQuery, values, (insertError) => {
             if (insertError) {
               return res.status(500).json({ message: 'Internal server error', error: insertError.message });
             }
