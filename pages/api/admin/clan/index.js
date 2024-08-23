@@ -128,8 +128,8 @@ export default async function handler(req, res) {
                 const clanId = clanResults.insertId;
 
                 db.query(
-                  'INSERT INTO clan_members (clan_id, member_id) VALUES (?, ?)',
-                  [clanId, owner],
+                  'INSERT INTO clan_members (clan_id, member_id) VALUES (?, ?), (?, ?)',
+                  [clanId, owner, clanId, accountant_id],
                   (memberError) => {
                     if (memberError) {
                       db.query('ROLLBACK', () => {});

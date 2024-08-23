@@ -31,8 +31,6 @@ export default async function handler(req, res) {
     const taxRate = 0.06;
     const taxAmount = amount * taxRate;
     const amountAfterTax = amount - taxAmount;
-
-    // Fetch user's current tai_san and user details
     const userResult = await new Promise((resolve, reject) => {
       db.query(
         'SELECT tai_san, ngoai_hieu, username FROM users WHERE id = ?',
