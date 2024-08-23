@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         });
       });
   
-      if (!user || user.role !== 1) {
+      if (!user || parseInt(user.role) !== 1) {
         return res.status(403).json({ message: 'Access denied. Admins only.' });
       }
       const query = 'INSERT INTO wheel_slot_groups (slot_number, group_name, background_color, text_color) VALUES (?, ?, ?, ?)';

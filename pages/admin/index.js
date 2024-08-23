@@ -96,7 +96,7 @@ const AdminPage = () => {
             setUser(userData);
 
           
-            if (userData.role !== 1) {
+            if (parseInt(userData.role) !== 1) {
               console.error("User is not an admin, redirecting to login");
               router.push('/login');
             }

@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       });
     });
 
-    if (!user || user.role !== 1) {
+    if (!user || parseInt(user.role) !== 1) {
       return res.status(403).json({ message: 'Access denied. Admins only.' });
     }
   } catch (error) {

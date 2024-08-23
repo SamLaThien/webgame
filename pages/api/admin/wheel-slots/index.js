@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       });
     });
 
-    if (!user || user.role !== 1) {
+    if (!user || parseInt(user.role) !== 1) {
       return res.status(403).json({ message: 'Access denied. Admins only.' });
     }
     const { slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text, background_color, text_color } = req.body;
