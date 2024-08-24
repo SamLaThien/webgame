@@ -40,26 +40,30 @@ const Image2 = styled.img`
   position: absolute;
   width: 350px;
   z-index: 100;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
   &:hover {
-    transform: scale(1.1);
+    transform: ${({ disabled }) => (disabled ? 'none' : 'scale(1.1)')};
   }
   @media (max-width: 749px) {
     width: 200px;
   }
 `;
 
+
 const Button = styled.button`
   padding: 10px 20px;
   margin-top: 10vh;
-  background-color: #b3d7e8;
+  background-color: ${({ disabled }) => (disabled ? "#cccccc" : "#b3d7e8")};
   color: white;
   border: none;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   font-weight: bold;
   font-size: larger;
   z-index: 2;
+  pointer-events: ${({ disabled }) => (disabled ? "none" : "auto")};
 `;
+
 const LowerSection = styled.div`
   margin-top: 40px;
   display: flex;
@@ -111,9 +115,6 @@ const OverlayImage = styled.img`
     width: 500px;
   }
 `;
-
-
-
 
 const spinAnimation = keyframes`
   from {
@@ -393,7 +394,7 @@ const VongQuayMayManPage = () => {
     try {
       const token = localStorage.getItem("token");
       const storedUser = JSON.parse(localStorage.getItem("user"));
-  
+
       while (taiSan > 0) {
         const response = await fetch("/api/user/game/vong-quay/tai-san", {
           method: "POST",
@@ -403,24 +404,26 @@ const VongQuayMayManPage = () => {
           },
           body: JSON.stringify({ userId: storedUser.id }),
         });
-  
+
         const data = await response.json();
-  
+
         if (response.ok) {
           setTaiSan(data.tai_san);
-  
+
           if (data.tai_san <= 0) break; // Stop if tai_san is depleted
-  
+
           const newPrizeIndex = Math.floor(Math.random() * wheelSlots.length);
           setPrizeIndex(newPrizeIndex);
           setMustSpin(true);
-  
+
           // Wait for the wheel to stop spinning before spinning again
-          await new Promise((resolve) => setTimeout(resolve, spinDuration * 1000));
-  
+          await new Promise((resolve) =>
+            setTimeout(resolve, spinDuration * 1000)
+          );
+
           // Handle prize result only after spinning stops
-          await handlePrizeResult(); 
-  
+          await handlePrizeResult();
+
           // Set mustSpin to false so it can be set to true again in the next loop iteration
           setMustSpin(false);
         } else {
@@ -432,8 +435,6 @@ const VongQuayMayManPage = () => {
       console.error("Error in multi-spin function:", error);
     }
   };
-  
-  
 
   return (
     <Layout>
@@ -470,10 +471,13 @@ const VongQuayMayManPage = () => {
                 src="/spin/center.png"
                 alt="Image below the wheel"
                 onClick={handleSpinClick}
+                disabled={mustSpin}
               />
             </WheelContainer>
 
-            <Button onClick={handleSpinClick}>Quay</Button>
+            <Button onClick={handleSpinClick} disabled={mustSpin}>
+              Quay
+            </Button>
             {result && <p>You won: {result}</p>}
           </>
         )}
