@@ -47,7 +47,7 @@ const CboxGeneral = () => {
       boxid,
       boxtag,
       nme: ngoaiHieu,
-      lnk: '',  
+      lnk: `https://tuchangioi.xyz/member/${user?.id}`,  
       pic: ''  
     };
 
