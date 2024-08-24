@@ -172,15 +172,17 @@ const WheelManagement = () => {
       prize_rate: 0,
       lower_bound: '',
       higher_bound: '',
+      item_id: null,
     };
-
+  
     const updatedSlot = {
       ...selectedSlot,
       items: [...selectedSlot.items, newItem],
     };
-
+  
     setSelectedSlot(updatedSlot);
   };
+  
 
   const handleChangeItem = (itemId, key, value) => {
     const updatedItems = selectedSlot.items.map(item =>
@@ -219,7 +221,7 @@ const WheelManagement = () => {
 
   const handleUpdateItems = async (e) => {
     e.preventDefault();
-
+  
     const updatedSlot = {
       slot_number: selectedSlot.slot_number,
       items: selectedSlot.items.map(item => ({
@@ -231,7 +233,7 @@ const WheelManagement = () => {
         item_id: item.item_id,
       })),
     };
-
+  
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/admin/wheel-slots/${selectedSlot.slot_number}`, {
@@ -242,22 +244,23 @@ const WheelManagement = () => {
         },
         body: JSON.stringify(updatedSlot),
       });
-
+  
       if (!response.ok) {
         setMessage({ type: 'error', text: 'Failed to update slot' });
         return;
       }
-
+  
       setMessage({ type: 'success', text: 'Slot updated successfully' });
       setWheelSlots(wheelSlots.map(slot =>
         slot.slot_number === selectedSlot.slot_number ? updatedSlot : slot
       ));
-      setSelectedSlot(null);
+      setSelectedSlot(null);  
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to update slot' });
       console.error('Error updating slot:', error);
     }
   };
+  
 
   const handleUpdateStyle = async (e) => {
     e.preventDefault();
@@ -446,7 +449,7 @@ const WheelManagement = () => {
                 <Button onClick={() => handleDeleteItem(selectedSlot.slot_number, item.id)}>Delete</Button>
               </ItemRow>
             ))}
-            <AddItemButton onClick={handleAddItem}>Add New Item</AddItemButton>
+            <AddItemButton type="button" onClick={handleAddItem}>Add New Item</AddItemButton>
             <Button type="submit">Update Items</Button>
           </EditForm>
         </EditPanel>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import dynamic from "next/dynamic";
 import Layout from "../../components/Layout";
 import CboxGeneral from "@/components/CboxGeneral";
@@ -31,7 +31,7 @@ const Image = styled.img`
   z-index: -1;
   position: absolute;
   width: 800px;
-  @media (max-width: 749px){
+  @media (max-width: 749px) {
     width: 500px;
   }
 `;
@@ -44,7 +44,7 @@ const Image2 = styled.img`
   &:hover {
     transform: scale(1.1);
   }
-  @media (max-width: 749px){
+  @media (max-width: 749px) {
     width: 200px;
   }
 `;
@@ -58,6 +58,7 @@ const Button = styled.button`
   cursor: pointer;
   font-weight: bold;
   font-size: larger;
+  z-index: 2;
 `;
 const LowerSection = styled.div`
   margin-top: 40px;
@@ -68,9 +69,9 @@ const LowerSection = styled.div`
   height: 150vh;
   min-height: 150vh;
   flex-grow: 1;
-  @media (max-width: 749px){
-    flex-direction: column;;
-}
+  @media (max-width: 749px) {
+    flex-direction: column;
+  }
 `;
 
 const LogContainer = styled.div`
@@ -80,7 +81,7 @@ const LogContainer = styled.div`
   padding: 20px;
   overflow-y: scroll;
   background-color: white;
-  @media (max-width: 749px){
+  @media (max-width: 749px) {
     width: 80vw;
   }
 `;
@@ -95,6 +96,34 @@ const LogItem = styled.div`
   font-size: 14px;
 `;
 
+const OverlayImage = styled.img`
+  position: absolute;
+  width: 100px;
+  z-index: -1;
+
+  ${({ mustSpin, spinDuration }) =>
+    mustSpin &&
+    css`
+      animation: ${spinAnimation} ${spinDuration}s linear infinite;
+    `}
+
+  @media (max-width: 749px) {
+    width: 500px;
+  }
+`;
+
+
+
+
+const spinAnimation = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
 const VongQuayMayManPage = () => {
   const [wheelSlots, setWheelSlots] = useState([]);
   const [mustSpin, setMustSpin] = useState(false);
@@ -102,7 +131,7 @@ const VongQuayMayManPage = () => {
   const [result, setResult] = useState(null);
   const [spinLogs, setSpinLogs] = useState([]);
   const [taiSan, setTaiSan] = useState(0);
-
+  const [spinDuration, setSpinDuration] = useState(3);
   const formatTimeDifference = (timestamp) => {
     const now = moment();
     const logTime = moment(timestamp);
@@ -120,8 +149,7 @@ const VongQuayMayManPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-  
-    // Fetch the wheel data
+
     fetch("/api/admin/wheel-slot-groups", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -153,7 +181,7 @@ const VongQuayMayManPage = () => {
             });
         }
       });
-  
+
     fetch("/api/user/game/vong-quay/spin-logs", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -168,7 +196,6 @@ const VongQuayMayManPage = () => {
         setSpinLogs(formattedLogs);
       });
   }, []);
-  
 
   const handleSpinClick = async () => {
     try {
@@ -182,22 +209,22 @@ const VongQuayMayManPage = () => {
         },
         body: JSON.stringify({ userId: storedUser.id }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
-        setTaiSan(data.tai_san); // Update tai_san in the component's state
+        setTaiSan(data.tai_san);
         const newPrizeIndex = Math.floor(Math.random() * wheelSlots.length);
         setPrizeIndex(newPrizeIndex);
         setMustSpin(true);
+        setSpinDuration(3);
       } else {
-        alert(data.message); // Display the error message if the spin is not allowed
+        alert(data.message);
       }
     } catch (error) {
       console.error("Error checking tai_san:", error);
     }
   };
-  
 
   const calculatePrize = (slot) => {
     if (!slot) return "Error: Slot data missing";
@@ -292,20 +319,20 @@ const VongQuayMayManPage = () => {
   function normalizePrizeName(prize) {
     return prize
       .toLowerCase()
-      .normalize("NFD") 
-      .replace(/[\u0300-\u036f]/g, ""); 
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
   }
 
   async function updateUserExpOrBac(prize, amount) {
     try {
       const token = localStorage.getItem("token");
-  
+
       if (!token) {
         throw new Error("Token not found in local storage");
       }
-  
+
       const normalizedPrize = normalizePrizeName(prize);
-  
+
       const response = await fetch("/api/user/game/vong-quay/exp", {
         method: "POST",
         headers: {
@@ -317,7 +344,7 @@ const VongQuayMayManPage = () => {
           amount,
         }),
       });
-  
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Failed to update Exp/Bac");
@@ -327,18 +354,18 @@ const VongQuayMayManPage = () => {
       console.error("Error updating Exp/Bac:", error);
     }
   }
-  
+
   async function updateUserItem(vat_pham_id) {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Token not found in local storage");
       }
-      
+
       const storedUser = JSON.parse(localStorage.getItem("user"));
-  
+
       const userId = storedUser.id;
-  
+
       const response = await fetch("/api/user/game/vong-quay/item", {
         method: "POST",
         headers: {
@@ -348,10 +375,10 @@ const VongQuayMayManPage = () => {
         body: JSON.stringify({
           userId,
           vat_pham_id,
-          so_luong: 1, 
+          so_luong: 1,
         }),
       });
-  
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Failed to add item to Ruong Do");
@@ -361,6 +388,50 @@ const VongQuayMayManPage = () => {
       console.error("Error updating Ruong Do:", error);
     }
   }
+
+  const handleMultiSpinClick = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+  
+      while (taiSan > 0) {
+        const response = await fetch("/api/user/game/vong-quay/tai-san", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId: storedUser.id }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          setTaiSan(data.tai_san);
+  
+          if (data.tai_san <= 0) break; // Stop if tai_san is depleted
+  
+          const newPrizeIndex = Math.floor(Math.random() * wheelSlots.length);
+          setPrizeIndex(newPrizeIndex);
+          setMustSpin(true);
+  
+          // Wait for the wheel to stop spinning before spinning again
+          await new Promise((resolve) => setTimeout(resolve, spinDuration * 1000));
+  
+          // Handle prize result only after spinning stops
+          await handlePrizeResult(); 
+  
+          // Set mustSpin to false so it can be set to true again in the next loop iteration
+          setMustSpin(false);
+        } else {
+          alert(data.message);
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("Error in multi-spin function:", error);
+    }
+  };
   
   
 
@@ -388,6 +459,12 @@ const VongQuayMayManPage = () => {
                 radiusLineWidth={1}
                 onStopSpinning={handlePrizeResult}
               />
+              {/* <OverlayImage
+              src="/wheel/1.png"
+              alt="Overlay Image"
+              mustSpin={mustSpin}
+              spinDuration={spinDuration}
+            /> */}
               <Image src="/spin/overlay2.png" alt="Image below the wheel" />
               <Image2
                 src="/spin/center.png"
@@ -485,7 +562,6 @@ async function getVatPhamId(prizeName) {
     return null;
   }
 }
-
 
 // async function updateUserRuongDo(vatPhamId, soLuong) {
 //   try {

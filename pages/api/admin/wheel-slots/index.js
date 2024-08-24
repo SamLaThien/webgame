@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     if (!user || parseInt(user.role) !== 1) {
       return res.status(403).json({ message: 'Access denied. Admins only.' });
     }
-    const { slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text, background_color, text_color } = req.body;
+    const { slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text} = req.body;
 
     if (!slot_number || !prize_type || !prize_rate || !option_text) {
       return res.status(400).json({ message: 'Required fields are missing' });
@@ -59,8 +59,8 @@ export default async function handler(req, res) {
       if (!user || user.role !== 1) {
         return res.status(403).json({ message: 'Access denied. Admins only.' });
       }
-      const query = 'INSERT INTO wheel_slots (slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text, background_color, text_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      const values = [slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text, background_color, text_color];
+      const query = 'INSERT INTO wheel_slots (slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text) VALUES (?, ?, ?, ?, ?, ?, ?)';
+      const values = [slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text];
       db.query(query, values, (error, results) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
