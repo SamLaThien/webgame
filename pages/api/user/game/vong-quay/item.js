@@ -12,16 +12,22 @@ export default async function handler(req, res) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId; 
+    const userId = decoded.userId;
 
     if (req.method === 'POST') {
-      const { vat_pham_id, so_luong } = req.body;
+      const { vat_pham_id, so_luong, spinToken } = req.body;
 
-      if (!userId || !vat_pham_id || !so_luong) {
-        return res.status(400).json({ message: 'User ID, Vat Pham ID, and quantity are required' });
+      if (!userId || !vat_pham_id || !so_luong || !spinToken) {
+        return res.status(400).json({ message: 'User ID, Vat Pham ID, quantity, and spinToken are required' });
       }
 
       try {
+        // Verify the spinToken
+        const spinDecoded = jwt.verify(spinToken, process.env.JWT_SECRET);
+        if (!spinDecoded || spinDecoded.userId !== userId) {
+          return res.status(403).json({ message: 'Invalid spin token' });
+        }
+
         const queryCheck = `
           SELECT id, so_luong FROM ruong_do WHERE user_id = ? AND vat_pham_id = ?
         `;

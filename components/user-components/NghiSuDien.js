@@ -364,7 +364,7 @@ const NghiSuDien = () => {
       boxid: cboxBoxId,
       boxtag: cboxBoxTag,
       nme: ngoaiHieu,
-      lnk: "",
+      lnk: `https://tuchangioi.xyz/member/${user?.id}`,  
       pic: "",
     };
 
