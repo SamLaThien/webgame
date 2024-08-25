@@ -42,13 +42,19 @@ const CboxGeneral = () => {
     const boxid = process.env.NEXT_PUBLIC_CBOX_BOXID;
     const boxtag = process.env.NEXT_PUBLIC_CBOX_BOXTAG;
     const ngoaiHieu = user.ngoai_hieu ? user.ngoai_hieu : user.username;
-
+    const customStyles = `
+    .msg[data-uid="${user?.id}"] > .nme {
+      color: #B3D7E8; 
+      font-weight: bold;
+    }
+  `;
     const params = {
       boxid,
       boxtag,
       nme: ngoaiHieu,
       lnk: `https://tuchangioi.xyz/member/${user?.id}`,  
-      pic: ''  
+      pic: '',
+      custom: encodeURIComponent(customStyles)  
     };
 
     const queryParams = Object.entries(params)
