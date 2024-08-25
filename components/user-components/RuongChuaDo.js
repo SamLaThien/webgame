@@ -108,11 +108,12 @@ const Input = styled.input`
 `;
 
 const RuongChuaDo = () => {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(null);
   const [activeTab, setActiveTab] = useState(1);
   const [message, setMessage] = useState("");
   const [donationAmount, setDonationAmount] = useState({});
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const validateTokenAndFetchItems = async () => {
@@ -144,6 +145,8 @@ const RuongChuaDo = () => {
       } catch (error) {
         console.error("Error during token validation or item fetching:", error);
         router.push("/login");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -296,34 +299,27 @@ const RuongChuaDo = () => {
     ? items.filter((item) => item.phan_loai === activeTab)
     : [];
 
-  const renderTabs = () => (
-    <TabContainer>
-      <Tab isActive={activeTab === 1} onClick={() => setActiveTab(1)}>
-        Tăng Exp (Linh Lực)
-      </Tab>
-      <Tab isActive={activeTab === 2} onClick={() => setActiveTab(2)}>
-        Tăng HP
-      </Tab>
-      <Tab isActive={activeTab === 3} onClick={() => setActiveTab(3)}>
-        Đột Phá
-      </Tab>
-      {/* <Tab isActive={activeTab === 4} onClick={() => setActiveTab(4)}>
-      Công Pháp
-      </Tab> */}
-      {/* <Tab isActive={activeTab === 5} onClick={() => setActiveTab(5)}>
-        Binh Khí
-      </Tab>
-      <Tab isActive={activeTab === 6} onClick={() => setActiveTab(6)}>
-        Khải Giáp
-      </Tab>
-      <Tab isActive={activeTab === 7} onClick={() => setActiveTab(7)}>
-        Linh Thảo
-      </Tab> */}
-      <Tab isActive={activeTab === 8} onClick={() => setActiveTab(8)}>
-        Phụ trợ
-      </Tab>
-    </TabContainer>
-  );
+  const renderTabs = () => {
+    if (loading || !items || categorizedItems.length === 0) {
+      return null; 
+    }
+    return (
+      <TabContainer>
+        <Tab isActive={activeTab === 1} onClick={() => setActiveTab(1)}>
+          Tăng Exp (Linh Lực)
+        </Tab>
+        <Tab isActive={activeTab === 2} onClick={() => setActiveTab(2)}>
+          Tăng HP
+        </Tab>
+        <Tab isActive={activeTab === 3} onClick={() => setActiveTab(3)}>
+          Đột Phá
+        </Tab>
+        <Tab isActive={activeTab === 8} onClick={() => setActiveTab(8)}>
+          Phụ trợ
+        </Tab>
+      </TabContainer>
+    );
+  };
 
   return (
     <>
