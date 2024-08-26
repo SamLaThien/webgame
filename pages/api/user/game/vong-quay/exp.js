@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId; 
+    const userId = decoded.userId;
 
     if (req.method === 'POST') {
       const { slot_number, spinToken } = req.body;
@@ -22,73 +22,90 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'User ID, slot number, and spin token are required' });
       }
 
-      if (!spinToken) { 
+      if (!spinToken) {
         return res.status(403).json({ message: 'Invalid or already used spin token' });
       }
 
       try {
-        const queryGetSlot = `
-          SELECT lower_bound, higher_bound
-          FROM wheel_slots
-          WHERE slot_number = ?
-          LIMIT 1
-        `;
-        db.query(queryGetSlot, [slot_number], (error, results) => {
-          if (error || results.length === 0) {
-            return res.status(500).json({ message: 'Internal server error', error: error?.message || 'Slot not found' });
+        const queryGetTaiSan = 'SELECT tai_san FROM users WHERE id = ?';
+        db.query(queryGetTaiSan, [userId], (taiSanError, taiSanResults) => {
+          if (taiSanError || taiSanResults.length === 0) {
+            return res.status(500).json({ message: 'Internal server error', error: taiSanError?.message || 'User not found' });
           }
 
-          const { lower_bound, higher_bound } = results[0];
+          let currentTaiSan = taiSanResults[0].tai_san;
+          const newTaiSan = Math.max(0, currentTaiSan - 300);
 
-          if (lower_bound === null || higher_bound === null) {
-            return res.status(400).json({ message: 'Invalid range for the selected slot' });
-          }
-
-          const amount = Math.floor(Math.random() * (higher_bound - lower_bound + 1)) + lower_bound;
-
-          let field, operation;
-          switch (slot_number) {
-            case 5: 
-              field = 'exp';
-              operation = '-';
-              break;
-            case 6: 
-              field = 'exp';
-              operation = '+';
-              break;
-            case 7: 
-              field = 'tai_san';
-              operation = '+';
-              break;
-            case 8: 
-              field = 'tai_san';
-              operation = '-';
-              break;
-            default:
-              return res.status(400).json({ message: 'Invalid slot number for exp or money prize' });
-          }
-
-          const queryGet = `SELECT ${field} FROM users WHERE id = ?`;
-          db.query(queryGet, [userId], (error, results) => {
-            if (error || results.length === 0) {
-              return res.status(500).json({ message: 'Internal server error', error: error?.message || 'User not found' });
+          const queryUpdateTaiSan = 'UPDATE users SET tai_san = ? WHERE id = ?';
+          db.query(queryUpdateTaiSan, [newTaiSan, userId], (updateTaiSanError) => {
+            if (updateTaiSanError) {
+              return res.status(500).json({ message: 'Internal server error', error: updateTaiSanError.message });
             }
 
-            let currentValue = results[0][field];
-            let newValue;
-
-            if (operation === '-') {
-              newValue = Math.max(0, currentValue - amount); 
-            } else {
-              newValue = currentValue + amount;
-            }
-
-            const queryUpdate = `UPDATE users SET ${field} = ? WHERE id = ?`;
-            db.query(queryUpdate, [newValue, userId], (updateError) => {
-              if (updateError) {
-                return res.status(500).json({ message: 'Internal server error', error: updateError.message });
+            const queryGetSlot = `
+              SELECT lower_bound, higher_bound
+              FROM wheel_slots
+              WHERE slot_number = ?
+              LIMIT 1
+            `;
+            db.query(queryGetSlot, [slot_number], (error, results) => {
+              if (error || results.length === 0) {
+                return res.status(500).json({ message: 'Internal server error', error: error?.message || 'Slot not found' });
               }
-              res.status(200).json({ message: 'User updated successfully', prize: amount });
+
+              const { lower_bound, higher_bound } = results[0];
+
+              if (lower_bound === null || higher_bound === null) {
+                return res.status(400).json({ message: 'Invalid range for the selected slot' });
+              }
+
+              const amount = Math.floor(Math.random() * (higher_bound - lower_bound + 1)) + lower_bound;
+
+              let field, operation;
+              switch (slot_number) {
+                case 5: 
+                  field = 'exp';
+                  operation = '-';
+                  break;
+                case 6: 
+                  field = 'exp';
+                  operation = '+';
+                  break;
+                case 7: 
+                  field = 'tai_san';
+                  operation = '+';
+                  break;
+                case 8: 
+                  field = 'tai_san';
+                  operation = '-';
+                  break;
+                default:
+                  return res.status(400).json({ message: 'Invalid slot number for exp or money prize' });
+              }
+
+              const queryGet = `SELECT ${field} FROM users WHERE id = ?`;
+              db.query(queryGet, [userId], (error, results) => {
+                if (error || results.length === 0) {
+                  return res.status(500).json({ message: 'Internal server error', error: error?.message || 'User not found' });
+                }
+
+                let currentValue = results[0][field];
+                let newValue;
+
+                if (operation === '-') {
+                  newValue = Math.max(0, currentValue - amount); 
+                } else {
+                  newValue = currentValue + amount;
+                }
+
+                const queryUpdate = `UPDATE users SET ${field} = ? WHERE id = ?`;
+                db.query(queryUpdate, [newValue, userId], (updateError) => {
+                  if (updateError) {
+                    return res.status(500).json({ message: 'Internal server error', error: updateError.message });
+                  }
+                  res.status(200).json({ message: 'User updated successfully', prize: amount });
+                });
+              });
             });
           });
         });
