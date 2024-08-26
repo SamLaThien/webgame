@@ -1,485 +1,406 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import dynamic from 'next/dynamic';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 
-const Wheel = dynamic(() => import('react-custom-roulette').then(mod => mod.Wheel), { ssr: false });
+const prizes = [
+  "Đồ Thần Bí", // slot_number = 1
+  "Đồ Đột Phá", // slot_number = 2
+  "Đồ Luyện Khí", // slot_number = 3
+  "Đồ Luyện Đan", // slot_number = 4
+  "Giảm Kinh Nghiệm", // slot_number = 5
+  "Tăng Kinh Nghiệm", // slot_number = 6
+  "Cộng Bạc", // slot_number = 7
+  "Trừ Bạc", // slot_number = 8
+];
 
 const Container = styled.div`
-  display: flex;
-  justify-content: space-between;
   padding: 20px;
 `;
 
-const SlotManagementContainer = styled.div`
-  flex: 2;
-  margin-right: 20px;
-  max-width: 800px;
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 `;
 
-const EditPanel = styled.div`
-  flex: 1;
-  position: sticky;
-  top: 20px;
-  padding: 20px;
+const Th = styled.th`
   border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+  padding: 8px;
+  background-color: #f2f2f2;
+  text-align: left;
 `;
 
-const SlotItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding: 10px;
+const Td = styled.td`
   border: 1px solid #ddd;
-  border-radius: 5px;
-`;
-
-const ItemRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
+  padding: 8px;
 `;
 
 const Button = styled.button`
   padding: 5px 10px;
-  background-color: #4CAF50;
+  margin-left: 5px;
+  background-color: #4caf50;
   color: white;
   border: none;
   cursor: pointer;
+
+  &:hover {
+    background-color: #45a049;
+  }
 `;
 
-const TestButton = styled(Button)`
-  margin-top: 20px;
+const DeleteButton = styled(Button)`
+  background-color: #f44336;
+
+  &:hover {
+    background-color: #d32f2f;
+  }
 `;
 
-const ResultContainer = styled.div`
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #e0e0e0;
-  border-radius: 5px;
+const AddPrizeButton = styled(Button)`
+  background-color: #008cba;
+  margin-bottom: 20px;
 `;
 
-const EditForm = styled.form`
-  display: flex;
-  flex-direction: column;
+const FormContainer = styled.div`
+  margin-bottom: 20px;
 `;
 
-const EditInput = styled.input`
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+const Label = styled.label`
+  display: block;
+  margin-bottom: 5px;
 `;
 
 const Select = styled.select`
-  padding: 10px;
+  padding: 5px;
   margin-bottom: 10px;
+  width: 100%;
+  max-width: 300px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 4px;
+  box-sizing: border-box;
 `;
 
-const FilterContainer = styled.div`
+const Input = styled.input`
+  padding: 5px;
   margin-bottom: 10px;
-`;
-
-const AddItemButton = styled(Button)`
-  background-color: #008CBA;
-  margin-top: 10px;
-`;
-
-const Message = styled.div`
-  margin-top: 20px;
-  padding: 10px;
-  color: white;
-  background-color: ${(props) => (props.type === 'error' ? '#ff4d4f' : '#52c41a')};
-  border-radius: 5px;
-  text-align: center;
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
 `;
 
 const WheelManagement = () => {
   const [wheelSlots, setWheelSlots] = useState([]);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [selectedStyle, setSelectedStyle] = useState(null);
-  const [mustSpin, setMustSpin] = useState(false);
-  const [prizeNumber, setPrizeNumber] = useState(0);
-  const [result, setResult] = useState(null);
   const [vatPhamList, setVatPhamList] = useState([]);
-  const [filteredVatPhamList, setFilteredVatPhamList] = useState([]);
-  const [selectedPhanLoai, setSelectedPhanLoai] = useState('');
-  const [message, setMessage] = useState('');
+  const [selectedSlotNumber, setSelectedSlotNumber] = useState("");
+  const [selectedVatPham, setSelectedVatPham] = useState("");
+  const [prizeRate, setPrizeRate] = useState("");
+  const [lowerBound, setLowerBound] = useState("");
+  const [higherBound, setHigherBound] = useState("");
+  const [editingSlot, setEditingSlot] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const headers = { Authorization: `Bearer ${token}` };
 
       try {
-        const groupsResponse = await fetch('/api/admin/wheel-slot-groups', { headers });
-        const groups = await groupsResponse.json();
+        const slotsResponse = await fetch("/api/admin/wheel-slots", {
+          headers,
+        });
+        const slots = await slotsResponse.json();
 
-        if (Array.isArray(groups)) {
-          const slotsResponse = await fetch('/api/admin/wheel-slots', { headers });
-          const slots = await slotsResponse.json();
-
-          if (Array.isArray(slots)) {
-            const groupedSlots = groups.map(group => ({
-              ...group,
-              items: slots.filter(slot => slot.slot_number === group.slot_number),
-            }));
-
-            setWheelSlots(groupedSlots);
-          }
+        if (Array.isArray(slots)) {
+          setWheelSlots(slots);
         }
 
-        const vatPhamResponse = await fetch('/api/admin/vat-pham', { headers });
+        const vatPhamResponse = await fetch("/api/admin/vat-pham", { headers });
         const vatPhamData = await vatPhamResponse.json();
         setVatPhamList(vatPhamData);
-        setFilteredVatPhamList(vatPhamData);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       }
     };
 
     fetchData();
   }, []);
 
-  const handleEditSlot = (slot) => {
-    setSelectedSlot(slot);
-  };
-
-  const handleEditStyle = (slot) => {
-    setSelectedStyle(slot);
-  };
-
-  const handleDeleteItem = (slotNumber, itemId) => {
-    const updatedSlot = {
-      ...selectedSlot,
-      items: selectedSlot.items.filter(item => item.id !== itemId),
-    };
-
-    setSelectedSlot(updatedSlot);
-    setWheelSlots(wheelSlots.map(slot =>
-      slot.slot_number === slotNumber ? updatedSlot : slot
-    ));
-  };
-
-  const handleAddItem = () => {
-    const newItem = {
-      id: Date.now(),
-      option_text: '',
-      prize_rate: 0,
-      lower_bound: '',
-      higher_bound: '',
-      item_id: null,
-    };
-  
-    const updatedSlot = {
-      ...selectedSlot,
-      items: [...selectedSlot.items, newItem],
-    };
-  
-    setSelectedSlot(updatedSlot);
-  };
-  
-
-  const handleChangeItem = (itemId, key, value) => {
-    const updatedItems = selectedSlot.items.map(item =>
-      item.id === itemId ? { ...item, [key]: value } : item
-    );
-
-    setSelectedSlot({ ...selectedSlot, items: updatedItems });
-  };
-
-  const handlePhanLoaiChange = (e) => {
-    const phanLoai = e.target.value;
-    setSelectedPhanLoai(phanLoai);
-
-    if (phanLoai) {
-      const filteredItems = vatPhamList.filter(item => item.phan_loai === parseInt(phanLoai, 10));
-      setFilteredVatPhamList(filteredItems);
-    } else {
-      setFilteredVatPhamList(vatPhamList);
-    }
-  };
-
-  const handleVatPhamSelect = (itemId, value) => {
-    const selectedVatPham = vatPhamList.find(item => item.ID === parseInt(value, 10));
-
-    if (!selectedVatPham) {
-      console.error(`Item with ID ${value} not found in vatPhamList`);
+  const handleAddPrize = async () => {
+    if (!selectedSlotNumber) {
+      alert("Please select a slot number.");
       return;
     }
 
-    const updatedItems = selectedSlot.items.map(item =>
-      item.id === itemId ? { ...item, option_text: selectedVatPham.Name, item_id: selectedVatPham.ID } : item
-    );
+    let newPrize = {
+      slot_number: parseInt(selectedSlotNumber, 10),
+      prize_type: selectedSlotNumber > 4 ? "1" : "2",
+    };
 
-    setSelectedSlot({ ...selectedSlot, items: updatedItems });
+    if (selectedSlotNumber > 4) {
+      if (!lowerBound || !higherBound) {
+        alert("Please enter both lower and higher bounds.");
+        return;
+      }
+      newPrize = {
+        ...newPrize,
+        lower_bound: parseInt(lowerBound, 10),
+        higher_bound: parseInt(higherBound, 10),
+      };
+    } else {
+      if (!selectedVatPham || !prizeRate) {
+        alert("Please select a vat pham and enter a prize rate.");
+        return;
+      }
+
+      const selectedVatPhamData = vatPhamList.find(
+        (vatPham) => vatPham.ID === parseInt(selectedVatPham, 10)
+      );
+
+      if (!selectedVatPhamData) {
+        alert("Selected vat pham is not valid.");
+        return;
+      }
+
+      newPrize = {
+        ...newPrize,
+        option_text: selectedVatPhamData.Name,
+        item_id: selectedVatPhamData.ID,
+        prize_rate: parseFloat(prizeRate),
+      };
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/wheel-slots", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newPrize),
+      });
+
+      if (response.ok) {
+        const updatedSlots = [...wheelSlots, newPrize];
+        setWheelSlots(updatedSlots);
+        resetForm();
+        alert("Prize added successfully!");
+      } else {
+        alert("Failed to add prize.");
+      }
+    } catch (error) {
+      console.error("Error adding prize:", error);
+    }
   };
 
-  const handleUpdateItems = async (e) => {
-    e.preventDefault();
-  
-    const updatedSlot = {
-      slot_number: selectedSlot.slot_number,
-      items: selectedSlot.items.map(item => ({
-        id: item.id,
-        option_text: item.option_text,
-        prize_rate: item.prize_rate,
-        lower_bound: item.lower_bound,
-        higher_bound: item.higher_bound,
-        item_id: item.item_id,
-      })),
+  const handleEdit = (slot) => {
+    setEditingSlot(slot);
+    setSelectedSlotNumber(slot.slot_number);
+    if (slot.slot_number > 4) {
+      setLowerBound(slot.lower_bound);
+      setHigherBound(slot.higher_bound);
+    } else {
+      setSelectedVatPham(slot.item_id);
+      setPrizeRate(slot.prize_rate);
+    }
+  };
+
+  const handleVatPhamSelect = (e) => {
+    const selectedItemId = e.target.value;
+    const selectedVatPhamData = vatPhamList.find(
+      (vatPham) => vatPham.ID === parseInt(selectedItemId, 10)
+    );
+
+    if (selectedVatPhamData) {
+      setSelectedVatPham(selectedItemId);
+      setEditingSlot({
+        ...editingSlot,
+        item_id: parseInt(selectedItemId, 10),
+        option_text: selectedVatPhamData.Name,
+      });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingSlot) return;
+
+    let updatedSlot = {
+      ...editingSlot,
+      slot_number: parseInt(selectedSlotNumber, 10),
     };
-  
+
+    if (selectedSlotNumber > 4) {
+      updatedSlot = {
+        ...updatedSlot,
+        lower_bound: parseInt(lowerBound, 10),
+        higher_bound: parseInt(higherBound, 10),
+      };
+    } else {
+      updatedSlot = {
+        ...updatedSlot,
+        item_id: parseInt(selectedVatPham, 10),
+        prize_rate: parseFloat(prizeRate),
+      };
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/wheel-slots/${selectedSlot.slot_number}`, {
-        method: 'PUT',
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/wheel-slots/${editingSlot.id}`, {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updatedSlot),
       });
-  
-      if (!response.ok) {
-        setMessage({ type: 'error', text: 'Failed to update slot' });
-        return;
+
+      if (response.ok) {
+        const updatedSlots = wheelSlots.map((slot) =>
+          slot.id === editingSlot.id ? updatedSlot : slot
+        );
+        setWheelSlots(updatedSlots);
+        resetForm();
+        alert("Prize updated successfully!");
+      } else {
+        alert("Failed to update prize.");
       }
-  
-      setMessage({ type: 'success', text: 'Slot updated successfully' });
-      setWheelSlots(wheelSlots.map(slot =>
-        slot.slot_number === selectedSlot.slot_number ? updatedSlot : slot
-      ));
-      setSelectedSlot(null);  
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update slot' });
-      console.error('Error updating slot:', error);
+      console.error("Error updating prize:", error);
+      alert("An error occurred while updating the prize.");
     }
   };
-  
 
-  const handleUpdateStyle = async (e) => {
-    e.preventDefault();
-
-    const updatedStyle = {};
-
-    if (selectedStyle.slot_number) updatedStyle.slot_number = selectedStyle.slot_number;
-    if (selectedStyle.group_name) updatedStyle.group_name = selectedStyle.group_name;
-    if (selectedStyle.background_color) updatedStyle.background_color = selectedStyle.background_color;
-    if (selectedStyle.text_color) updatedStyle.text_color = selectedStyle.text_color;
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this prize?"
+    );
+    if (!confirmDelete) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/wheel-slot-groups/${selectedStyle.id}`, {
-        method: 'PUT',
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/wheel-slots/${id}`, {
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(updatedStyle),
       });
 
-      if (!response.ok) {
-        setMessage({ type: 'error', text: 'Failed to update style' });
-        return;
-      }
-
-      setMessage({ type: 'success', text: 'Style updated successfully' });
-      setWheelSlots(wheelSlots.map(slot =>
-        slot.slot_number === selectedStyle.slot_number ? selectedStyle : slot
-      ));
-      setSelectedStyle(null);
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update style' });
-      console.error('Error updating style:', error);
-    }
-  };
-
-  const handleSpinClick = () => {
-    const newPrizeNumber = Math.floor(Math.random() * wheelSlots.length);
-    setPrizeNumber(newPrizeNumber);
-    setMustSpin(true);
-  };
-
-  const calculatePrize = (slot) => {
-    if (!slot) {
-      return 'Error: Slot data missing';
-    }
-
-    if (slot.prize_type === 1) {
-      const itemWithBounds = slot.items.find(item => item.lower_bound !== undefined && item.higher_bound !== undefined);
-
-      if (itemWithBounds) {
-        const min = itemWithBounds.lower_bound;
-        const max = itemWithBounds.higher_bound;
-
-        if (min !== null && max !== null && min <= max) {
-          return Math.floor(Math.random() (max - min + 1)) + min;
-        } else {
-          return 'Invalid Range';
-        }
+      if (response.ok) {
+        const updatedSlots = wheelSlots.filter((slot) => slot.id !== id);
+        setWheelSlots(updatedSlots);
+        alert("Prize deleted successfully!");
       } else {
-        return 'Error: Bounds missing';
+        alert("Failed to delete prize.");
       }
-    } else if (slot.prize_type !== undefined) {
-      const items = slot.items || [];
-      let totalWeight = items.reduce((sum, item) => sum + item.prize_rate, 0);
-      let randomNum = Math.random() * totalWeight;
-
-      for (let item of items) {
-        if (randomNum < item.prize_rate) {
-          return item.option_text;
-        }
-        randomNum -= item.prize_rate;
-      }
-      return null;
-    } else {
-      return 'Error: prize_type missing';
+    } catch (error) {
+      console.error("Error deleting prize:", error);
+      alert("An error occurred while deleting the prize.");
     }
   };
 
-  const handleStopSpinning = () => {
-    setMustSpin(false);
-    const selectedSlot = wheelSlots[prizeNumber];
-
-    if (selectedSlot) {
-      const prizeValue = calculatePrize(selectedSlot);
-      setResult(`You won: ${prizeValue}`);
-    } else {
-      console.error('Selected Slot is undefined');
-    }
+  const resetForm = () => {
+    setEditingSlot(null);
+    setSelectedSlotNumber("");
+    setSelectedVatPham("");
+    setPrizeRate("");
+    setLowerBound("");
+    setHigherBound("");
   };
 
   return (
     <Container>
-      <SlotManagementContainer>
-        <h2>Preview Wheel</h2>
-        {wheelSlots.length > 0 && (
+      <FormContainer>
+        <AddPrizeButton onClick={editingSlot ? handleSaveEdit : handleAddPrize}>
+          {editingSlot ? "Save Changes" : "Thêm giải thưởng"}
+        </AddPrizeButton>
+        <Label>Chọn số slot:</Label>
+        <Select
+          value={selectedSlotNumber}
+          onChange={(e) => setSelectedSlotNumber(e.target.value)}
+        >
+          <option value="">Select Slot Number</option>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((slot) => (
+            <option key={slot} value={slot}>
+              {slot}
+            </option>
+          ))}
+        </Select>
+
+        {selectedSlotNumber > 4 ? (
           <>
-            <Wheel
-              mustStartSpinning={mustSpin}
-              prizeNumber={prizeNumber}
-              data={wheelSlots.map(slot => ({
-                option: slot.group_name,
-                style: {
-                  backgroundColor: slot.background_color,
-                  textColor: slot.text_color,
-                }
-              }))}
-              onStopSpinning={handleStopSpinning}
+            <Label>Lower Bound:</Label>
+            <Input
+              type="number"
+              value={lowerBound}
+              onChange={(e) => setLowerBound(e.target.value)}
+              placeholder="Enter lower bound"
             />
-            <TestButton onClick={handleSpinClick}>Test Spin</TestButton>
-            {result && (
-              <ResultContainer>
-                <h3>Congratulations!</h3>
-                <p>{result}</p>
-              </ResultContainer>
-            )}
+            <Label>Higher Bound:</Label>
+            <Input
+              type="number"
+              value={higherBound}
+              onChange={(e) => setHigherBound(e.target.value)}
+              placeholder="Enter higher bound"
+            />
+          </>
+        ) : (
+          <>
+            <Label>Chọn vật phẩm:</Label>
+            <Select value={selectedVatPham} onChange={handleVatPhamSelect}>
+              <option value="">Select Vat Pham</option>
+              {vatPhamList.map((vatPham) => (
+                <option key={vatPham.ID} value={vatPham.ID}>
+                  {vatPham.Name}
+                </option>
+              ))}
+            </Select>
+
+            <Label>Prize Rate:</Label>
+            <Input
+              type="number"
+              value={prizeRate}
+              onChange={(e) => setPrizeRate(e.target.value)}
+              placeholder="Enter prize rate"
+            />
           </>
         )}
-        <h3>Manage Wheel Slots</h3>
-        {wheelSlots.map(slot => (
-          <SlotItem key={slot.slot_number}>
-            <span>
-              Slot {slot.slot_number}: {slot.group_name} - {slot.items?.length || 0} items
-            </span>
-            <Button onClick={() => handleEditSlot(slot)}>Edit Items</Button>
-            <Button onClick={() => handleEditStyle(slot)}>Edit Style</Button>
-          </SlotItem>
-        ))}
-        {message && <Message type={message.type}>{message.text}</Message>}
-      </SlotManagementContainer>
-      {selectedSlot && (
-        <EditPanel>
-          <h3>Edit Slot Items for Slot {selectedSlot.slot_number}</h3>
-          <EditForm onSubmit={handleUpdateItems}>
-            <h4>Items</h4>
-            <FilterContainer>
-              <label>Filter by Phan Loai: </label>
-              <Select value={selectedPhanLoai} onChange={handlePhanLoaiChange}>
-                <option value=''>All</option>
-                {Array.from(new Set(vatPhamList.map(item => item.phan_loai))).map(phan_loai => (
-                  <option key={phan_loai} value={phan_loai}>{phan_loai}</option>
-                ))}
-              </Select>
-            </FilterContainer>
-            {selectedSlot.items.map(item => (
-              <ItemRow key={item.id}>
-                <Select
-                  value={item.option_text}
-                  onChange={(e) => handleVatPhamSelect(item.id, e.target.value)}
-                >
-                  <option value=''>Select Vat Pham</option>
-                  {filteredVatPhamList.map(vatPham => (
-                    <option key={vatPham.ID} value={vatPham.ID}>{vatPham.Name}</option>
-                  ))}
-                </Select>
-                <EditInput
-                  type="text"
-                  value={item.option_text}
-                  onChange={(e) => handleChangeItem(item.id, 'option_text', e.target.value)}
-                  placeholder="Option Text"
-                />
-                {selectedSlot.prize_type === 1 && (
-                  <>
-                    <EditInput
-                      type="number"
-                      value={item.lower_bound}
-                      onChange={(e) => handleChangeItem(item.id, 'lower_bound', e.target.value)}
-                      placeholder="Lower Bound"
-                    />
-                    <EditInput
-                      type="number"
-                      value={item.higher_bound}
-                      onChange={(e) => handleChangeItem(item.id, 'higher_bound', e.target.value)}
-                      placeholder="Higher Bound"
-                    />
-                  </>
-                )}
-                <EditInput
-                  type="number"
-                  value={item.prize_rate}
-                  onChange={(e) => handleChangeItem(item.id, 'prize_rate', e.target.value)}
-                  placeholder="Prize Rate"
-                />
-                <Button onClick={() => handleDeleteItem(selectedSlot.slot_number, item.id)}>Delete</Button>
-              </ItemRow>
+      </FormContainer>
+
+      <Table>
+        <thead>
+          <tr>
+            <Th>Slot Number</Th>
+            <Th>Prize Name</Th>
+            <Th>Prize Rate</Th>
+            <Th>Item ID</Th>
+            <Th>Option Text</Th>
+            <Th>Lower Bound</Th>
+            <Th>Higher Bound</Th>
+            <Th>Actions</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {wheelSlots
+            .sort((a, b) => a.slot_number - b.slot_number)
+            .map((slot) => (
+              <tr key={slot.id}>
+                <Td>{slot.slot_number}</Td>
+                <Td>{prizes[slot.slot_number - 1]}</Td>
+                <Td>{slot.prize_rate}</Td>
+                <Td>{slot.item_id}</Td>
+                <Td>{slot.option_text}</Td>
+                <Td>{slot.lower_bound}</Td>
+                <Td>{slot.higher_bound}</Td>
+                <Td>
+                  <Button onClick={() => handleEdit(slot)}>Edit</Button>
+                  <DeleteButton onClick={() => handleDelete(slot.id)}>
+                    Delete
+                  </DeleteButton>
+                </Td>
+              </tr>
             ))}
-            <AddItemButton type="button" onClick={handleAddItem}>Add New Item</AddItemButton>
-            <Button type="submit">Update Items</Button>
-          </EditForm>
-        </EditPanel>
-      )}
-      {selectedStyle && (
-        <EditPanel>
-          <h3>Edit Style for Slot {selectedStyle.slot_number}</h3>
-          <EditForm onSubmit={handleUpdateStyle}>
-            <EditInput
-              type="text"
-              value={selectedStyle.group_name}
-              onChange={(e) => setSelectedStyle({ ...selectedStyle, group_name: e.target.value })}
-              placeholder="Group Name"
-            />
-            <EditInput
-              type="color"
-              value={selectedStyle.background_color}
-              onChange={(e) => setSelectedStyle({ ...selectedStyle, background_color: e.target.value })}
-              placeholder="Background Color"
-            />
-            <EditInput
-              type="color"
-              value={selectedStyle.text_color}
-              onChange={(e) => setSelectedStyle({ ...selectedStyle, text_color: e.target.value })}
-              placeholder="Text Color"
-            />
-            <Button type="submit">Update Style</Button>
-          </EditForm>
-        </EditPanel>
-      )}
+        </tbody>
+      </Table>
     </Container>
   );
 };
