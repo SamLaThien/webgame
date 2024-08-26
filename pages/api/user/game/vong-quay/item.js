@@ -34,6 +34,11 @@ export default async function handler(req, res) {
           }
 
           let currentTaiSan = taiSanResults[0].tai_san;
+
+          if (currentTaiSan < 1000) {
+            return res.status(400).json({ message: 'Insufficient tai_san. You need at least 1000k to spin.' });
+          }
+
           const newTaiSan = Math.max(0, currentTaiSan - 300);
 
           const queryUpdateTaiSan = 'UPDATE users SET tai_san = ? WHERE id = ?';
