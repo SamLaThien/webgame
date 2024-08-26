@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       const spinToken = jwt.sign(
         { userId, spin: true },
         process.env.JWT_SECRET,
-        { expiresIn: '5m' } 
+        { expiresIn: '6s' } 
       );
 
       return res.status(200).json({ spinToken });
