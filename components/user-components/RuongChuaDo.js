@@ -262,7 +262,7 @@ const RuongChuaDo = () => {
     }
 
     try {
-      const token = localStorage.getItem("token"); // Retrieve JWT token from localStorage
+      const token = localStorage.getItem("token"); 
       if (!token) return;
 
       const { data } = await axios.post(
@@ -274,7 +274,7 @@ const RuongChuaDo = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include JWT token in the Authorization header
+            Authorization: `Bearer ${token}`, 
           },
         }
       );

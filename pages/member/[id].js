@@ -6,7 +6,7 @@ import Layout from "../../components/Layout";
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: calc(100vh - 100px);
+  height: calc(120vh - 100px);
   flex-direction: row;
   justify-content: space-between;
   background-color: none;
@@ -92,13 +92,13 @@ const Avatar = styled.img`
 
 const Username = styled.div`
   margin-top: 10px;
-  font-size: 16px;
+  font-size: 15px;
   color: #333;
   text-align: center;
 `;
 
 const NgoaiHieu = styled.div`
-  font-size: 18px;
+  font-size: 15px;
   font-weight: bold;
   color: #666;
   margin-top: 20px;
@@ -121,7 +121,7 @@ const TaiSanImage = styled.img`
 `;
 const TaiSanValue = styled.div`
   color: #333;
-  font-size: 16px;
+  font-size: 15px;
 `;
 
 const ClanName = styled.div`
@@ -129,12 +129,13 @@ const ClanName = styled.div`
   font-size: 16px;
   color: #666;
   text-align: center;
+  font-size: 15px;
   border-top: 1px dashed #93b6c8;
   line-height: 30px;
 `;
 
 const ClanRole = styled.div`
-  font-size: 18px;
+  font-size: 15px;
   color: #4caf50;
   font-weight: bold;
   text-align: center;
@@ -198,6 +199,10 @@ const Progress = styled.div`
 
 const ItemsContainer = styled.div`
   margin-top: 10px;
+  padding: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px dashed #93b6c8;
 `;
 
 const ItemRow = styled.div`
@@ -210,15 +215,14 @@ const ItemRow = styled.div`
 const ItemLabel = styled.div`
   font-size: 14px;
   color: #333;
-  font-weight: bold;
 `;
 
 const ItemValue = styled.div`
   background-color: #ffe58a;
-  padding: 5px 15px;
+  padding: 2px 6px;
   border-radius: 10px;
-  font-weight: bold;
-  color: #333;
+  color: white;
+  font-size: 12px;
 `;
 
 const FormContainer = styled.div`
@@ -255,6 +259,7 @@ const Percent = styled.div`
 const MemberPage = ({ id }) => {
   const [user, setUser] = useState(null);
   const [levelData, setLevelData] = useState(null);
+  const [items, setItems] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -286,6 +291,23 @@ const MemberPage = ({ id }) => {
       }
     };
 
+    const fetchUserItems = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await axios.get("/api/user/ruong-do", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setItems(response.data);
+        } catch (error) {
+          console.error("Error fetching items:", error);
+        }
+      }
+    };
+
+    fetchUserItems();
     fetchUserData();
   }, [id]);
 
@@ -330,7 +352,9 @@ const MemberPage = ({ id }) => {
               />
             </AvatarContainer>
             <Username>{user.username}</Username>
-            <NgoaiHieu>{user.ngoai_hieu}</NgoaiHieu>
+            <NgoaiHieu>
+              {user.ngoai_hieu ? user.ngoai_hieu : "Chưa có ngoại hiệu"}
+            </NgoaiHieu>
             <TaiSanContainer>
               <TaiSanImage src="/gold.png"></TaiSanImage>
               <TaiSanValue>{user.tai_san}</TaiSanValue>
@@ -351,13 +375,15 @@ const MemberPage = ({ id }) => {
               </ProgressBarContainer>
             </ProgressContainer>
             <ItemsContainer>
-              {user.items &&
-                user.items.map((item) => (
-                  <ItemRow key={item.name}>
-                    <ItemLabel>{item.name}</ItemLabel>
-                    <ItemValue>{item.value}</ItemValue>
-                  </ItemRow>
-                ))}
+              {items &&
+                items
+                  .filter((item) => item.so_luong > 0)
+                  .map((item) => (
+                    <ItemRow key={item.vat_pham_name}>
+                      <ItemLabel>{item.vat_pham_name}</ItemLabel>
+                      <ItemValue>{item.so_luong}</ItemValue>
+                    </ItemRow>
+                  ))}
             </ItemsContainer>
           </Section>
           <Section>
