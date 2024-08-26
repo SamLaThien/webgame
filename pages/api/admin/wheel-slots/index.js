@@ -44,9 +44,9 @@ export default async function handler(req, res) {
     }
     const { slot_number, prize_type, prize_value, prize_range, prize_rate, item_id, option_text} = req.body;
 
-    if (!slot_number || !prize_rate || !option_text) {
-      return res.status(400).json({ message: 'Required fields are missing' });
-    }
+    // if (!slot_number || !prize_rate || !option_text) {
+    //   return res.status(400).json({ message: 'Required fields are missing' });
+    // }
 
     try {
       const [user] = await new Promise((resolve, reject) => {
