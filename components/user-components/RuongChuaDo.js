@@ -296,8 +296,8 @@ const RuongChuaDo = () => {
     }
   };
   const categorizedItems = Array.isArray(items)
-    ? items.filter((item) => item.phan_loai === activeTab)
-    : [];
+  ? items.filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
+  : [];
 
   const renderTabs = () => {
     if (loading || !items || categorizedItems.length === 0) {
