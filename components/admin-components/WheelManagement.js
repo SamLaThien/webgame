@@ -130,45 +130,39 @@ const WheelManagement = () => {
       alert("Please select a slot number.");
       return;
     }
-
+  
     let newPrize = {
       slot_number: parseInt(selectedSlotNumber, 10),
       prize_type: selectedSlotNumber > 4 ? "1" : "2",
     };
-
+  
     if (selectedSlotNumber > 4) {
       if (!lowerBound || !higherBound) {
         alert("Please enter both lower and higher bounds.");
         return;
       }
-      newPrize = {
-        ...newPrize,
-        lower_bound: parseInt(lowerBound, 10),
-        higher_bound: parseInt(higherBound, 10),
-      };
+      newPrize.lower_bound = parseInt(lowerBound, 10);
+      newPrize.higher_bound = parseInt(higherBound, 10);
     } else {
       if (!selectedVatPham || !prizeRate) {
         alert("Please select a vat pham and enter a prize rate.");
         return;
       }
-
+  
       const selectedVatPhamData = vatPhamList.find(
         (vatPham) => vatPham.ID === parseInt(selectedVatPham, 10)
       );
-
+  
       if (!selectedVatPhamData) {
         alert("Selected vat pham is not valid.");
         return;
       }
-
-      newPrize = {
-        ...newPrize,
-        option_text: selectedVatPhamData.Name,
-        item_id: selectedVatPhamData.ID,
-        prize_rate: parseFloat(prizeRate),
-      };
+  
+      newPrize.option_text = selectedVatPhamData.Name;
+      newPrize.item_id = selectedVatPhamData.ID;
+      newPrize.prize_rate = parseFloat(prizeRate);
     }
-
+  
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/admin/wheel-slots", {
@@ -179,7 +173,7 @@ const WheelManagement = () => {
         },
         body: JSON.stringify(newPrize),
       });
-
+  
       if (response.ok) {
         const updatedSlots = [...wheelSlots, newPrize];
         setWheelSlots(updatedSlots);
@@ -192,6 +186,7 @@ const WheelManagement = () => {
       console.error("Error adding prize:", error);
     }
   };
+  
 
   const handleEdit = (slot) => {
     setEditingSlot(slot);

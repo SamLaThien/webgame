@@ -317,11 +317,6 @@ const VongQuayMayManPage = () => {
         console.error("Error during the spin:", error);
     }
 }, [isSpinning, wheelSlots]);
-
-
-
-  
-
   const getRandomItemPrize = async (slotNumber) => {
     const relevantSlots = wheelSlots.flatMap((slot) =>
       slot.slot_number === slotNumber ? slot.items : []
