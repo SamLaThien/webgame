@@ -172,7 +172,7 @@ const DotPha = () => {
             }
           );
           setLevelData(fetchedLevelData);
-          
+
           fetchValidItems(userData, token, fetchedLevelData.level);
         } else {
           router.push("/login");
@@ -191,13 +191,11 @@ const DotPha = () => {
   const fetchValidItems = async (userData, token, level) => {
     try {
       let itemIds;
-        if (level === 0) {
-          itemIds = ['41', '42', '43', '44', '45'];
-        } else {
-          itemIds = [
-            '38','39','40','41', '42', '43', '44', '45'
-          ];
-        }
+      if (level === 0) {
+        itemIds = ["41", "42", "43", "44", "45"];
+      } else {
+        itemIds = ["38", "39", "40", "41", "42", "43", "44", "45"];
+      }
 
       if (itemIds.length > 0) {
         const { data: validItemsData } = await axios.get(
@@ -308,7 +306,7 @@ const DotPha = () => {
             {
               headers: {
                 Authorization: `Bearer ${token}`,
-              }
+              },
             }
           );
 
@@ -323,7 +321,6 @@ const DotPha = () => {
               consistentItemChances[item.vat_pham_id];
             if (itemChance) {
               successChance += itemChance;
-           
             }
           });
         }
@@ -437,21 +434,25 @@ const DotPha = () => {
                 Vật phẩm bắt buộc: {levelData.vatpham_bat_buoc}
               </MandatoryItems>
               <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
-              {validItems.map((item) => (
-                <CheckboxContainer key={item.vat_pham_id}>
-                  <input
-                    type="checkbox"
-                    id={`item-${item.vat_pham_id}`}
-                    checked={!!checkedItems[item.vat_pham_id]}
-                    onChange={() => handleCheckboxChange(item.vat_pham_id)}
-                  />
-                  <CheckboxLabel htmlFor={`item-${item.vat_pham_id}`}>
-                    {getItemNameById(item.vat_pham_id)} (
-                    {levelItemChances[levelRangeKey]?.[item.vat_pham_id] || consistentItemChances[item.vat_pham_id]}%
-                    )
-                  </CheckboxLabel>
-                </CheckboxContainer>
-              ))}
+
+              {validItems
+                .filter((item) => item.so_luong > 0)
+                .map((item) => (
+                  <CheckboxContainer key={item.vat_pham_id}>
+                    <input
+                      type="checkbox"
+                      id={`item-${item.vat_pham_id}`}
+                      checked={!!checkedItems[item.vat_pham_id]}
+                      onChange={() => handleCheckboxChange(item.vat_pham_id)}
+                    />
+                    <CheckboxLabel htmlFor={`item-${item.vat_pham_id}`}>
+                      {getItemNameById(item.vat_pham_id)} (
+                      {levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
+                        consistentItemChances[item.vat_pham_id]}
+                      % )
+                    </CheckboxLabel>
+                  </CheckboxContainer>
+                ))}
               <DotPhaButton onClick={handleLevelUp} disabled={!canLevelUp}>
                 {isDoKiep ? "Độ kiếp" : "Đột phá"}
               </DotPhaButton>
