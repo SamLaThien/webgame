@@ -384,6 +384,6 @@ function formatTimeDifference(timestamp) {
   if (hours >= 1) {
     return `${Math.floor(hours)} giờ trước`;
   } else {
-    return `${Math.floor(minutes)} phút trước}`;
+    return `${Math.floor(minutes)} phút trước`;
   }
 }

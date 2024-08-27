@@ -386,7 +386,7 @@ const MemberPage = ({ id }) => {
                   ))}
             </ItemsContainer>
           </Section>
-          <Section>
+          <Section> 
             <FormContainer>
               <SectionTitle>Tặng bạc</SectionTitle>
               <Input type="text" placeholder="Nhập số bạc mà bạn muốn tặng" />

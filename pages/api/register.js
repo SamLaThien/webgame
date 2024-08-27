@@ -34,7 +34,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Check if the username or email already exists
     db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, email], async (error, results) => {
       if (error) {
         console.error('Error querying database:', error.message);
@@ -47,7 +46,6 @@ export default async function handler(req, res) {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Determine the starting ID based on role
       const startingId = role === 1 ? 1 : 100;
 
       db.query(
