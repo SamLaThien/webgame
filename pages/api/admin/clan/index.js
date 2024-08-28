@@ -85,9 +85,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: err.message });
       }
 
-      const { id, name, owner, clan_money, accountant_id, clan_color, password } = req.body;
+      const { id, name, owner, clan_money, accountant_id, 
+        // clan_color,
+         password } = req.body;
 
-      if (!name || !owner || !accountant_id || !clan_color || !password) {
+      if (!name || !owner || !accountant_id || 
+        // !clan_color ||
+         !password) {
         return res.status(400).json({ message: 'Name, owner, accountant, and clan color are required' });
       }
 
@@ -114,8 +118,8 @@ export default async function handler(req, res) {
             const threadKey = data[2];
 
             db.query(
-              'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_color, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [newId, name, owner, clan_money, accountant_id, clanMana, clan_color, iconPath, hashedPassword, threadId, threadKey],
+              'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [newId, name, owner, clan_money, accountant_id, clanMana,  iconPath, hashedPassword, threadId, threadKey],
               (clanError, clanResults) => {
                 if (clanError) {
                   db.query('ROLLBACK', () => {});

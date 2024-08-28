@@ -102,7 +102,9 @@ const ClanCreateModal = ({ onClose, onSave }) => {
   }, [accountantUsername]);
 
   const handleSave = async () => {
-    if (!name || !ownerId || !clanId || !accountantId || !clanColor || !clanIconFile || !clanPassword) {
+    if (!name || !ownerId || !clanId || !accountantId || 
+      // !clanColor ||
+       !clanIconFile || !clanPassword) {
       alert('ID bang hội, tên, chủ sở hữu, kế toán, màu sắc bang hội, biểu tượng và mật khẩu là bắt buộc');
       return;
     }
@@ -114,7 +116,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     formData.append('clan_money', money);
     formData.append('clan_mana', clanMana);
     formData.append('accountant_id', accountantId);
-    formData.append('clan_color', clanColor);
+    // formData.append('clan_color', clanColor);
     formData.append('clan_icon', clanIconFile);
     formData.append('password', clanPassword);
 
@@ -222,7 +224,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
             margin="normal"
           />
         </FieldContainer>
-        <FieldContainer>
+        {/* <FieldContainer>
           <HalfWidthTextField
             label="Màu sắc bang hội"
             value={clanColor}
@@ -235,7 +237,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
             accept="image/*"
             style={{ marginTop: '16px', flex: 1 }}
           />
-        </FieldContainer>
+        </FieldContainer> */}
         <FieldContainer>
           <HalfWidthTextField
             label="Mật khẩu bang hội"
