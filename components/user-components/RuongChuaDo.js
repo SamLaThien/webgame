@@ -300,7 +300,7 @@ const RuongChuaDo = () => {
   : [];
 
   const renderTabs = () => {
-    if (loading || !items || categorizedItems.length === 0) {
+    if (loading || !items || items.length === 0) {
       return null; 
     }
     return (
