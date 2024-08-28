@@ -26,6 +26,7 @@ const ProfilePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isInClan, setIsInClan] = useState(false);
 
   useEffect(() => {
     const validateTokenAndFetchUserData = async () => {
@@ -54,6 +55,12 @@ const ProfilePage = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+        const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setIsInClan(clanResponse.data.isInClan);
         setUser(userInfoResponse.data);
         setIsLoggedIn(true);
       } catch (error) {
@@ -76,7 +83,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <Layout isLoggedIn={isLoggedIn} user={user}>
+    <Layout isLoggedIn={isLoggedIn} user={user} isInClan={isInClan}>
       <Container>
         <MainContent>{getCurrentComponent()}</MainContent>
       </Container>

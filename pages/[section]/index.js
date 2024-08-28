@@ -23,6 +23,7 @@ const SectionPage = () => {
   const { section } = router.query;
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [isInClan, setIsInClan] = useState(false);
 
   useEffect(() => {
     const validateToken = async () => {
@@ -55,7 +56,7 @@ const SectionPage = () => {
               Authorization: `Bearer ${token}`,
             },
           });
-  
+          setIsInClan(clanResponse.data.isInClan);
           setUser({ ...userInfoResponse.data, isInClan: clanResponse.data.isInClan });
           setIsLoggedIn(true);
           console.log("User data and clan status set.");
@@ -116,7 +117,7 @@ const SectionPage = () => {
   };
 
   return (
-    <Layout isLoggedIn={isLoggedIn} user={user}>
+    <Layout isLoggedIn={isLoggedIn} user={user} isInClan={isInClan}>
       {getCurrentComponent()}
     </Layout>
   );

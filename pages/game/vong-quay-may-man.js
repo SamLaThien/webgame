@@ -175,23 +175,37 @@ const VongQuayMayManPage = () => {
         }
       });
 
-    fetch("/api/user/game/vong-quay/spin-logs", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((logs) => {
-        const formattedLogs = logs.map((log) => ({
-          ...log,
-          formattedTime: formatTimeDifference(log.timestamp),
-        }));
-        setSpinLogs(formattedLogs);
-      });
+      const fetchLogs = async () => {
+        try {
+          const logsResponse = await fetch("/api/user/game/vong-quay/spin-logs", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const logs = await logsResponse.json();
+    
+          const formattedLogs = logs.map((log) => ({
+            ...log,
+            formattedTime: formatTimeDifference(log.timestamp),
+          }));
+    
+          setSpinLogs(formattedLogs.slice(0, 30)); 
+        } catch (error) {
+          console.error("Error fetching spin logs:", error);
+        }
+      };
+      fetchLogs();
+
+      const intervalId = setInterval(fetchLogs, 5000); 
+    
+      return () => clearInterval(intervalId);
   }, []);
 
   const handleSpinClick = useCallback(async () => {
-    if (isSpinning || wheelSlots.length === 0) return;
+    if (isSpinning) {
+      alert("Đạo hữu quay quá nhanh");
+      return;
+    }    if (wheelSlots.length === 0) return;
 
     try {
         const token = localStorage.getItem("token");
@@ -253,7 +267,6 @@ const VongQuayMayManPage = () => {
             let prizeName;
             try {
                 if (selectedSlotNumber >= 1 && selectedSlotNumber <= 4) {
-                    // Call item API and get the prize
                     const itemApiResponse = await fetch("/api/user/game/vong-quay/item", {
                         method: "POST",
                         headers: {
@@ -264,7 +277,7 @@ const VongQuayMayManPage = () => {
                     });
 
                     const itemApiData = await itemApiResponse.json();
-                    prizeName = `${itemApiData.item} x1`;  // Include item name and quantity
+                    prizeName = `${itemApiData.item} x1`;  
                     prizeValue = prizeName;
 
                 } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
@@ -281,18 +294,17 @@ const VongQuayMayManPage = () => {
                         }),
                     });
                     const expData = await expResponse.json();
-                    prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(' ')[1]}`; // Log the amount of EXP/Bạc won
+                    prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(' ')[1]}`; 
                     prizeValue = prizeName;
 
                 }
 
                 setPrize(`${prizes[selectedPrizeIndex]}: ${prizeName}`);
 
-                // Log the prize result
                 const logResult = {
                     username: storedUser.username,
                     prize_category: prizes[selectedPrizeIndex],
-                    prize_name: prizeName,  // Use prizeName directly
+                    prize_name: prizeName,  
                 };
 
                 await fetch("/api/user/game/vong-quay/spin-logs", {
@@ -317,6 +329,7 @@ const VongQuayMayManPage = () => {
         console.error("Error during the spin:", error);
     }
 }, [isSpinning, wheelSlots]);
+
   const getRandomItemPrize = async (slotNumber) => {
     const relevantSlots = wheelSlots.flatMap((slot) =>
       slot.slot_number === slotNumber ? slot.items : []

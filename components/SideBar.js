@@ -58,7 +58,7 @@ const StyledLink = styled(Link)`
   text-decoration: none;
 `;
 
-const Sidebar = ({ isLoggedIn, user }) => {
+const Sidebar = ({ isLoggedIn, user, isInClan }) => {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState("");
   const [openSections, setOpenSections] = useState({
@@ -197,13 +197,27 @@ const Sidebar = ({ isLoggedIn, user }) => {
             </StyledLink>
             <StyledLink href="/nghi-su-dien" passHref>
               <Button
+                onClick={(e) => {
+                  if (!isInClan) {
+                    e.preventDefault();
+                    alert("Bạn chưa vào bang!");
+                  } else {
+                    router.push("/nghi-su-dien");
+                  }
+                }}
                 className={activeSection === "/nghi-su-dien" ? "active" : ""}
               >
                 Nghị sự điện
               </Button>
-            </StyledLink>
-            <StyledLink href="/bao-kho-phong" passHref>
               <Button
+                onClick={(e) => {
+                  if (!isInClan) {
+                    e.preventDefault();
+                    alert("Bạn chưa vào bang!");
+                  } else {
+                    router.push("/bao-kho-phong");
+                  }
+                }}
                 className={activeSection === "/bao-kho-phong" ? "active" : ""}
               >
                 Bảo khố phòng

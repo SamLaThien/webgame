@@ -380,7 +380,7 @@ const DotPha = () => {
           );
         } else {
           const expLoss = Math.floor(
-            user.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
+            levelData.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
           );
           const newExp = Math.max(0, user.exp - expLoss);
 

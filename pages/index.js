@@ -69,7 +69,7 @@ const Home = () => {
   }
 
   return (
-    <Layout isLoggedIn={isLoggedIn} user={user}>
+    <Layout isLoggedIn={isLoggedIn} user={user} isInClan={isInClan}>
       <MainContent>
         {isLoggedIn ? (
           <CboxGeneral />

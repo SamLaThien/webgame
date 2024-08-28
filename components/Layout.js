@@ -56,7 +56,7 @@ const BackImage = styled.img`
   width: 100vw;
 `;
 
-const Layout = ({ children, isLoggedIn, user }) => {
+const Layout = ({ children, isLoggedIn, user, isInClan }) => {
 
   return (
     <Container>
@@ -67,7 +67,7 @@ const Layout = ({ children, isLoggedIn, user }) => {
     <Main>
       <ContentWrapper>
         <ContentArea>
-          {isLoggedIn && <Sidebar user={user} />}
+          {isLoggedIn && <Sidebar user={user} isInClan={isInClan}/>}
           <MainContent>{children}</MainContent>
         </ContentArea>
       </ContentWrapper>
