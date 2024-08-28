@@ -243,47 +243,10 @@ const NghiSuDien = () => {
 
   const updateExp = async () => {
     try {
-      const cap = Math.floor(user.level / 10) + 1;
-      let tile = 1;
-  
-      switch (cap) {
-        case 1:
-          tile = 1.1;
-          break;
-        case 2:
-          tile = 1.2;
-          break;
-        case 3:
-          tile = 1.3;
-          break;
-        case 4:
-          tile = 2.6;
-          break;
-        case 5:
-          tile = 4.2;
-          break;
-        case 6:
-          tile = 10.5;
-          break;
-        case 7:
-          tile = 21;
-          break;
-        case 8:
-          tile = 70;
-          break;
-        case 9:
-          tile = 210;
-          break;
-        default:
-          tile = 1;
-      }
-  
-      const expToAdd = 1 / (48 * tile);
       const token = localStorage.getItem('token');
-  
       const response = await axios.post(
         "/api/user/dot-pha/update",
-        { expToAdd },
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -292,7 +255,7 @@ const NghiSuDien = () => {
       );
   
       if (response.status === 200) {
-        setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + expToAdd }));
+        setUser((prevUser) => ({ ...prevUser, exp: prevUser.exp + response.data.expAdded }));
       } else {
         console.error("Failed to update exp:", response.data.message);
       }
@@ -300,6 +263,7 @@ const NghiSuDien = () => {
       console.error("Error updating exp:", error);
     }
   };
+  
   
 
   const handleMoneyDonation = async () => {
