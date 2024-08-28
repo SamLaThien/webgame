@@ -227,6 +227,14 @@ const Sidebar = ({ isLoggedIn, user, isInClan }) => {
               parseInt(user?.clan_role) === 7) && (
               <StyledLink href="/chap-su-duong" passHref>
                 <Button
+                  onClick={(e) => {
+                    if (!isInClan) {
+                      e.preventDefault();
+                      alert("Bạn chưa vào bang!");
+                    } else {
+                      router.push("/chap-su-duong");
+                    }
+                  }}
                   className={activeSection === "/chap-su-duong" ? "active" : ""}
                 >
                   Chấp Sự Đường

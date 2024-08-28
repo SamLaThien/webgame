@@ -26,7 +26,17 @@ export default async function handler(req, res) {
       }
 
       const isInClan = results.length > 0;
-      res.status(200).json({ isInClan });
+
+      if (!isInClan) {
+        db.query('UPDATE users SET clan_role = NULL WHERE id = ?', [userId], (updateError) => {
+          if (updateError) {
+            return res.status(500).json({ message: 'Internal server error', error: updateError.message });
+          }
+          return res.status(200).json({ isInClan });
+        });
+      } else {
+        return res.status(200).json({ isInClan });
+      }
     });
   } catch (error) {
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
