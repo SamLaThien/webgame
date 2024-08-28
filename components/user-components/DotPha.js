@@ -272,7 +272,18 @@ const DotPha = () => {
             return;
           }
         }
-
+        await axios.post(
+          `/api/user/dot-pha/decrement-item`,
+          {
+            userId: user.id,
+            itemIds: requiredItemIds.join(","),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         let successChance = levelData.ty_le_dot_pha_thanh_cong;
 
         const levelRangeKey = Object.keys(levelItemChances).find((range) => {
