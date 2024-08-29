@@ -189,19 +189,19 @@ const BaoKhoPhong = () => {
 
   const handleTransferItem = async (vatPhamId, soLuong, memberId) => {
     if (!soLuong || !memberId || soLuong <= 0 || memberId <= 0) {
-      alert('Please enter valid quantity and member ID.');
+      alert("Please enter valid quantity and member ID.");
       return;
     }
-  
+
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('User is not logged in');
+        alert("User is not logged in");
         return;
       }
-  
+
       const { data } = await axios.post(
-        '/api/user/clan/transfer',
+        "/api/user/clan/transfer",
         {
           vatPhamId,
           soLuong: parseInt(soLuong, 10),
@@ -211,7 +211,7 @@ const BaoKhoPhong = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       if (data.success) {
         setItems((prevItems) =>
           prevItems.map((item) =>
@@ -220,15 +220,14 @@ const BaoKhoPhong = () => {
               : item
           )
         );
-        alert('Item transferred successfully!');
+        alert("Item transferred successfully!");
       } else {
-        alert(data.message || 'Error transferring item');
+        alert(data.message || "Error transferring item");
       }
     } catch (error) {
-      console.error('Error transferring item:', error);
+      console.error("Error transferring item:", error);
     }
   };
-  
 
   if (!isAuthenticated) {
     return (
@@ -260,7 +259,7 @@ const BaoKhoPhong = () => {
         <ItemGrid>
           {filteredItems.map((item) => (
             <ItemCard key={item.id}>
-              <ItemName>{item.Name}</ItemName>
+              <ItemName dangerouslySetInnerHTML={{ __html: item.Name }} />
               <ItemQuantity>Số lượng: {item.so_luong}</ItemQuantity>
               <ExpGainText>Sử dụng sẽ tăng thêm: 200 exp</ExpGainText>
 

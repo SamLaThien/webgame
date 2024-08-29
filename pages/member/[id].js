@@ -380,13 +380,15 @@ const MemberPage = ({ id }) => {
                   .filter((item) => item.so_luong > 0)
                   .map((item) => (
                     <ItemRow key={item.vat_pham_name}>
-                      <ItemLabel>{item.vat_pham_name}</ItemLabel>
+                      <ItemLabel
+                        dangerouslySetInnerHTML={{ __html: item.vat_pham_name }}
+                      />
                       <ItemValue>{item.so_luong}</ItemValue>
                     </ItemRow>
                   ))}
             </ItemsContainer>
           </Section>
-          <Section> 
+          <Section>
             <FormContainer>
               <SectionTitle>Tặng bạc</SectionTitle>
               <Input type="text" placeholder="Nhập số bạc mà bạn muốn tặng" />

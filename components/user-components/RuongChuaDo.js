@@ -262,7 +262,7 @@ const RuongChuaDo = () => {
     }
 
     try {
-      const token = localStorage.getItem("token"); 
+      const token = localStorage.getItem("token");
       if (!token) return;
 
       const { data } = await axios.post(
@@ -274,7 +274,7 @@ const RuongChuaDo = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -296,12 +296,12 @@ const RuongChuaDo = () => {
     }
   };
   const categorizedItems = Array.isArray(items)
-  ? items.filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
-  : [];
+    ? items.filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
+    : [];
 
   const renderTabs = () => {
     if (loading || !items || items.length === 0) {
-      return null; 
+      return null;
     }
     return (
       <TabContainer>
@@ -354,7 +354,12 @@ const RuongChuaDo = () => {
                   <TableRow key={item.ruong_do_id}>
                     <TableCell width="30%">
                       <div>
-                        {item.vat_pham_name} ({item.so_luong})
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: item.vat_pham_name,
+                          }}
+                        />
+                        ({item.so_luong})
                       </div>
                       <div>{item.PhamCap}</div>
                       <div>Hướng dẫn dùng: {item.SuDung}</div>
