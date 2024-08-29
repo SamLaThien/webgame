@@ -118,7 +118,7 @@ export default async function handler(req, res) {
             const threadKey = data[2];
 
             db.query(
-              'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
               [newId, name, owner, clan_money, accountant_id, clanMana,  iconPath, hashedPassword, threadId, threadKey],
               (clanError, clanResults) => {
                 if (clanError) {
@@ -161,7 +161,7 @@ export default async function handler(req, res) {
                             clan_money, 
                             accountant_id, 
                             clan_mana: clanMana, 
-                            clan_color, 
+                            // clan_color, 
                             clan_icon: iconPath, 
                             threadId, 
                             threadKey 

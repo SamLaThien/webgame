@@ -224,20 +224,20 @@ const ClanCreateModal = ({ onClose, onSave }) => {
             margin="normal"
           />
         </FieldContainer>
-        {/* <FieldContainer>
-          <HalfWidthTextField
+        <FieldContainer>
+          {/* <HalfWidthTextField
             label="Màu sắc bang hội"
             value={clanColor}
             onChange={(e) => setClanColor(e.target.value)}
             margin="normal"
-          />
+          /> */}
           <input
             type="file"
             onChange={(e) => setClanIconFile(e.target.files[0])}
             accept="image/*"
             style={{ marginTop: '16px', flex: 1 }}
           />
-        </FieldContainer> */}
+        </FieldContainer>
         <FieldContainer>
           <HalfWidthTextField
             label="Mật khẩu bang hội"
