@@ -128,7 +128,8 @@ const VongQuayMayManPage = () => {
   const [spinLogs, setSpinLogs] = useState([]);
   const [taiSan, setTaiSan] = useState(0);
   const initialSpinValue = 0;
-
+  const [isAutoSpinning, setIsAutoSpinning] = useState(false);
+  
   const prizes = [
     "Đồ Thần Bí", // slot_number = 1
     "Đồ Đột Phá", // slot_number = 2

@@ -525,15 +525,29 @@ export default DotPha;
 
 const getItemNameById = (itemId) => {
   const itemNames = {
-    35: "Huyết Khí Đan",
-    38: "Đế Giai Thuẫn",
-    39: "Tị Lôi Châu",
-    40: "Thanh Tâm Đan",
-    41: "Hộ Linh Trận",
-    42: "Tân Lôi Trận",
-    43: "Sa Ngọc Châu",
-    44: "Hoàng Kim Lệnh",
-    45: "Hoả Ngọc Châu",
+    41: "Huyết Khí Đan",
+    44: "Đế Giai Thuẫn",
+    45: "Tị Lôi Châu",
+    46: "Thanh Tâm Đan",
+    47: "Hộ Linh Trận",
+    48: "Tán Lôi Trận",
+    49: "Sa Ngọc Châu",
+    80: "Hoàng Kim Lệnh",
+    51: "Hoả Ngọc Châu",
   };
   return itemNames[itemId] || `Item ${itemId}`;
 };
+// const getItemNameById = (itemId) => {
+//   const itemNames = {
+//     35: "Huyết Khí Đan",
+//     38: "Đế Giai Thuẫn",
+//     39: "Tị Lôi Châu",
+//     40: "Thanh Tâm Đan",
+//     41: "Hộ Linh Trận",
+//     42: "Tân Lôi Trận",
+//     43: "Sa Ngọc Châu",
+//     44: "Hoàng Kim Lệnh",
+//     45: "Hoả Ngọc Châu",
+//   };
+//   return itemNames[itemId] || `Item ${itemId}`;
+// };
