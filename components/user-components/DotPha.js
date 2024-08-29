@@ -442,7 +442,12 @@ const DotPha = () => {
               </ProgressBar>
 
               <MandatoryItems>
-                Vật phẩm bắt buộc: {levelData.vatpham_bat_buoc}
+                Vật phẩm bắt buộc:{" "}
+                <MandatoryItems
+                  dangerouslySetInnerHTML={{
+                    __html: levelData.vatpham_bat_buoc,
+                  }}
+                />
               </MandatoryItems>
               <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
 
