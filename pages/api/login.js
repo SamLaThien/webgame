@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       const token = jwt.sign(
         { userId: user.id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '100y' }
       );
 
       const encryptedUserData = cryptoJs.AES.encrypt(
