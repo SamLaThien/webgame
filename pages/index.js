@@ -12,7 +12,7 @@ const MainContent = styled.div`
 
 const Home = () => {
   const router = useRouter();
-  const [isInClan, setIsInClan] = useState(false);
+  // const [isInClan, setIsInClan] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,12 +46,12 @@ const Home = () => {
         });
         setUser(userInfoResponse.data);
 
-        const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setIsInClan(clanResponse.data.isInClan);
+        // const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`, {
+        //   headers: {
+        //     Authorization: `Bearer ${token}`,
+        //   },
+        // });
+        // setIsInClan(clanResponse.data.isInClan);
         setIsLoggedIn(true);
       } catch (error) {
         console.error("Token validation or user/clan data fetching error:", error);
@@ -69,7 +69,7 @@ const Home = () => {
   }
 
   return (
-    <Layout isLoggedIn={isLoggedIn} user={user} isInClan={isInClan}>
+    <Layout isLoggedIn={isLoggedIn} user={user}>
       <MainContent>
         {isLoggedIn ? (
           <CboxGeneral />
