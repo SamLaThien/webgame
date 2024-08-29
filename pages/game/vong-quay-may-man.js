@@ -26,7 +26,7 @@ const Image = styled.img`
   object-fit: cover;
   pointer-events: none;
   @media (max-width: 749px) {
-    width: 100%;
+    width: 130%;
     height: 100%;
   }
 `;
@@ -361,7 +361,7 @@ const VongQuayMayManPage = () => {
           style={{ transform: `rotate(${spinValue}deg)` }}
         />
         <Button onClick={handleSpinClick} />
-        {prize && <ResultMessage>Bạn đã trúng: {prize}</ResultMessage>}
+        {/* {prize && <ResultMessage>Bạn đã trúng: {prize}</ResultMessage>} */}
       </WheelContainer>
       <LowerSection>
         <LogContainer>
