@@ -159,7 +159,7 @@ const SectionTitle = styled.div`
   font-weight: bold;
   margin-bottom: 10px;
   color: #333;
-  text-align: center;
+  text-align: left;
 `;
 
 const ProgressContainer = styled.div`
@@ -177,8 +177,7 @@ const ProgressBarLabel = styled.div`
   font-size: 14px;
   color: #333;
   font-weight: bold;
-  text-align: center;
-  margin-bottom: 10px;
+  text-align: left;
 `;
 
 const ProgressBar = styled.div`
@@ -188,6 +187,8 @@ const ProgressBar = styled.div`
   position: relative;
   height: 20px;
   z-index: 10;
+  margin-top: 10px;
+  border-radius: 5px;
 `;
 
 const Progress = styled.div`
@@ -249,11 +250,19 @@ const Button = styled.button`
   }
 `;
 const Percent = styled.div`
+margin-top: 10px;
   z-index: 10;
   background-color: none;
   position: absolute;
   text-align: center;
   color: white;
+`;
+const GlowingText = styled.span`
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px rgba(255, 191, 0, 0.8), 0 0 10px rgba(255, 191, 0, 0.6); 
 `;
 
 const MemberPage = ({ id }) => {
@@ -366,8 +375,11 @@ const MemberPage = ({ id }) => {
           <Section>
             <SectionTitle>Tu luyện & Vật phẩm</SectionTitle>
             <ProgressContainer>
-              <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
-              <ProgressBarContainer>
+            {user.id === 3 ? (
+                <GlowingText>{levelData.tu_vi}</GlowingText>
+              ) : (
+                <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
+              )}              <ProgressBarContainer>
                 <ProgressBar>
                   <Progress width={expProgress} />
                 </ProgressBar>

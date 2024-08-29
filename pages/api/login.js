@@ -39,6 +39,10 @@ export default async function handler(req, res) {
 
       const user = results[0];
 
+      // if (user.active === 0) {
+      //   return res.status(403).json({ message: 'Bạn chưa kích hoạt tài khoản!' });
+      // }
+
       if (user.ban === 1) {
         return res.status(403).json({ message: 'Your account has been banned' });
       }

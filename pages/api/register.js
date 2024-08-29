@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import axios from 'axios';
 import db from '../../lib/db';
+import crypto from 'crypto';
+import sendVerificationEmail from '@/lib/mailer';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -20,8 +22,8 @@ export default async function handler(req, res) {
       {
         params: {
           secret: process.env.RECAPTCHA_SECRET_KEY,
-          response: recaptchaToken
-        }
+          response: recaptchaToken,
+        },
       }
     );
 
@@ -29,14 +31,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'reCAPTCHA verification failed' });
     }
   } catch (error) {
-    console.error('Error verifying reCAPTCHA:', error.message);
-    return res.status(500).json({ message: 'Error verifying reCAPTCHA', error: error.message });
+    return res.status(500).json({ message: 'Error verifying reCAPTCHA', error });
   }
 
   try {
     db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, email], async (error, results) => {
       if (error) {
-        console.error('Error querying database:', error.message);
         return res.status(500).json({ message: 'Internal server error', error: error.message });
       }
 
@@ -51,35 +51,39 @@ export default async function handler(req, res) {
       db.query(
         'SELECT MAX(id) AS maxId FROM users WHERE id >= ?',
         [startingId],
-        (error, results) => {
+        async (error, results) => {
           if (error) {
-            console.error('Error querying database:', error.message);
             return res.status(500).json({ message: 'Internal server error', error: error.message });
           }
 
           const newId = results[0].maxId ? results[0].maxId + 1 : startingId;
 
+          const verificationToken = crypto.randomBytes(32).toString('hex');
+          console.log(verificationToken);
           db.query(
-            'INSERT INTO users (id, username, email, password, role) VALUES (?, ?, ?, ?, ?)',
-            [newId, username, email, hashedPassword, role],
-            (error) => {
+            'INSERT INTO users (id, username, email, password, role, active, verification_token) VALUES (?, ?, ?, ?, ?, 0, ?)',
+            [newId, username, email, hashedPassword, role, verificationToken],
+            async (error) => {
               if (error) {
                 if (error.code === 'ER_DUP_ENTRY') {
                   return res.status(409).json({ message: 'Username or email already in use' });
                 } else {
-                  console.error('Error inserting into database:', error.message);
                   return res.status(500).json({ message: 'Internal server error', error: error.message });
                 }
               }
 
-              res.status(201).json({ message: 'User created successfully' });
+              try {
+                await sendVerificationEmail(email, verificationToken);
+                res.status(201).json({ message: 'User created successfully. Verification email sent.' });
+              } catch (emailError) {
+                res.status(500).json({ message: 'User created, but failed to send verification email', error: emailError.message });
+              }
             }
           );
         }
       );
     });
   } catch (error) {
-    console.error('Error during database operation:', error.message);
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 }
