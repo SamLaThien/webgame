@@ -201,21 +201,19 @@ const Sidebar = ({ isLoggedIn, user, isInClan }) => {
                   if (!isInClan) {
                     e.preventDefault();
                     alert("Bạn chưa vào bang!");
-                  } else {
-                    router.push("/nghi-su-dien");
                   }
                 }}
                 className={activeSection === "/nghi-su-dien" ? "active" : ""}
               >
                 Nghị sự điện
               </Button>
+            </StyledLink>
+            <StyledLink href="/bao-kho-phong" passHref>
               <Button
                 onClick={(e) => {
                   if (!isInClan) {
                     e.preventDefault();
                     alert("Bạn chưa vào bang!");
-                  } else {
-                    router.push("/bao-kho-phong");
                   }
                 }}
                 className={activeSection === "/bao-kho-phong" ? "active" : ""}
@@ -231,8 +229,6 @@ const Sidebar = ({ isLoggedIn, user, isInClan }) => {
                     if (!isInClan) {
                       e.preventDefault();
                       alert("Bạn chưa vào bang!");
-                    } else {
-                      router.push("/chap-su-duong");
                     }
                   }}
                   className={activeSection === "/chap-su-duong" ? "active" : ""}
