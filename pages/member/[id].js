@@ -6,7 +6,7 @@ import Layout from "../../components/Layout";
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: calc(120vh - 100px);
+  height: calc(160vh - 100px);
   flex-direction: row;
   justify-content: space-between;
   background-color: none;
@@ -250,7 +250,7 @@ const Button = styled.button`
   }
 `;
 const Percent = styled.div`
-margin-top: 10px;
+  margin-top: 10px;
   z-index: 10;
   background-color: none;
   position: absolute;
@@ -262,7 +262,7 @@ const GlowingText = styled.span`
   font-weight: bold;
   color: white;
   margin-bottom: 10px;
-  text-shadow: 0 0 5px rgba(255, 191, 0, 0.8), 0 0 10px rgba(255, 191, 0, 0.6); 
+  text-shadow: 0 0 5px rgba(255, 191, 0, 0.8), 0 0 10px rgba(255, 191, 0, 0.6);
 `;
 
 const MemberPage = ({ id }) => {
@@ -347,7 +347,11 @@ const MemberPage = ({ id }) => {
       <Container>
         <LeftSection>
           <CharacterContainer>
-            <CharacterImage src="/nv1.png" alt="Character" />{" "}
+            {user.id === 3 ? (
+              <CharacterImage src="/Char/itachi.png" alt="Character" />
+            ) : (
+              <CharacterImage src="/nv1.png" alt="Character" />
+            )}
           </CharacterContainer>
         </LeftSection>
 
@@ -360,7 +364,7 @@ const MemberPage = ({ id }) => {
                 alt={user.username || "Default Avatar"}
               />
             </AvatarContainer>
-            <Username>{user.username}</Username>
+            {/* <Username>{user.username}</Username> */}
             <NgoaiHieu>
               {user.ngoai_hieu ? user.ngoai_hieu : "Chưa có ngoại hiệu"}
             </NgoaiHieu>
@@ -375,11 +379,12 @@ const MemberPage = ({ id }) => {
           <Section>
             <SectionTitle>Tu luyện & Vật phẩm</SectionTitle>
             <ProgressContainer>
-            {user.id === 3 ? (
+              {user.id === 3 ? (
                 <GlowingText>{levelData.tu_vi}</GlowingText>
               ) : (
                 <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
-              )}              <ProgressBarContainer>
+              )}{" "}
+              <ProgressBarContainer>
                 <ProgressBar>
                   <Progress width={expProgress} />
                 </ProgressBar>
