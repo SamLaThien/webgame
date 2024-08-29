@@ -102,7 +102,7 @@ const XinVaoBang = () => {
     const fetchClans = async () => {
       try {
         const token = localStorage.getItem("token");
-        const clanResponse = await axios.get("/api/admin/clan", {
+        const clanResponse = await axios.get("/api/user/clan", {
           headers: { Authorization: `Bearer ${token}` }
         });
         const clansData = clanResponse.data;
