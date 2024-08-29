@@ -380,7 +380,7 @@ const MemberPage = ({ id }) => {
             <SectionTitle>Tu luyện & Vật phẩm</SectionTitle>
             <ProgressContainer>
               {user.id === 3 ? (
-                <GlowingText>{levelData.tu_vi}</GlowingText>
+                <GlowingText>Thiên Đạo</GlowingText>
               ) : (
                 <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
               )}{" "}
