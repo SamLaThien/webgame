@@ -197,15 +197,15 @@ const RuongChuaDo = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-
+  
       const useAmount = isMultiple ? 10 : 1;
-
+  
       if (soLuong < useAmount) {
         alert("Not enough items to use.");
         return;
       }
-
-      const { data } = await axios.post(
+  
+      const response = await axios.post(
         "/api/user/ruong-do/use-item",
         {
           ruongDoId,
@@ -218,8 +218,8 @@ const RuongChuaDo = () => {
           },
         }
       );
-
-      if (data.success) {
+  
+      if (response.status === 200 && response.data.success) {
         setItems((prevItems) =>
           prevItems.map((item) =>
             item.ruong_do_id === ruongDoId
@@ -227,7 +227,7 @@ const RuongChuaDo = () => {
               : item
           )
         );
-
+  
         const itemName =
           items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
           "Unknown Item";
@@ -236,12 +236,19 @@ const RuongChuaDo = () => {
           `đã sử dụng ${itemName} x${useAmount}`
         );
       } else {
-        alert(data.message || "Error using item");
+        alert(response.data.message || "Error using item");
       }
     } catch (error) {
-      console.error("Error using item:", error);
+      if (error.response && error.response.status === 403) {
+        alert(error.response.data.message); 
+      } else {
+        console.error("Error using item:", error);
+        alert("An error occurred while using the item.");
+      }
     }
   };
+  
+
 
   const handleDonationAmountChange = (e, vatPhamId) => {
     const value = e.target.value;

@@ -376,9 +376,20 @@ const DotPha = () => {
 
           await logUserActivity(
             "Dot Pha Success",
-            `đã đột phá thành công lên cấp ${nextLevel}!`
+            `đã đột phá thành công, tấn thăng ${nextLevel.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item`
           );
         } else {
+          const nextLevel = user.level + 1;
+          const { data: fetchedLevelData } = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: nextLevel },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setLevelData(fetchedLevelData);
           const expLoss = Math.floor(
             levelData.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
           );
@@ -391,7 +402,7 @@ const DotPha = () => {
 
           await logUserActivity(
             "Dot Pha Fail",
-            `đã thất bại trong việc đột phá và mất ${expLoss} kinh nghiệm.`
+            `chưa đủ cơ duyên để đột phá ${nextLevel.tu_vi} vui lòng tu luyện thêm!`
           );
         }
       } catch (error) {
