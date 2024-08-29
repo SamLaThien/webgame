@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { useRouter } from 'next/router';
 
 const FormContainer = styled.div`
   background-color: white;  
@@ -59,6 +60,7 @@ const SignupForm = () => {
     password: ''
   });
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleRecaptchaChange = (token) => {
     setRecaptchaToken(token);
@@ -88,7 +90,8 @@ const SignupForm = () => {
 
       const result = await response.json();
       if (response.ok) {
-        alert('Registration successful');
+        alert('Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản!');
+        router.push('/login');
       } else {
         setError(result.message);
       }

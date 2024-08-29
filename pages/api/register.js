@@ -73,7 +73,7 @@ export default async function handler(req, res) {
               }
 
               try {
-                await sendVerificationEmail(email, verificationToken);
+                await sendVerificationEmail(email, username, verificationToken);
                 res.status(201).json({ message: 'User created successfully. Verification email sent.' });
               } catch (emailError) {
                 res.status(500).json({ message: 'User created, but failed to send verification email', error: emailError.message });
