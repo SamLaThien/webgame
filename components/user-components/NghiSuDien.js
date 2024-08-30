@@ -138,6 +138,8 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
+  margin-bottom: 10px;
+
   padding: 12px 20px;
   background-color: #b3d7e8;
   color: white;
@@ -201,12 +203,12 @@ const NghiSuDien = () => {
 
           setUser(userInfo.data);
 
-          if (
-            parseInt(userInfo.data.clan_role) !== 6 &&
-            parseInt(userInfo.data.clan_role) !== 7
-          ) {
-            router.push("/ho-so");
-          }
+          // if (
+          //   parseInt(userInfo.data.clan_role) !== 6 &&
+          //   parseInt(userInfo.data.clan_role) !== 7
+          // ) {
+          //   router.push("/ho-so");
+          // }
 
           const membersInfo = await axios.get(`/api/user/clan/members`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -397,20 +399,21 @@ const NghiSuDien = () => {
           </Tabs>
           <TabContent active={activeTab === "hoatDong"}>
             <ActivityList>
-              {activities.map((activity) => {
-                const timeAgo = moment(activity.timestamp).fromNow();
-
-                return (
-                  <ActivityItem key={activity.id} color={activity.color}>
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: activity.action_details,
-                      }}
-                    />
-                    ({timeAgo}){" "}
-                  </ActivityItem>
-                );
-              })}
+              {activities
+                .filter((activity) => activity.action_type !== "Donate Money")
+                .map((activity) => {
+                  const timeAgo = moment(activity.timestamp).fromNow();
+                  return (
+                    <ActivityItem key={activity.id} color={activity.color}>
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: activity.action_details,
+                        }}
+                      />{" "}
+                      ({timeAgo})
+                    </ActivityItem>
+                  );
+                })}
             </ActivityList>
           </TabContent>
           <TabContent active={activeTab === "khoBac"}>
@@ -421,6 +424,23 @@ const NghiSuDien = () => {
               onChange={(e) => setDonationAmount(e.target.value)}
             />
             <Button onClick={handleMoneyDonation}>Nộp</Button>
+            <ActivityList>
+              {activities
+                .filter((activity) => activity.action_type === "Donate Money")
+                .map((activity) => {
+                  const timeAgo = moment(activity.timestamp).fromNow();
+                  return (
+                    <ActivityItem key={activity.id} color={activity.color}>
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: activity.action_details,
+                        }}
+                      />{" "}
+                      ({timeAgo})
+                    </ActivityItem>
+                  );
+                })}
+            </ActivityList>
           </TabContent>
         </ActivitySection>
       </Container>
