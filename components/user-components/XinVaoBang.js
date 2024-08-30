@@ -103,17 +103,18 @@ const XinVaoBang = () => {
       try {
         const token = localStorage.getItem("token");
         const clanResponse = await axios.get("/api/user/clan", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         });
         const clansData = clanResponse.data;
 
         const owners = await Promise.all(
           clansData.map((clan) =>
             axios
-              .get(`/api/user/clan/user-info?userId=${clan.owner}`, {
-                headers: { Authorization: `Bearer ${token}` },
+              .get(`/api/user/clan/get-owner-name?userId=${clan.owner}`)
+              .then((res) => {
+                const { username, ngoai_hieu } = res.data;
+                return { [clan.owner]: ngoai_hieu || username };
               })
-              .then((res) => ({ [clan.owner]: res.data.username }))
               .catch(() => ({ [clan.owner]: "Unknown User" }))
           )
         );
@@ -134,33 +135,26 @@ const XinVaoBang = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           setRole(roleResponse.data.role_id);
-
+    
           const clanResponse = await axios.get(`/api/user/clan/clan-id`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
           const userClanId = clanResponse.data.clan_id;
           setCurrentClanId(userClanId);
-
-          if (
-            roleResponse.data.role_id === "6" ||
-            roleResponse.data.role_id === "7"
-          ) {
-            const requestResponse = await axios.get(
-              `/api/user/clan/get-clan-requests`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            setRequests(
-              Array.isArray(requestResponse.data) ? requestResponse.data : []
-            );
+    
+          if (roleResponse.data.role_id === "6" || roleResponse.data.role_id === "7") {
+            const requestResponse = await axios.get(`/api/user/clan/get-clan-requests`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }); 
+            setRequests(Array.isArray(requestResponse.data) ? requestResponse.data : []);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
       }
     };
+    
 
     fetchClans();
     fetchUserData();
@@ -168,12 +162,12 @@ const XinVaoBang = () => {
 
   const handleJoinClan = (clanId) => {
     const token = localStorage.getItem("token");
-
+  
     if (!token) {
       alert("User is not logged in");
       return;
     }
-
+  
     fetch("/api/user/clan/clan-requests", {
       method: "POST",
       headers: {
@@ -192,6 +186,7 @@ const XinVaoBang = () => {
       })
       .catch((error) => console.error("Error sending clan request:", error));
   };
+  
 
   const handleRequest = async (requestId, action, userId, clanId) => {
     const token = localStorage.getItem("token");
@@ -204,7 +199,7 @@ const XinVaoBang = () => {
           clan_id: clanId,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
       alert(
@@ -224,62 +219,60 @@ const XinVaoBang = () => {
   return (
     <Container>
       {role === "6" || role === "7" ? (
-        <>
-          <RequestList>
-            {requests.filter(
-              (request) =>
-                request.status === "pending" &&
-                request.clan_id === currentClanId
-            ).length > 0 ? (
-              requests
-                .filter(
-                  (request) =>
-                    request.status === "pending" &&
-                    request.clan_id === currentClanId
-                )
-                .map((request) => (
-                  <RequestItem key={request.id}>
-                    <span>
-                      {request.ngoai_hieu
-                        ? request.ngoai_hieu
-                        : request.username}{" "}
-                      yêu cầu tham gia bang hội {request.clan_name}
-                    </span>
-                    <div>
-                      <RequestButton
-                        onClick={() =>
-                          handleRequest(
-                            request.id,
-                            "approved",
-                            request.user_id,
-                            request.clan_id
-                          )
-                        }
-                      >
-                        Chấp nhận
-                      </RequestButton>
-                      <RequestButton
-                        reject
-                        onClick={() =>
-                          handleRequest(
-                            request.id,
-                            "rejected",
-                            request.user_id,
-                            request.clan_id
-                          )
-                        }
-                      >
-                        Từ chối
-                      </RequestButton>
-                    </div>
-                  </RequestItem>
-                ))
-            ) : (
-              <p>Không có yêu cầu nào</p>
-            )}
-          </RequestList>
-        </>
+  <>
+    <RequestList>
+      {requests.filter(
+        (request) =>
+          request.status === "pending" &&
+          request.clan_id === currentClanId
+      ).length > 0 ? (
+        requests
+          .filter(
+            (request) =>
+              request.status === "pending" &&
+              request.clan_id === currentClanId
+          )
+          .map((request) => (
+            <RequestItem key={request.id}>
+              <span>
+                {request.username} yêu cầu tham gia bang hội{" "}
+                {request.clan_name}
+              </span>
+              <div>
+                <RequestButton
+                  onClick={() =>
+                    handleRequest(
+                      request.id,
+                      "approved",
+                      request.user_id,
+                      request.clan_id
+                    )
+                  }
+                >
+                  Chấp nhận
+                </RequestButton>
+                <RequestButton
+                  reject
+                  onClick={() =>
+                    handleRequest(
+                      request.id,
+                      "rejected",
+                      request.user_id,
+                      request.clan_id
+                    )
+                  }
+                >
+                  Từ chối
+                </RequestButton>
+              </div>
+            </RequestItem>
+          ))
       ) : (
+        <p>Không có yêu cầu nào</p>
+      )}
+    </RequestList>
+  </>
+)  : (
         <>
           <Banner bgColor="#d4edda" color="black">
             - Người chơi có thể tham gia vào các bang hội để cùng nhau chiến đấu
