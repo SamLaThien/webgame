@@ -11,6 +11,7 @@ import VatPhamManagement from '@/components/admin-components/VatPhamManagement';
 import WheelManagement from '@/components/admin-components/WheelManagement';
 import GiftCodeManagement from '@/components/admin-components/GiftCodeManagement';
 import jwt from 'jsonwebtoken';
+import DanhHaoManagement from '@/components/admin-components/DanhHaoManagement';
 
 const Container = styled.div`
   display: flex;
@@ -137,6 +138,7 @@ const AdminPage = () => {
           <SectionTitle className={selectedSection === 'vatPhamManagement' ? 'active' : ''} onClick={() => setSelectedSection('vatPhamManagement')}>Quản lý vật phẩm</SectionTitle>
           <SectionTitle className={selectedSection === 'wheelManagement' ? 'active' : ''} onClick={() => setSelectedSection('wheelManagement')}>Quản lý vòng quay</SectionTitle>
           <SectionTitle className={selectedSection === 'giftCodeManagement' ? 'active' : ''} onClick={() => setSelectedSection('giftCodeManagement')}>Quản lý Gift Code</SectionTitle>
+          <SectionTitle className={selectedSection === 'danhHaoManagement' ? 'active' : ''} onClick={() => setSelectedSection('danhHaoManagement')}>Quản lý Danh Hào</SectionTitle>
         </SidebarSection>
         <Button onClick={handleLogout}>Đăng xuất</Button>
       </Sidebar>
@@ -148,6 +150,8 @@ const AdminPage = () => {
         {selectedSection === 'vatPhamManagement' && <VatPhamManagement />}
         {selectedSection === 'wheelManagement' && <WheelManagement />}
         {selectedSection === 'giftCodeManagement' && <GiftCodeManagement />}
+        {selectedSection === 'danhHaoManagement' && <DanhHaoManagement />}
+
       </MainContent>
     </Container>
   );

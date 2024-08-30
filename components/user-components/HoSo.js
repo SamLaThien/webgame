@@ -137,6 +137,19 @@ const SectionP = styled.div`
   margin-bottom: 10px;
 `;
 
+const DanhHaoContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+`;
+
+const DanhHaoLabel = styled.label`
+  display: flex;
+  align-items: center;
+`;
+
 Modal.setAppElement("#__next");
 
 //day file len thu muc -> luu lai chuoi -> get thì  decode base64
@@ -155,6 +168,7 @@ const HoSo = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
+  const [danhHaoOptions, setDanhHaoOptions] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -162,7 +176,7 @@ const HoSo = () => {
         const token = localStorage.getItem("token");
         if (token) {
           const response = await axios.get("/api/user", {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           });
 
           if (response.status === 200) {
@@ -172,6 +186,8 @@ const HoSo = () => {
             if (response.data.bang_hoi) {
               fetchClanInfo(response.data.bang_hoi, token);
             }
+
+            fetchDanhHaoOptions(response.data.id, token);
           } else {
             console.error("Failed to fetch user data:", response.statusText);
           }
@@ -186,9 +202,12 @@ const HoSo = () => {
 
     const fetchClanInfo = async (clanId, token) => {
       try {
-        const response = await axios.get(`/api/user/ho-so/get-clan-name?clanId=${clanId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await axios.get(
+          `/api/user/ho-so/get-clan-name?clanId=${clanId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (response.status === 200) {
           setClanInfo(response.data);
@@ -198,6 +217,29 @@ const HoSo = () => {
         }
       } catch (error) {
         console.error("Error fetching clan data:", error);
+      }
+    };
+
+    const fetchDanhHaoOptions = async (userId, token) => {
+      try {
+        const response = await axios.get(
+          `/api/user/ho-so/danh-hao?userId=${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (response.status === 200) {
+          setDanhHaoOptions(response.data);
+          console.log("Danh Hào options fetched successfully:", response.data);
+        } else {
+          console.error(
+            "Failed to fetch danh hao options:",
+            response.statusText
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching danh hao options:", error);
       }
     };
 
@@ -223,29 +265,29 @@ const HoSo = () => {
       console.log("User ID is undefined or null.");
       return;
     }
-  
+
     if (user.tai_san < 1000) {
       alert("Không đủ bạc để đổi avatar");
       setModalIsOpen(false);
       return;
     }
-  
+
     const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to update your avatar.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("avatar", avatarFile);
-  
+
     try {
       const response = await fetch(`/api/profile`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         const updatedUser = {
@@ -263,10 +305,10 @@ const HoSo = () => {
       console.error("Error:", error);
       alert("Failed to update avatar");
     }
-  
+
     setModalIsOpen(false);
   };
-  
+
   const handleConfirmSave = async () => {
     const cost = confirmType === "ngoai_hieu" ? 25000 : 0;
     if (user.tai_san < cost) {
@@ -274,17 +316,17 @@ const HoSo = () => {
       setConfirmModalIsOpen(false);
       return;
     }
-  
+
     const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to update your profile.");
       return;
     }
-  
+
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
@@ -295,7 +337,7 @@ const HoSo = () => {
           tai_san: user.tai_san - cost,
         }),
       });
-  
+
       if (response.ok) {
         const updatedUser = {
           ...user,
@@ -313,17 +355,17 @@ const HoSo = () => {
       console.error("Error:", error);
       alert("Failed to update");
     }
-  
+
     setConfirmModalIsOpen(false);
   };
-  
 
   const handleNgoaiHieuChange = () => {
     setConfirmType("ngoai_hieu");
     setConfirmModalIsOpen(true);
   };
 
-  const handleDanhHaoChange = () => {
+  const handleDanhHaoChange = (e) => {
+    setChangeDanhHao(e.target.value);
     setConfirmType("danh_hao");
     setConfirmModalIsOpen(true);
   };
@@ -336,11 +378,15 @@ const HoSo = () => {
         return;
       }
 
-      const response = await axios.post("/api/user/ho-so/redeem-gift-code", {
-        giftCode: giftCode,
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.post(
+        "/api/user/ho-so/redeem-gift-code",
+        {
+          giftCode: giftCode,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.data.success) {
         setSuccessMessage("Gift code redeemed successfully!");
@@ -353,6 +399,44 @@ const HoSo = () => {
       setErrorMessage("An error occurred while redeeming the gift code.");
       setSuccessMessage("");
       console.error("Error redeeming gift code:", error);
+    }
+  };
+
+  const handleUpdateDanhHao = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to update your danh hào.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/user/ho-so/update-danh-hao", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          selectedDanhHao: changeDanhHao,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedUser = {
+          ...user,
+          danh_hao: changeDanhHao,
+        };
+        setUser(updatedUser);
+        setSuccessMessage("Danh hào updated successfully!");
+        setConfirmModalIsOpen(false);
+      } else {
+        const result = await response.json();
+        setErrorMessage(result.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorMessage("Failed to update danh hào.");
     }
   };
 
@@ -417,7 +501,7 @@ const HoSo = () => {
             <Button onClick={handleNgoaiHieuChange}>Đổi</Button>
           </Section>
         </Card>
-        <Card>
+        {/* <Card>
           <SectionTitle>
             <PersonOutlineOutlinedIcon /> ĐỔI DANH HÀO
           </SectionTitle>
@@ -436,35 +520,34 @@ const HoSo = () => {
             />
             <Button onClick={handleDanhHaoChange}>Đổi</Button>
           </Section>
-        </Card>
+        </Card> */}
         <Card>
           <SectionTitle>
-            <LocalFireDepartmentOutlinedIcon />
-            MUA DANH HÀO
+            <PersonOutlineOutlinedIcon /> ĐỔI DANH HÀO
           </SectionTitle>
-
           <Section>
             <SectionP>
-              Chọn theo mẫu có sẳn hoặc nhập theo ý muốn của bạn
+              Danh hiệu hiện tại: {user.danh_hao || "Chưa có danh hiệu"}
             </SectionP>
-            <div>
-              <label>
-                <input
-                  type="radio"
-                  name="danhHaoOption"
-                  value="Mẫu sẵn"
-                  defaultChecked
-                />{" "}
-                Mẫu sẵn
-              </label>
-              <label>
-                <input type="radio" name="danhHaoOption" value="Tự nhập" /> Tự
-                nhập
-              </label>
-            </div>
-            <Input1 type="text" placeholder="Danh hào" />
-            <Button>Mua</Button>
-            <Button>Đổi màu danh hào</Button>
+            <SectionP>Chọn một Danh hào bên dưới để đổi:</SectionP>
+            {danhHaoOptions.length > 0 ? (
+              <DanhHaoContainer>
+                {danhHaoOptions.map((danhHao) => (
+                  <DanhHaoLabel key={danhHao.id}>
+                    <input
+                      type="radio"
+                      name="danhHaoOption"
+                      value={danhHao.danh_hao}
+                      onChange={handleDanhHaoChange}
+                    />{" "}
+                    {danhHao.danh_hao}
+                  </DanhHaoLabel>
+                ))}
+              </DanhHaoContainer>
+            ) : (
+              <SectionP>Bạn chưa có danh hào nào!</SectionP>
+            )}
+            {/* <Button onClick={handleUpdateDanhHao}>Đổi</Button> */}
           </Section>
         </Card>
         <Card>

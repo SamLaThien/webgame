@@ -376,7 +376,7 @@ const DotPha = () => {
 
           await logUserActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${nextLevel.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item`
+            `đã đột phá thành công, tấn thăng ${levelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item`
           );
         } else {
           const nextLevel = user.level + 1;
