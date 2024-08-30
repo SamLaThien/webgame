@@ -12,18 +12,15 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Update the status of the request
       db.query(
         "UPDATE clan_requests SET status = ? WHERE id = ?",
         [action, id],
         (updateError) => {
           if (updateError) {
-            return res
-              .status(500)
-              .json({
-                message: "Internal server error",
-                error: updateError.message,
-              });
+            return res.status(500).json({
+              message: "Internal server error",
+              error: updateError.message,
+            });
           }
 
           if (action === "approved") {
@@ -32,35 +29,67 @@ export default async function handler(req, res) {
               [clan_id, user_id],
               (insertError) => {
                 if (insertError) {
-                  return res
-                    .status(500)
-                    .json({
-                      message: "Internal server error",
-                      error: insertError.message,
-                    });
+                  return res.status(500).json({
+                    message: "Internal server error",
+                    error: insertError.message,
+                  });
                 }
 
-                return res
-                  .status(200)
-                  .json({ message: "Request approved and user added to clan" });
-              }
-            );
-            db.query(
-              "UPDATE users SET clan_role = 1, bang_hoi = ? WHERE id = ?",
-              [clan_id, user_id],
-              (insertError) => {
-                if (insertError) {
-                  return res
-                    .status(500)
-                    .json({
-                      message: "Internal server error",
-                      error: insertError.message,
-                    });
-                }
+                // Update the user's clan role
+                db.query(
+                  "UPDATE users SET clan_role = 1, bang_hoi = ? WHERE id = ?",
+                  [clan_id, user_id],
+                  (updateUserError) => {
+                    if (updateUserError) {
+                      return res.status(500).json({
+                        message: "Internal server error",
+                        error: updateUserError.message,
+                      });
+                    }
 
-                return res
-                  .status(200)
-                  .json({ message: "Request approved and user added to clan" });
+                    // Fetch the user's username or ngoai_hieu
+                    db.query(
+                      "SELECT username, ngoai_hieu FROM users WHERE id = ?",
+                      [user_id],
+                      (fetchUserError, userResults) => {
+                        if (fetchUserError || userResults.length === 0) {
+                          return res.status(500).json({
+                            message: "Internal server error",
+                            error:
+                              fetchUserError?.message || "User not found",
+                          });
+                        }
+
+                        const user = userResults[0];
+                        const displayName = user.ngoai_hieu || user.username;
+
+                        db.query(
+                          "INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details, timestamp) VALUES (?, ?, ?, ?, ?)",
+                          [
+                            user_id,
+                            clan_id,
+                            "Join Clan",
+                            `${displayName} đã gia nhập bang hội`,
+                            new Date(),
+                          ],
+                          (logError) => {
+                            if (logError) {
+                              return res.status(500).json({
+                                message: "Internal server error",
+                                error: logError.message,
+                              });
+                            }
+
+                            return res.status(200).json({
+                              message:
+                                "Request approved, user added to clan, and activity logged",
+                            });
+                          }
+                        );
+                      }
+                    );
+                  }
+                );
               }
             );
           } else {

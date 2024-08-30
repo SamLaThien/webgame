@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const taxRate = 0.06;
+    const taxRate = 0.02;
     const taxAmount = amount * taxRate;
     const amountAfterTax = amount - taxAmount;
     const userResult = await new Promise((resolve, reject) => {
