@@ -35,7 +35,6 @@ export default async function handler(req, res) {
                   });
                 }
 
-                // Update the user's clan role
                 db.query(
                   "UPDATE users SET clan_role = 1, bang_hoi = ? WHERE id = ?",
                   [clan_id, user_id],
@@ -47,7 +46,6 @@ export default async function handler(req, res) {
                       });
                     }
 
-                    // Fetch the user's username or ngoai_hieu
                     db.query(
                       "SELECT username, ngoai_hieu FROM users WHERE id = ?",
                       [user_id],

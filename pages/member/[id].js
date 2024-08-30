@@ -269,7 +269,6 @@ const MemberPage = ({ id }) => {
   const [user, setUser] = useState(null);
   const [levelData, setLevelData] = useState(null);
   const [items, setItems] = useState([]);
-
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token");
@@ -294,6 +293,12 @@ const MemberPage = ({ id }) => {
 
           setUser(userData);
           setLevelData(levelResponse.data);
+
+          if (userData.canView) {
+            await fetchUserItems();
+          } else {
+            alert("Tu vi đạo hữu còn thấp không thể nhìn trộm túi đồ!");
+          }
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
@@ -304,7 +309,7 @@ const MemberPage = ({ id }) => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const response = await axios.get("/api/user/ruong-do", {
+          const response = await axios.get(`/api/user/ruong-do/${id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -316,7 +321,6 @@ const MemberPage = ({ id }) => {
       }
     };
 
-    fetchUserItems();
     fetchUserData();
   }, [id]);
 
