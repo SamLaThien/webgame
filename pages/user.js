@@ -28,50 +28,56 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [isInClan, setIsInClan] = useState(false);
 
-  useEffect(() => {
-    const validateTokenAndFetchUserData = async () => {
-      const token = localStorage.getItem('token');
+  const validateTokenAndFetchUserData = async () => {
+    const token = localStorage.getItem('token');
 
-      if (!token) {
+    if (!token) {
+      router.push('/login'); 
+      return;
+    }
+
+    try {
+      const { data } = await axios.get("/api/user/validate-token", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!data.isValid) {
         router.push('/login'); 
         return;
       }
 
-      try {
-        const { data } = await axios.get("/api/user/validate-token", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      const userInfoResponse = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setIsInClan(clanResponse.data.isInClan);
+      setUser(userInfoResponse.data);
+      setIsLoggedIn(true);
+    } catch (error) {
+      console.error("Token validation or user data fetching error:", error);
+      router.push('/login'); 
+    }
 
-        if (!data.isValid) {
-          router.push('/login'); 
-          return;
-        }
+    setLoading(false);
+  };
 
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        const userInfoResponse = await axios.get(`/api/user/clan/user-info?userId=${storedUser.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setIsInClan(clanResponse.data.isInClan);
-        setUser(userInfoResponse.data);
-        setIsLoggedIn(true);
-      } catch (error) {
-        console.error("Token validation or user data fetching error:", error);
-        router.push('/login'); 
-      }
-
-      setLoading(false);
-    };
-
+  useEffect(() => {
     validateTokenAndFetchUserData();
+
+    const intervalId = setInterval(() => {
+      validateTokenAndFetchUserData();
+    }, 5000); 
+
+    return () => clearInterval(intervalId); 
   }, [router]);
 
   if (loading) {

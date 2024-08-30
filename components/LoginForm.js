@@ -82,10 +82,9 @@ const LoginForm = () => {
 
       const result = await response.json();
       if (response.ok) {
-        alert('Login successful');
         localStorage.setItem('token', result.token);
         localStorage.setItem('user', JSON.stringify(result.user));
-        router.push('/');
+        router.push('/ho-so');
       } else {
         alert(result.message);
       }
