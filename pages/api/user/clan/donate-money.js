@@ -57,7 +57,6 @@ export default async function handler(req, res) {
 
     const userIdentifier = user.ngoai_hieu || user.username;
 
-    // Start transaction
     await new Promise((resolve, reject) => {
       db.query('START TRANSACTION', (err) => {
         if (err) reject(err);
@@ -65,7 +64,6 @@ export default async function handler(req, res) {
       });
     });
 
-    // Update user tai_san
     await new Promise((resolve, reject) => {
       db.query(
         'UPDATE users SET tai_san = tai_san - ? WHERE id = ?',
@@ -79,7 +77,6 @@ export default async function handler(req, res) {
       );
     });
 
-    // Transfer money to accountant
     await new Promise((resolve, reject) => {
       db.query(
         'UPDATE users SET tai_san = tai_san + ? WHERE id = ?',
@@ -93,7 +90,6 @@ export default async function handler(req, res) {
       );
     });
 
-    // Log the donation activity
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details, timestamp) VALUES (?, (SELECT clan_id FROM clan_members WHERE member_id = ?), ?, ?, NOW())',
@@ -107,7 +103,19 @@ export default async function handler(req, res) {
       );
     });
 
-    // Commit transaction
+    await new Promise((resolve, reject) => {
+      db.query(
+        'INSERT INTO user_activity_logs (user_id, clan_id, action_type, action_details) VALUES (?, ?, ?, ?)',
+        [userId, clanId, 'Donate Moeny', `Đạo hữu đã nộp bang ${amountAfterTax} bạc`],
+        (error) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve();
+        }
+      );
+    });
+
     await new Promise((resolve, reject) => {
       db.query('COMMIT', (err) => {
         if (err) reject(err);
