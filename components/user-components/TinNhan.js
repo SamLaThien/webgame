@@ -211,7 +211,7 @@ const TinNhan = () => {
               {currentLogs.map((log, index) => (
                 <LogEntry key={index}>
                   <LogTimestamp>{formatDate(log.timestamp)}</LogTimestamp>
-                  <LogMessage>Đạo hữu {log.action_details}</LogMessage>
+                  <LogMessage dangerouslySetInnerHTML={{ __html: `Đạo hữu ${log.action_details}` }} />
                 </LogEntry>
               ))}
             </Logs>
