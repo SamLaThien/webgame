@@ -269,6 +269,7 @@ const MemberPage = ({ id }) => {
   const [user, setUser] = useState(null);
   const [levelData, setLevelData] = useState(null);
   const [items, setItems] = useState([]);
+
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token");
@@ -314,9 +315,10 @@ const MemberPage = ({ id }) => {
               Authorization: `Bearer ${token}`,
             },
           });
-          setItems(response.data);
+          setItems(response.data || []);
         } catch (error) {
           console.error("Error fetching items:", error);
+          setItems([]);
         }
       }
     };
@@ -396,7 +398,7 @@ const MemberPage = ({ id }) => {
               </ProgressBarContainer>
             </ProgressContainer>
             <ItemsContainer>
-              {items &&
+              {items.length > 0 ? (
                 items
                   .filter((item) => item.so_luong > 0)
                   .map((item) => (
@@ -406,7 +408,10 @@ const MemberPage = ({ id }) => {
                       />
                       <ItemValue>{item.so_luong}</ItemValue>
                     </ItemRow>
-                  ))}
+                  ))
+              ) : (
+                <p>Rương đồ trống</p> 
+              )}
             </ItemsContainer>
           </Section>
           <Section>
