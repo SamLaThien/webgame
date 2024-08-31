@@ -56,6 +56,7 @@ const Form = styled.form`
 const LoginForm = () => {
   const [recaptchaToken, setRecaptchaToken] = useState(null);
   const [formData, setFormData] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleRecaptchaChange = (token) => {
@@ -66,10 +67,21 @@ const LoginForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validateInput = (input) => {
+    const regex = /^[a-zA-Z0-9]+$/;
+    return regex.test(input.trim());
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!recaptchaToken) {
-      alert('Please complete the CAPTCHA');
+      setError('Please complete the CAPTCHA');
+      return;
+    }
+
+    if (!validateInput(formData.username) || !validateInput(formData.password)) {
+      setError('Username and password cannot contain spaces, special characters, or symbols.');
       return;
     }
 
@@ -86,11 +98,11 @@ const LoginForm = () => {
         localStorage.setItem('user', JSON.stringify(result.user));
         router.push('/ho-so');
       } else {
-        alert(result.message);
+        setError(result.message);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Login failed');
+      setError('Login failed');
     }
   };
 
@@ -98,6 +110,7 @@ const LoginForm = () => {
     <FormContainer>
       <Title>ĐĂNG NHẬP</Title>
       <p>Hãy đăng nhập để có một trải nghiệm tốt hơn</p>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
       <Form onSubmit={handleSubmit}>
         <Input type="text" name="username" placeholder="Nhập tên đăng nhập" onChange={handleChange} />
         <Input type="password" name="password" placeholder="Nhập mật khẩu" onChange={handleChange} />

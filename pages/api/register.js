@@ -15,6 +15,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
+  // Validation for username and password
+  const validateInput = (input) => {
+    const regex = /^[a-zA-Z0-9]+$/;
+    return regex.test(input.trim());
+  };
+
+  if (!validateInput(username) || !validateInput(password)) {
+    return res.status(400).json({
+      message: 'Username and password must be alphanumeric and cannot contain spaces or special characters.',
+    });
+  }
+
   try {
     const response = await axios.post(
       `https://www.google.com/recaptcha/api/siteverify`,
