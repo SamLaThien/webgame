@@ -29,7 +29,7 @@ const GlowingText = styled.span`
   font-weight: bold;
   color: white;
   margin-bottom: 10px;
-  text-shadow: 0 0 5px rgba(255, 191, 0, 0.8), 0 0 10px rgba(255, 191, 0, 0.6);
+  text-shadow: 0 0 5px rgba(255, 191, 0, 0.8), 0 0 10px rgba(255, 191, 0, 0.6) !important;
 `;
 
 const MainContent = styled.div`
