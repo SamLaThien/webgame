@@ -3,6 +3,7 @@ import Layout from "../../components/Layout";
 import styled from "styled-components";
 import moment from "moment";
 import CboxGeneral from "@/components/CboxGeneral";
+import Head from "next/head";
 
 const WheelContainer = styled.div`
   position: relative;
@@ -373,6 +374,9 @@ const VongQuayMayManPage = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>Vòng Quay May Mắn</title>
+      </Head>
       <WheelContainer>
         <Marker src="/wheel/2.png" alt="Marker" />
         <Image src="/spin/overlay2.png" alt="Image below the wheel" />

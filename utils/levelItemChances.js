@@ -1,66 +1,66 @@
 
 export const levelItemChances = {
   '0-10': {
-    41: 5,  // Huyết Khí Đan
+    83: 5,  // Huyết Khí Đan
   },
   '11-20': {
-    41: 3,  // Huyết Khí Đan
+    83: 3,  // Huyết Khí Đan
     44: 15, // Đế Giai Thuẫn
     45: 20, // Tị Lôi Châu
     46: 30, // Thanh Tâm Đan
     47: 10, // Hộ Linh Trận
   },
   '21-30': {
-    41: 2,  // Huyết Khí Đan
+    83: 2,  // Huyết Khí Đan
     44: 8,  // Đế Giai Thuẫn
     45: 20, // Tị Lôi Châu
     46: 30, // Thanh Tâm Đan
     47: 10, // Hộ Linh Trận
   },
   '31-40': {
-    41: 1,  // Huyết Khí Đan
+    83: 1,  // Huyết Khí Đan
     44: 5,  // Đế Giai Thuẫn
     45: 13, // Tị Lôi Châu
     46: 23, // Thanh Tâm Đan
     47: 10, // Hộ Linh Trận
   },
   '41-50': {
-    41: 0,  // Huyết Khí Đan
+    83: 0,  // Huyết Khí Đan
     44: 2,  // Đế Giai Thuẫn
     45: 10, // Tị Lôi Châu
     46: 15, // Thanh Tâm Đan
     47: 5,  // Hộ Linh Trận
   },
   '51-60': {
-    41: 0,  // Huyết Khí Đan
+    83: 0,  // Huyết Khí Đan
     44: 2,  // Đế Giai Thuẫn
     45: 10, // Tị Lôi Châu
     46: 15, // Thanh Tâm Đan
     47: 5,  // Hộ Linh Trận
   },
   '61-70': {
-    41: 0,  // Huyết Khí Đan
+    83: 0,  // Huyết Khí Đan
     44: 2,  // Đế Giai Thuẫn
     45: 10, // Tị Lôi Châu
     46: 15, // Thanh Tâm Đan
     47: 5,  // Hộ Linh Trận
   },
   '71-80': {
-    41: 0,  // Huyết Khí Đan
+    83: 0,  // Huyết Khí Đan
     44: 2,  // Đế Giai Thuẫn
     45: 10, // Tị Lôi Châu
     46: 15, // Thanh Tâm Đan
     47: 5,  // Hộ Linh Trận
   },
   '81-90': {
-    41: 0,  // Huyết Khí Đan
+    83: 0,  // Huyết Khí Đan
     44: 2,  // Đế Giai Thuẫn
     45: 10, // Tị Lôi Châu
     46: 15, // Thanh Tâm Đan
     47: 5,  // Hộ Linh Trận
   },
   '91-100': {
-    41: 0,  // Huyết Khí Đan
+    83: 0,  // Huyết Khí Đan
     44: 2,  // Đế Giai Thuẫn
     45: 10, // Tị Lôi Châu
     46: 15, // Thanh Tâm Đan
