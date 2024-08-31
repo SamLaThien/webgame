@@ -3,7 +3,6 @@ import Layout from "../../components/Layout";
 import styled from "styled-components";
 import moment from "moment";
 import CboxGeneral from "@/components/CboxGeneral";
-import Head from "next/head";
 
 const WheelContainer = styled.div`
   position: relative;
@@ -62,6 +61,34 @@ const Button = styled.button`
   border-radius: 50%;
   cursor: pointer;
   z-index: 4;
+  @media (max-width: 749px) {
+    width: 70px;
+    height: 70px;
+    background-size: 300px;
+  }
+`;
+
+const AutoSpinButton = styled.button`
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%);
+  padding: 10px 20px;
+  background-color: ${({ isActive }) => (isActive ? "#DC143C" : "#1E90FF")};
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 40px;
+
+  &:hover {
+    background-color: ${({ isActive }) => (isActive ? "#c1121f" : "#1c86ee")};
+  }
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
 `;
 
 const ResultMessage = styled.div`
@@ -86,7 +113,7 @@ const Marker = styled.img`
   z-index: 5;
 `;
 const LowerSection = styled.div`
-  margin-top: 40px;
+  margin-top: 100px;
   display: flex;
   flex-direction: row;
   gap: 20px;
@@ -100,8 +127,8 @@ const LowerSection = styled.div`
 `;
 
 const LogContainer = styled.div`
-  width: calc(40vw + 1vw);
-  height: calc(40vh + 1vh);
+  width: calc(50vw + 1vw);
+  height: calc(50vh + 1vh);
   border: 1px solid #93b6c8;
   padding: 20px;
   overflow-y: scroll;
@@ -120,6 +147,22 @@ const LogItem = styled.div`
   border: 1px solid #93b6c8;
   font-size: 14px;
 `;
+
+const CategoryText = styled.span`
+  color: ${(props) => categoryColors[props.category] || "black"};
+  font-weight: bold;
+`;
+
+const categoryColors = {
+  "Đồ Thần Bí": "#FFD700", // Gold
+  "Đồ Đột Phá": "#8A2BE2", // BlueViolet
+  "Đồ Luyện Khí": "#00CED1", // DarkTurquoise
+  "Đồ Luyện Đan": "#FF4500", // OrangeRed
+  "Giảm Kinh Nghiệm": "#FF6347", // Tomato
+  "Tăng Kinh Nghiệm": "#32CD32", // LimeGreen
+  "Cộng Bạc": "#1E90FF", // DodgerBlue
+  "Trừ Bạc": "#DC143C", // Crimson
+};
 
 const VongQuayMayManPage = () => {
   const [spinValue, setSpinValue] = useState(0);
@@ -267,10 +310,12 @@ const VongQuayMayManPage = () => {
         const selectedPrizeIndex = Math.floor(
           (360 - (randomDegree % 360)) / (360 / prizes.length)
         );
+
         const selectedSlotNumber = selectedPrizeIndex + 1;
 
         let prizeValue;
         let prizeName;
+        let item_id;
         try {
           if (selectedSlotNumber >= 1 && selectedSlotNumber <= 4) {
             const itemApiResponse = await fetch(
@@ -290,7 +335,8 @@ const VongQuayMayManPage = () => {
             );
 
             const itemApiData = await itemApiResponse.json();
-            prizeName = `1 ${itemApiData.item}`;
+            item_id = itemApiData.item_id;
+            prizeName = `${itemApiData.amonut} ${itemApiData.item}`;
             prizeValue = prizeName;
           } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
             const expResponse = await fetch("/api/user/game/vong-quay/exp", {
@@ -325,6 +371,7 @@ const VongQuayMayManPage = () => {
           const logResult = {
             username: storedUser.username,
             prize_category: prizes[selectedPrizeIndex],
+            item_id: item_id,
             prize_name: prizeName,
           };
 
@@ -351,6 +398,21 @@ const VongQuayMayManPage = () => {
     }
   }, [isSpinning, wheelSlots]);
 
+  useEffect(() => {
+    let autoSpinInterval;
+    if (isAutoSpinning) {
+      autoSpinInterval = setInterval(() => {
+        handleSpinClick();
+      }, 5000); // 4.2 seconds
+    }
+
+    return () => {
+      if (autoSpinInterval) {
+        clearInterval(autoSpinInterval);
+      }
+    };
+  }, [isAutoSpinning, handleSpinClick]);
+
   const getRandomItemPrize = async (slotNumber) => {
     const relevantSlots = wheelSlots.flatMap((slot) =>
       slot.slot_number === slotNumber ? slot.items : []
@@ -374,9 +436,6 @@ const VongQuayMayManPage = () => {
 
   return (
     <Layout>
-      <Head>
-        <title>Vòng Quay May Mắn</title>
-      </Head>
       <WheelContainer>
         <Marker src="/wheel/2.png" alt="Marker" />
         <Image src="/spin/overlay2.png" alt="Image below the wheel" />
@@ -387,15 +446,23 @@ const VongQuayMayManPage = () => {
         <Button onClick={handleSpinClick} />
         {/* {prize && <ResultMessage>Bạn đã trúng: {prize}</ResultMessage>} */}
       </WheelContainer>
+      <AutoSpinButton
+        isActive={isAutoSpinning}
+        onClick={() => setIsAutoSpinning((prev) => !prev)}
+      >
+        {isAutoSpinning ? "Dừng Quay" : "Tự Quay"}
+      </AutoSpinButton>
       <LowerSection>
         <LogContainer>
           <LogTitle>Lịch Sử Quay</LogTitle>
           {spinLogs && spinLogs.length > 0 ? (
             spinLogs.map((log, index) => (
               <LogItem key={index}>
-                <strong>{log.username}</strong> quay trúng{" "}
-                <strong>{log.prize_category}</strong> ({log.prize_name}) (
-                {log.formattedTime})
+                <strong dangerouslySetInnerHTML={{ __html: log.username }} />{" "}
+                <CategoryText category={log.prize_category}>
+                  {log.prize_category}
+                </CategoryText>{" "}
+                ({log.prize_name}) ({log.formattedTime})
               </LogItem>
             ))
           ) : (
@@ -421,6 +488,8 @@ function formatTimeDifference(timestamp) {
   if (hours >= 1) {
     return `${Math.floor(hours)} giờ trước`;
   } else {
-    return `${Math.floor(minutes)} phút trước`;
+    if (Math.floor(minutes) == 0) {
+      return `vừa xong`;
+    } else return `${Math.floor(minutes)} phút trước`;
   }
 }

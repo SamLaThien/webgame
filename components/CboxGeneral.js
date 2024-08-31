@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 const StyledIframe = styled.iframe`
   background: white;
   width: 100%;
-  height: 80vh;
+  height: 55vh;
   border: none;
 `;
 

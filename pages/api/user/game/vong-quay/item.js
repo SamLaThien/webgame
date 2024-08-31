@@ -85,7 +85,8 @@ export default async function handler(req, res) {
 
                 if (checkResults.length > 0) {
                   const existingItem = checkResults[0];
-                  const newQuantity = existingItem.so_luong + 1;
+                  const amonut = randomNumber();
+                  const newQuantity = existingItem.so_luong + parseInt(amonut);
 
                   const queryUpdate = `
                     UPDATE ruong_do SET so_luong = ? WHERE id = ?
@@ -94,7 +95,7 @@ export default async function handler(req, res) {
                     if (updateError) {
                       return res.status(500).json({ message: 'Internal server error', error: updateError.message });
                     }
-                    res.status(200).json({ message: 'Item quantity updated successfully', item: selectedItem.option_text });
+                    res.status(200).json({ message: 'Item quantity updated successfully', item: selectedItem.option_text,item_id : selectedItem.item_id,amonut:amonut});
                   });
                 } else {
                   const queryInsert = `
@@ -121,5 +122,33 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+}
+
+function randomNumber() {
+  const rate = {
+    '1': 20,
+    '2': 3,
+    '3': 1,
+    '5': 1,
+  };
+  return parseRateArray(rate);
+}
+
+function parseRateArray(rate) {
+  try {
+    let totalWeight = Object.values(rate).reduce((sum, weight) => sum + weight, 0);
+    let randomNum = Math.random() * totalWeight;
+
+    for (let item in rate) {
+      if (randomNum < rate[item]) {
+        return item;
+      }
+      randomNum -= rate[item];
+    }
+    return Object.keys(rate)[0];
+  } catch (error) {
+    console.error('Error parsing rate array:', error);
+    throw error;
   }
 }
