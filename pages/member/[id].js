@@ -271,6 +271,8 @@ const MemberPage = ({ id }) => {
   const [levelData, setLevelData] = useState(null);
   const [items, setItems] = useState([]);
   const [canViewItems, setCanViewItems] = useState(true);
+  const [moneyToSend, setMoneyToSend] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -342,10 +344,46 @@ const MemberPage = ({ id }) => {
       5: "Trưởng Lão",
       6: "Đại Trưởng Lão",
       7: "Chưởng Môn",
-      9:"Ngân quỹ"
+      9: "Ngân quỹ",
     };
     return roles[roleId] || "Unknown Role";
   };
+
+  const handleInputChange = (e) => {
+    setMoneyToSend(e.target.value);
+  };
+
+  const handleSendMoney = async () => {
+  if (!moneyToSend || isNaN(moneyToSend) || Number(moneyToSend) <= 0) {
+    window.alert("Vui lòng nhập số tiền hợp lệ");
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.alert("Please log in to send money.");
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      `/api/user/member/sent-money`,
+      { receiverId: id, amount: moneyToSend },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    window.alert(`Successfully sent ${moneyToSend} coins to ${user.username}.`);
+    setMoneyToSend(""); 
+  } catch (error) {
+    console.error("Error sending money:", error);
+    if (error.response && error.response.data.message) {
+      window.alert(error.response.data.message); 
+    } else {
+      window.alert("An error occurred while sending money.");
+    }
+  }
+};
 
   if (!user) {
     return <p>Loading...</p>;
@@ -425,15 +463,21 @@ const MemberPage = ({ id }) => {
                   <p>Rương đồ trống</p>
                 )
               ) : (
-                <p>Tu vi đạo hữu còn thấp không thể nhìn trộm túi đồ!</p> // Message if the user cannot view items
+                <p>Tu vi đạo hữu còn thấp không thể nhìn trộm túi đồ!</p> 
               )}
             </ItemsContainer>
           </Section>
           <Section>
             <FormContainer>
               <SectionTitle>Tặng bạc</SectionTitle>
-              <Input type="text" placeholder="Nhập số bạc mà bạn muốn tặng" />
-              <Button>Gửi bạc</Button>
+              <Input
+                type="text"
+                placeholder="Nhập số bạc mà bạn muốn tặng"
+                value={moneyToSend}
+                onChange={handleInputChange} 
+              />
+              <Button onClick={handleSendMoney}>Gửi bạc</Button>
+              {statusMessage && <p>{statusMessage}</p>}
             </FormContainer>
           </Section>
         </RightSection>

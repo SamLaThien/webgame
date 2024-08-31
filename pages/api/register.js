@@ -73,7 +73,7 @@ export default async function handler(req, res) {
           const verificationToken = crypto.randomBytes(32).toString('hex');
           console.log(verificationToken);
           db.query(
-            'INSERT INTO users (id, username, email, password, role, active, verification_token) VALUES (?, ?, ?, ?, ?, 0, ?)',
+            'INSERT INTO users (id, username, email, password, role, active, verification_token, tai_san) VALUES (?, ?, ?, ?, ?, 0, ?, 0)',
             [newId, username, email, hashedPassword, 3, verificationToken],
             async (error) => {
               if (error) {
