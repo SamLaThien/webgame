@@ -544,6 +544,7 @@ const getItemNameById = (itemId) => {
     49: "Sa Ngọc Châu",
     80: "Hoàng Kim Lệnh",
     51: "Hoả Ngọc Châu",
+    50: "Thải Ngọc Châu"
   };
   return itemNames[itemId] || `Item ${itemId}`;
 };
