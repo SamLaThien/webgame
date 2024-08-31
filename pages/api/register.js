@@ -62,7 +62,7 @@ export default async function handler(req, res) {
           console.log(verificationToken);
           db.query(
             'INSERT INTO users (id, username, email, password, role, active, verification_token) VALUES (?, ?, ?, ?, ?, 0, ?)',
-            [newId, username, email, hashedPassword, role, verificationToken],
+            [newId, username, email, hashedPassword, 3, verificationToken],
             async (error) => {
               if (error) {
                 if (error.code === 'ER_DUP_ENTRY') {
