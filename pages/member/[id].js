@@ -342,6 +342,7 @@ const MemberPage = ({ id }) => {
       5: "Trưởng Lão",
       6: "Đại Trưởng Lão",
       7: "Chưởng Môn",
+      9:"Ngân quỹ"
     };
     return roles[roleId] || "Unknown Role";
   };
