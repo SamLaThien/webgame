@@ -12,9 +12,9 @@ export default async function handler(req, res) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    const userId = decoded.userId; 
 
-    const getUserInfoQuery = 'SELECT ngoai_hieu, username, tai_san FROM users WHERE id = ?';
+    const getUserInfoQuery = 'SELECT ngoai_hieu, username FROM users WHERE id = ?';
     db.query(getUserInfoQuery, [userId], (error, results) => {
       if (error || results.length === 0) {
         return res.status(500).json({ message: 'Internal server error or user not found', error: error?.message });
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       if (req.method === 'POST') {
         const { prize_category, prize_name, quantity } = req.body;
 
-        if (!prize_category || !prize_name) {
+        if (!prize_category || !prize_name ) {
           return res.status(400).json({ message: 'Prize category, prize name, and quantity are required' });
         }
 
@@ -40,17 +40,7 @@ export default async function handler(req, res) {
               return res.status(500).json({ message: 'Internal server error', error: insertSpinLogError.message });
             }
 
-            const formatNumber = (num) => {
-              return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            };
-
-            const remainingSilver = results[0].tai_san - 300;
-            let actionDetails = ``;
-            if (prize_category === 'Trừ Bạc' || prize_category === 'Giảm Kinh Nghiệm') {
-              actionDetails = `vừa chơi Vòng Quay May Mắn tốn 300 bạc (còn ${formatNumber(remainingSilver)} bạc) và bị trừ ${prize_name}`;
-            } else {
-              actionDetails = `vừa chơi Vòng Quay May Mắn tốn 300 bạc (còn ${formatNumber(remainingSilver)} bạc) và nhận được ${prize_name}`;
-            }
+            const actionDetails = `vừa chơi Vòng Quay May Mắn tốn 300 bạc và nhận được ${prize_name}`;
             const insertActivityLogQuery = `
               INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
               VALUES (?, 'Spin', ?, NOW())

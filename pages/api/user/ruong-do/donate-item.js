@@ -193,8 +193,8 @@ export default async function handler(req, res) {
     const { ngoai_hieu, username, Name } = userAndItemDetails[0];
     const displayName = ngoai_hieu || username;
 
-    const userActionDetails = `đã nộp bang ${Name} ${donationAmount} (còn ${newUserItemQuantity})`;
-    const clanActionDetails = `${displayName} đã nộp bang ${Name} ${donationAmount} (còn ${clanItemQuantity})`;
+    const userActionDetails = `đã nộp bang ${donationAmount} ${Name} (còn ${newUserItemQuantity})`;
+    const clanActionDetails = `${displayName} đã nộp bang ${donationAmount} ${Name} (còn ${clanItemQuantity})`;
 
     await new Promise((resolve, reject) => {
       db.query(

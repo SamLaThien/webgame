@@ -81,7 +81,7 @@ const roles = [
   { label: "Hộ pháp", value: 4 },
   { label: "Trưởng lão", value: 5 },
   { label: "Đại trưởng lão", value: 6 },
-  { label: "Chưởng môn", value: 7 },
+  // { label: "Chưởng môn", value: 7 },
 ];
 
 const LanhSuDuong = () => {
