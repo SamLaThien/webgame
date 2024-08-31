@@ -191,6 +191,11 @@ const DotPha = () => {
   const fetchValidItems = async (userData, token, level) => {
     try {
       let itemIds;
+      // if (level === 0) {
+      //   itemIds = ["41", "42", "43", "44", "45"];
+      // } else {
+      //   itemIds = ["38", "39", "40", "41", "42", "43", "44", "45"];
+      // }
       if (level === 0) {
         itemIds = ["41", "42", "43", "44", "45"];
       } else {

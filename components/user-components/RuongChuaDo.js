@@ -169,7 +169,7 @@ const RuongChuaDo = () => {
     validateTokenAndFetchItems();
 
     // Polling to fetch updated items every 10 seconds
-    const intervalId = setInterval(fetchItems, 5000);
+    const intervalId = setInterval(fetchItems, 3000);
 
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
