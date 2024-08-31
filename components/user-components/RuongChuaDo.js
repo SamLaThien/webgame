@@ -115,6 +115,29 @@ const RuongChuaDo = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
+  const fetchItems = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const { data } = await axios.get("/api/user/ruong-do", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setItems(data);
+    } catch (error) {
+      console.error("Error fetching ruong do items:", error);
+      router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const validateTokenAndFetchItems = async () => {
       const token = localStorage.getItem("token");
@@ -136,23 +159,21 @@ const RuongChuaDo = () => {
           return;
         }
 
-        const itemsResponse = await axios.get("/api/user/ruong-do", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setItems(itemsResponse.data);
+        await fetchItems();
       } catch (error) {
         console.error("Error during token validation or item fetching:", error);
         router.push("/login");
-      } finally {
-        setLoading(false);
       }
     };
 
     validateTokenAndFetchItems();
-  }, [router]);
 
+    // Polling to fetch updated items every 10 seconds
+    const intervalId = setInterval(fetchItems, 5000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [router]);
   // useEffect(() => {
   //   const fetchItems = async () => {
   //     try {

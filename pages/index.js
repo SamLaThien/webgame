@@ -17,6 +17,7 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isInClan, setIsInClan] = useState(false);
 
   useEffect(() => {
     const validateTokenAndFetchUserData = async () => {
@@ -48,6 +49,12 @@ const Home = () => {
             },
           }
         );
+        const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${data.userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setIsInClan(clanResponse.data.isInClan);
         setUser(userInfoResponse.data);
 
         // const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${storedUser.id}`, {
@@ -76,7 +83,7 @@ const Home = () => {
   }
 
   return (
-    <Layout isLoggedIn={isLoggedIn} user={user}>
+    <Layout isLoggedIn={isLoggedIn} user={user}  isInClan={isInClan}>
       <Head>
         <title>Trang chủ </title>{" "}
       </Head>
