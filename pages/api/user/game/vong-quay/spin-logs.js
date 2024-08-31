@@ -40,7 +40,7 @@ export default async function handler(req, res) {
               return res.status(500).json({ message: 'Internal server error', error: insertSpinLogError.message });
             }
 
-            const actionDetails = `vừa chơi Vòng Quay May Mắn tốn 300 bạc và nhận được 1 ${prize_name}`;
+            const actionDetails = `vừa chơi Vòng Quay May Mắn tốn 300 bạc và nhận được ${prize_name}`;
             const insertActivityLogQuery = `
               INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
               VALUES (?, 'Spin', ?, NOW())
