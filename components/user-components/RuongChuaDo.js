@@ -195,58 +195,61 @@ const RuongChuaDo = () => {
 
   const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-  
-      const useAmount = isMultiple ? 10 : 1;
-  
-      if (soLuong < useAmount) {
-        alert("Not enough items to use.");
-        return;
-      }
-  
-      const response = await axios.post(
-        "/api/user/ruong-do/use-item",
-        {
-          ruongDoId,
-          vatPhamId,
-          useAmount,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const useAmount = isMultiple ? 10 : 1;
+
+        if (soLuong < useAmount) {
+            alert("Not enough items to use.");
+            return;
         }
-      );
-  
-      if (response.status === 200 && response.data.success) {
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.ruong_do_id === ruongDoId
-              ? { ...item, so_luong: item.so_luong - useAmount }
-              : item
-          )
+
+        const response = await axios.post(
+            "/api/user/ruong-do/use-item",
+            {
+                ruongDoId,
+                vatPhamId,
+                useAmount,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
         );
-  
-        const itemName =
-          items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
-          "Unknown Item";
-        await logUserActivity(
-          "Item Use",
-          `đã sử dụng ${itemName} x${useAmount}`
-        );
-      } else {
-        alert(response.data.message || "Error using item");
-      }
+
+        if (response.status === 200 && response.data.success) {
+            setItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.ruong_do_id === ruongDoId
+                        ? { ...item, so_luong: item.so_luong - useAmount }
+                        : item
+                )
+            );
+
+            const itemName =
+                items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
+                "Unknown Item";
+            alert(`Bạn đã sử dụng ${useAmount} x ${itemName}.`);
+
+            await logUserActivity(
+                "Item Use",
+                `đã sử dụng ${itemName} x${useAmount}`
+            );
+        } else {
+            alert(response.data.message || "Error using item");
+        }
     } catch (error) {
-      if (error.response && error.response.status === 403) {
-        alert(error.response.data.message); 
-      } else {
-        console.error("Error using item:", error);
-        alert("An error occurred while using the item.");
-      }
+        if (error.response && error.response.status === 403) {
+            alert(error.response.data.message);
+        } else {
+            console.error("Error using item:", error);
+            alert("An error occurred while using the item.");
+        }
     }
-  };
+};
+
   
 
 
