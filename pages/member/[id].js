@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import Layout from "../../components/Layout";
+import Head from "next/head";
 
 const Container = styled.div`
   display: flex;
@@ -269,6 +270,7 @@ const MemberPage = ({ id }) => {
   const [user, setUser] = useState(null);
   const [levelData, setLevelData] = useState(null);
   const [items, setItems] = useState([]);
+  const [canViewItems, setCanViewItems] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -298,7 +300,7 @@ const MemberPage = ({ id }) => {
           if (userData.canView) {
             await fetchUserItems();
           } else {
-            alert("Tu vi đạo hữu còn thấp không thể nhìn trộm túi đồ!");
+            setCanViewItems(false);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -350,6 +352,9 @@ const MemberPage = ({ id }) => {
 
   return (
     <Layout>
+      <Head>
+        <title> {user.ngoai_hieu ? user.ngoai_hieu : user.username}</title>
+      </Head>
       <Container>
         <LeftSection>
           <CharacterContainer>
@@ -401,19 +406,25 @@ const MemberPage = ({ id }) => {
               </ProgressBarContainer>
             </ProgressContainer>
             <ItemsContainer>
-              {items.length > 0 ? (
-                items
-                  .filter((item) => item.so_luong > 0)
-                  .map((item) => (
-                    <ItemRow key={item.vat_pham_name}>
-                      <ItemLabel
-                        dangerouslySetInnerHTML={{ __html: item.vat_pham_name }}
-                      />
-                      <ItemValue>{item.so_luong}</ItemValue>
-                    </ItemRow>
-                  ))
+              {canViewItems ? (
+                items.length > 0 ? (
+                  items
+                    .filter((item) => item.so_luong > 0)
+                    .map((item) => (
+                      <ItemRow key={item.vat_pham_name}>
+                        <ItemLabel
+                          dangerouslySetInnerHTML={{
+                            __html: item.vat_pham_name,
+                          }}
+                        />
+                        <ItemValue>{item.so_luong}</ItemValue>
+                      </ItemRow>
+                    ))
+                ) : (
+                  <p>Rương đồ trống</p>
+                )
               ) : (
-                <p>Rương đồ trống</p> 
+                <p>Tu vi đạo hữu còn thấp không thể nhìn trộm túi đồ!</p> // Message if the user cannot view items
               )}
             </ItemsContainer>
           </Section>
