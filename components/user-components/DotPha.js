@@ -27,7 +27,7 @@ const Container = styled.div`
 const GlowingText = styled.span`
   font-size: 14px;
   font-weight: bold;
-  color: white;
+  color: white !important;
   margin-bottom: 10px;
   text-shadow: 0 0 5px rgba(255, 191, 0, 0.8), 0 0 10px rgba(255, 191, 0, 0.6) !important;
 `;
@@ -205,7 +205,7 @@ const DotPha = () => {
       //   itemIds = ["38", "39", "40", "41", "42", "43", "44", "45"];
       // }
       if (level === 0) {
-        itemIds = [ "47", "48", "49", "50", "51"];
+        itemIds = ["47", "48", "49", "50", "51"];
       } else {
         itemIds = ["44", "45", "46", "47", "48", "49", "50", "51"];
       }
@@ -258,166 +258,167 @@ const DotPha = () => {
 
   const handleLevelUp = async () => {
     if (user && levelData && user.exp >= levelData.exp) {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-            const requiredItemIds = levelData.vatpham_bat_buoc_id
-                ? levelData.vatpham_bat_buoc_id.split(",")
-                : [];
+        const requiredItemIds = levelData.vatpham_bat_buoc_id
+          ? levelData.vatpham_bat_buoc_id.split(",")
+          : [];
 
-            if (requiredItemIds.length > 0) {
-                const { data: requiredItemsData } = await axios.get(
-                    `/api/user/dot-pha/check-required-item`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                        params: {
-                            userId: user.id,
-                            itemIds: requiredItemIds.join(","),
-                        },
-                    }
-                );
-
-                if (!requiredItemsData.hasRequiredItems) {
-                    alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
-                    return;
-                }
+        if (requiredItemIds.length > 0) {
+          const { data: requiredItemsData } = await axios.get(
+            `/api/user/dot-pha/check-required-item`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              params: {
+                userId: user.id,
+                itemIds: requiredItemIds.join(","),
+              },
             }
-            await axios.post(
-                `/api/user/dot-pha/decrement-item`,
-                {
-                    userId: user.id,
-                    itemIds: requiredItemIds.join(","),
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            let successChance = levelData.ty_le_dot_pha_thanh_cong;
+          );
 
-            const levelRangeKey = Object.keys(levelItemChances).find((range) => {
-                const [min, max] = range.split("-").map(Number);
-                return user.level >= min && user.level <= max;
-            });
-
-            const selectedItems = Object.keys(checkedItems).filter(
-                (itemId) => checkedItems[itemId]
-            );
-
-            if (selectedItems.length > 0) {
-                const { data: usedItemsData } = await axios.get(
-                    `/api/user/dot-pha/check-used-items`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                        params: {
-                            userId: user.id,
-                            usedItemIds: selectedItems.join(","),
-                        },
-                    }
-                );
-                await axios.post(
-                    `/api/user/dot-pha/decrement-item`,
-                    {
-                        userId: user.id,
-                        itemIds: selectedItems.join(","),
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                const usedItemsLog = usedItemsData
-                    .map((item) => `${getItemNameById(item.vat_pham_id)} x1`)
-                    .join(", ");
-                await logUserActivity("Item Use", `đã sử dụng: ${usedItemsLog}`);
-
-                usedItemsData.forEach((item) => {
-                    const itemChance =
-                        levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
-                        consistentItemChances[item.vat_pham_id];
-                    if (itemChance) {
-                        successChance += itemChance;
-                    }
-                });
-            }
-
-            if (Math.random() * 100 <= successChance) {
-                const nextLevel = user.level + 1;
-                const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
-
-                const levelUpResponse = await axios.post(
-                    "/api/user/dot-pha/level-up",
-                    {
-                        userId: user.id,
-                        newLevel: nextLevel,
-                        newTaiSan,
-                        expUsed: levelData.exp,
-                        currentExp: user.exp,
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                setUser((prevUser) => ({
-                    ...prevUser,
-                    level: nextLevel,
-                    exp: prevUser.exp - levelData.exp,
-                    tai_san: newTaiSan,
-                }));
-
-                const { data: fetchedLevelData } = await axios.post(
-                    `/api/user/dot-pha/level-info`,
-                    { level: nextLevel },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                setLevelData(fetchedLevelData);
-
-                alert(`Đột Phá thành công! Bạn nhận được: ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`);
-
-                await logUserActivity(
-                    "Dot Pha Success",
-                    `đã đột phá thành công, tấn thăng ${levelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
-                );
-            } else {
-                const expLoss = Math.floor(
-                    levelData.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
-                );
-                const newExp = Math.max(0, user.exp - expLoss);
-
-                setUser((prevUser) => ({
-                    ...prevUser,
-                    exp: newExp,
-                }));
-
-                alert(`Đột Phá thất bại! Bạn mất ${expLoss} kinh nghiệm.`);
-                
-                await logUserActivity(
-                    "Dot Pha Fail",
-                    `chưa đủ cơ duyên để đột phá ${levelData.tu_vi}, mất ${expLoss} kinh nghiệm`
-                );
-            }
-        } catch (error) {
-            console.error("Error handling Đột Phá:", error);
-            alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
+          if (!requiredItemsData.hasRequiredItems) {
+            alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
+            return;
+          }
         }
-    }
-};
+        await axios.post(
+          `/api/user/dot-pha/decrement-item`,
+          {
+            userId: user.id,
+            itemIds: requiredItemIds.join(","),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        let successChance = levelData.ty_le_dot_pha_thanh_cong;
 
+        const levelRangeKey = Object.keys(levelItemChances).find((range) => {
+          const [min, max] = range.split("-").map(Number);
+          return user.level >= min && user.level <= max;
+        });
+
+        const selectedItems = Object.keys(checkedItems).filter(
+          (itemId) => checkedItems[itemId]
+        );
+
+        if (selectedItems.length > 0) {
+          const { data: usedItemsData } = await axios.get(
+            `/api/user/dot-pha/check-used-items`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              params: {
+                userId: user.id,
+                usedItemIds: selectedItems.join(","),
+              },
+            }
+          );
+          await axios.post(
+            `/api/user/dot-pha/decrement-item`,
+            {
+              userId: user.id,
+              itemIds: selectedItems.join(","),
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const usedItemsLog = usedItemsData
+            .map((item) => `${getItemNameById(item.vat_pham_id)} x1`)
+            .join(", ");
+          await logUserActivity("Item Use", `đã sử dụng: ${usedItemsLog}`);
+
+          usedItemsData.forEach((item) => {
+            const itemChance =
+              levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
+              consistentItemChances[item.vat_pham_id];
+            if (itemChance) {
+              successChance += itemChance;
+            }
+          });
+        }
+
+        if (Math.random() * 100 <= successChance) {
+          const nextLevel = user.level + 1;
+          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+
+          const levelUpResponse = await axios.post(
+            "/api/user/dot-pha/level-up",
+            {
+              userId: user.id,
+              newLevel: nextLevel,
+              newTaiSan,
+              expUsed: levelData.exp,
+              currentExp: user.exp,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          setUser((prevUser) => ({
+            ...prevUser,
+            level: nextLevel,
+            exp: prevUser.exp - levelData.exp,
+            tai_san: newTaiSan,
+          }));
+
+          const { data: fetchedLevelData } = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: nextLevel },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setLevelData(fetchedLevelData);
+
+          alert(
+            `Đột Phá thành công! Bạn nhận được: ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+          );
+
+          await logUserActivity(
+            "Dot Pha Success",
+            `đã đột phá thành công, tấn thăng ${levelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+          );
+        } else {
+          const expLoss = Math.floor(
+            levelData.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
+          );
+          const newExp = Math.max(0, user.exp - expLoss);
+
+          setUser((prevUser) => ({
+            ...prevUser,
+            exp: newExp,
+          }));
+
+          alert(`Đột Phá thất bại! Bạn mất ${expLoss} kinh nghiệm.`);
+
+          await logUserActivity(
+            "Dot Pha Fail",
+            `chưa đủ cơ duyên để đột phá ${levelData.tu_vi}, mất ${expLoss} kinh nghiệm`
+          );
+        }
+      } catch (error) {
+        console.error("Error handling Đột Phá:", error);
+        alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
+      }
+    }
+  };
 
   if (loading) {
     return <Container>Loading...</Container>;
@@ -446,12 +447,14 @@ const DotPha = () => {
           <Container>
             <MainContent>
               <Info>
-                Cảnh giới hiện tại: <span> {user.id === 3 ? (
-                <GlowingText>Thiên Đạo</GlowingText>
-              ) : (
-                <span>{levelData.tu_vi}</span>
-              )}</span>
+                Cảnh giới hiện tại:{" "}
+                {user.id === 1 ? (
+                  <GlowingText>Thiên Đạo</GlowingText>
+                ) : (
+                  <span>{levelData.tu_vi}</span>
+                )}
               </Info>
+
               <Info>Tiến độ tu luyện</Info>
               <Info>
                 <Exp>
@@ -556,7 +559,7 @@ const getItemNameById = (itemId) => {
     49: "Sa Ngọc Châu",
     80: "Hoàng Kim Lệnh",
     51: "Hoả Ngọc Châu",
-    50: "Thải Ngọc Châu"
+    50: "Thải Ngọc Châu",
   };
   return itemNames[itemId] || `Item ${itemId}`;
 };

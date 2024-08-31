@@ -178,14 +178,12 @@ const XinVaoBang = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.error) {
-          alert(data.error);
-        } else {
-          alert("Request sent successfully");
-        }
+        alert(data.message);
       })
       .catch((error) => console.error("Error sending clan request:", error));
   };
+  
+  
   
 
   const handleRequest = async (requestId, action, userId, clanId) => {

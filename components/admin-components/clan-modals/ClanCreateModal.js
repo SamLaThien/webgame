@@ -45,13 +45,11 @@ const StyledButton = styled(Button)`
 
 const ClanCreateModal = ({ onClose, onSave }) => {
   const [name, setName] = useState('');
-  const [ownerUsername, setOwnerUsername] = useState('');
-  const [accountantUsername, setAccountantUsername] = useState('');
+  const [ownerIdSearch, setOwnerIdSearch] = useState('');
+  const [accountantIdSearch, setAccountantIdSearch] = useState('');
   const [ownerId, setOwnerId] = useState(null);
   const [accountantId, setAccountantId] = useState(null);
-  const [money, setMoney] = useState(0);
   const [clanMana, setClanMana] = useState(10000000);  // Default 10 million mana
-  const [clanColor, setClanColor] = useState('');
   const [clanIconFile, setClanIconFile] = useState(null);
   const [clanPassword, setClanPassword] = useState('');
   const [ownerSearchResults, setOwnerSearchResults] = useState([]);
@@ -61,11 +59,11 @@ const ClanCreateModal = ({ onClose, onSave }) => {
 
   useEffect(() => {
     const fetchOwnerResults = async () => {
-      if (ownerUsername) {
+      if (ownerIdSearch) {
         setLoading(true);
         const token = localStorage.getItem('token');
         try {
-          const response = await axios.get(`/api/admin/search-user?username=${ownerUsername}`, {
+          const response = await axios.get(`/api/admin/search-user-id?id=${ownerIdSearch}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setOwnerSearchResults(response.data);
@@ -78,15 +76,15 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     };
 
     fetchOwnerResults();
-  }, [ownerUsername]);
+  }, [ownerIdSearch]);
 
   useEffect(() => {
     const fetchAccountantResults = async () => {
-      if (accountantUsername) {
+      if (accountantIdSearch) {
         setLoading(true);
         const token = localStorage.getItem('token');
         try {
-          const response = await axios.get(`/api/admin/search-user?username=${accountantUsername}`, {
+          const response = await axios.get(`/api/admin/search-user-id?id=${accountantIdSearch}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setAccountantSearchResults(response.data);
@@ -99,13 +97,12 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     };
 
     fetchAccountantResults();
-  }, [accountantUsername]);
+  }, [accountantIdSearch]);
 
   const handleSave = async () => {
     if (!name || !ownerId || !clanId || !accountantId || 
-      // !clanColor ||
        !clanIconFile || !clanPassword) {
-      alert('ID bang hội, tên, chủ sở hữu, kế toán, màu sắc bang hội, biểu tượng và mật khẩu là bắt buộc');
+      alert('ID bang hội, tên, chủ sở hữu, kế toán, biểu tượng và mật khẩu là bắt buộc');
       return;
     }
 
@@ -113,10 +110,8 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     formData.append('id', clanId);
     formData.append('name', name);
     formData.append('owner', ownerId);
-    formData.append('clan_money', money);
     formData.append('clan_mana', clanMana);
     formData.append('accountant_id', accountantId);
-    // formData.append('clan_color', clanColor);
     formData.append('clan_icon', clanIconFile);
     formData.append('password', clanPassword);
 
@@ -160,12 +155,12 @@ const ClanCreateModal = ({ onClose, onSave }) => {
         </FieldContainer>
         <FieldContainer>
           <HalfWidthTextField
-            label="Tên tài khoản chủ sở hữu"
-            value={ownerUsername}
-            onChange={(e) => setOwnerUsername(e.target.value)}
+            label="ID chủ sở hữu"
+            value={ownerIdSearch}
+            onChange={(e) => setOwnerIdSearch(e.target.value)}
             margin="normal"
           />
-          {loading && ownerUsername ? (
+          {loading && ownerIdSearch ? (
             <CircularProgress />
           ) : (
             <HalfWidthTextField
@@ -185,12 +180,12 @@ const ClanCreateModal = ({ onClose, onSave }) => {
         </FieldContainer>
         <FieldContainer>
           <HalfWidthTextField
-            label="Tên tài khoản kế toán"
-            value={accountantUsername}
-            onChange={(e) => setAccountantUsername(e.target.value)}
+            label="ID kế toán"
+            value={accountantIdSearch}
+            onChange={(e) => setAccountantIdSearch(e.target.value)}
             margin="normal"
           />
-          {loading && accountantUsername ? (
+          {loading && accountantIdSearch ? (
             <CircularProgress />
           ) : (
             <HalfWidthTextField
@@ -210,13 +205,6 @@ const ClanCreateModal = ({ onClose, onSave }) => {
         </FieldContainer>
         <FieldContainer>
           <HalfWidthTextField
-            label="Ngân quỹ bang hội"
-            type="number"
-            value={money}
-            onChange={(e) => setMoney(e.target.value)}
-            margin="normal"
-          />
-          <HalfWidthTextField
             label="Mana của bang hội"
             type="number"
             value={clanMana}
@@ -225,12 +213,6 @@ const ClanCreateModal = ({ onClose, onSave }) => {
           />
         </FieldContainer>
         <FieldContainer>
-          {/* <HalfWidthTextField
-            label="Màu sắc bang hội"
-            value={clanColor}
-            onChange={(e) => setClanColor(e.target.value)}
-            margin="normal"
-          /> */}
           <input
             type="file"
             onChange={(e) => setClanIconFile(e.target.files[0])}

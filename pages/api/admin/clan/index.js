@@ -85,7 +85,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: err.message });
       }
 
-      const { id, name, owner, clan_money, accountant_id, 
+      const { id, name, owner, accountant_id, 
         // clan_color,
          password } = req.body;
 
@@ -118,8 +118,8 @@ export default async function handler(req, res) {
             const threadKey = data[2];
 
             db.query(
-              'INSERT INTO clans (id, name, owner, clan_money, accountant_id, clan_mana, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [newId, name, owner, clan_money, accountant_id, clanMana,  iconPath, hashedPassword, threadId, threadKey],
+              'INSERT INTO clans (id, name, owner, accountant_id, clan_mana, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [newId, name, owner, accountant_id, clanMana,  iconPath, hashedPassword, threadId, threadKey],
               (clanError, clanResults) => {
                 if (clanError) {
                   db.query('ROLLBACK', () => {});
@@ -157,8 +157,7 @@ export default async function handler(req, res) {
                           res.status(201).json({ 
                             id: clanId, 
                             name, 
-                            owner, 
-                            clan_money, 
+                            owner,
                             accountant_id, 
                             clan_mana: clanMana, 
                             // clan_color, 
@@ -194,8 +193,8 @@ export default async function handler(req, res) {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       db.query(
-        'UPDATE clans SET name = ?, owner = ?, clan_money = ?, accountant_id = ?, clan_color = ?, password = ? WHERE id = ?',
-        [name, owner, clan_money, accountant_id, clan_color, hashedPassword, id],
+        'UPDATE clans SET name = ?, owner = ?, accountant_id = ?, clan_color = ?, password = ? WHERE id = ?',
+        [name, owner, accountant_id, clan_color, hashedPassword, id],
         (error) => {
           if (error) {
             return res.status(500).json({ message: 'Internal server error', error: error.message });
