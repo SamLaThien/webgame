@@ -139,6 +139,7 @@ export default async function handler(req, res) {
     });
 
     const updatedClanMoney = updatedClanMoneyResult[0]?.tai_san || 0;
+    const userLink = `<a href="https://www.tuchangioi.xyz/member/${userId}" style="text-decoration: none; color: black;">${userIdentifier}</a>`;
 
     await new Promise((resolve, reject) => {
       db.query(
@@ -147,7 +148,7 @@ export default async function handler(req, res) {
           userId,
           userId,
           'Donate Money',
-          `${userIdentifier} đã nộp vào ngân khố bang ${amountAfterTax} bạc (còn ${updatedClanMoney} bạc)`,
+          `${userLink} đã nộp vào ngân khố bang ${amountAfterTax} bạc (còn ${updatedClanMoney} bạc)`,
         ],
         (error) => {
           if (error) {

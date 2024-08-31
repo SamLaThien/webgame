@@ -192,9 +192,10 @@ export default async function handler(req, res) {
 
     const { ngoai_hieu, username, Name } = userAndItemDetails[0];
     const displayName = ngoai_hieu || username;
+    const userLink = `<a href="https://www.tuchangioi.xyz/member/${userId}" style="text-decoration: none; color: black;">${displayName}</a>`;
 
     const userActionDetails = `đã nộp bang ${donationAmount} ${Name} (còn ${newUserItemQuantity})`;
-    const clanActionDetails = `${displayName} đã nộp bang ${donationAmount} ${Name} (còn ${clanItemQuantity})`;
+    const clanActionDetails = `${userLink} đã nộp bang ${donationAmount} ${Name} (còn ${clanItemQuantity})`;
 
     await new Promise((resolve, reject) => {
       db.query(

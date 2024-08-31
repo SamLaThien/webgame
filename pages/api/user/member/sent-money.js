@@ -1,11 +1,11 @@
-import db from '@/lib/db';
-import jwt from 'jsonwebtoken';
+import db from "@/lib/db";
+import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
   const { method } = req;
 
-  if (method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
+  if (method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
     return res.status(405).end(`Method ${method} Not Allowed`);
   }
 
@@ -13,13 +13,15 @@ export default async function handler(req, res) {
   const { receiverId, amount } = req.body;
 
   if (!authorization) {
-    return res.status(401).json({ message: 'Authorization header is required' });
+    return res
+      .status(401)
+      .json({ message: "Authorization header is required" });
   }
   if (!receiverId || !Number.isInteger(Number(amount)) || Number(amount) <= 0) {
-    return res.status(400).json({ message: 'Số bạc gửi phải là số nguyên!' });
+    return res.status(400).json({ message: "Số bạc gửi phải là số nguyên!" });
   }
 
-  const token = authorization.split(' ')[1];
+  const token = authorization.split(" ")[1];
   let userId;
 
   try {
@@ -27,39 +29,43 @@ export default async function handler(req, res) {
     userId = decoded.userId;
 
     const [sender] = await new Promise((resolve, reject) => {
-      db.query('SELECT * FROM users WHERE id = ?', [userId], (error, results) => {
-        if (error) reject(error);
-        resolve(results || []);
-      });
+      db.query(
+        "SELECT * FROM users WHERE id = ?",
+        [userId],
+        (error, results) => {
+          if (error) reject(error);
+          resolve(results || []);
+        }
+      );
     });
 
     const [receiver] = await new Promise((resolve, reject) => {
-      db.query('SELECT * FROM users WHERE id = ?', [receiverId], (error, results) => {
-        if (error) reject(error);
-        resolve(results || []);
-      });
+      db.query(
+        "SELECT * FROM users WHERE id = ?",
+        [receiverId],
+        (error, results) => {
+          if (error) reject(error);
+          resolve(results || []);
+        }
+      );
     });
 
     if (!sender || !receiver) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const senderRole = parseInt(sender.clan_role, 10);
     const receiverRole = parseInt(receiver.clan_role, 10);
 
     if (sender.tai_san < amount) {
-      return res.status(400).json({ message: 'Bạn không đủ bạc để tặng!' });
+      return res.status(400).json({ message: "Bạn không đủ bạc để tặng!" });
     }
 
-    const today = new Date().toLocaleDateString('en-GB').split('/').join('');
+    const today = new Date().toLocaleDateString("en-GB").split("/").join("");
     const dailyLimit = 50000;
 
     let totalSentToday = 0;
     let totalReceivedToday = 0;
-
-    console.log(`Sender Role: ${senderRole}`);
-    console.log(`Receiver Role: ${receiverRole}`);
-    console.log(`Amount to be sent: ${amount}`);
 
     if (senderRole !== 9) {
       const [sentTodayResult] = await new Promise((resolve, reject) => {
@@ -71,20 +77,18 @@ export default async function handler(req, res) {
           [userId, today],
           (error, results) => {
             if (error) reject(error);
-            console.log('SQL Error or Results:', error, results); 
+            console.log("SQL Error or Results:", error, results);
             resolve(results || [{ total_sent: 0 }]);
           }
         );
       });
 
-      console.log('sentTodayResult:', sentTodayResult);
-
       totalSentToday = sentTodayResult.total_sent || 0;
-      console.log(`Total sent today by sender (ID: ${userId}): ${totalSentToday}`);
 
       if (totalSentToday + amount > dailyLimit) {
-        console.log('Exceeded daily sending limit.');
-        return res.status(400).json({ message: 'Bạn đã tặng quá số lượng trong ngày hôm nay!' });
+        return res
+          .status(400)
+          .json({ message: "Bạn đã tặng quá số lượng trong ngày hôm nay!" });
       }
     }
 
@@ -98,44 +102,60 @@ export default async function handler(req, res) {
           [receiverId, today],
           (error, results) => {
             if (error) reject(error);
-            console.log('SQL Error or Results:', error, results); 
+            console.log("SQL Error or Results:", error, results);
             resolve(results || [{ total_received: 0 }]);
           }
         );
       });
 
-      console.log('receivedTodayResult:', receivedTodayResult); 
-
       totalReceivedToday = receivedTodayResult.total_received || 0;
-      console.log(`Total received today by receiver (ID: ${receiverId}): ${totalReceivedToday}`);
 
       if (totalReceivedToday + amount > dailyLimit) {
-        console.log('Exceeded daily receiving limit.');
-        return res.status(400).json({ message: 'Người này đã nhận quá số lượng trong ngày hôm nay!' });
+        console.log("Exceeded daily receiving limit.");
+        return res
+          .status(400)
+          .json({
+            message: "Người này đã nhận quá số lượng trong ngày hôm nay!",
+          });
       }
     }
 
     await new Promise((resolve, reject) => {
-      db.query('UPDATE users SET tai_san = tai_san - ? WHERE id = ?', [amount, userId], (error) => {
-        if (error) reject(error);
-        resolve();
-      });
+      db.query(
+        "UPDATE users SET tai_san = tai_san - ? WHERE id = ?",
+        [amount, userId],
+        (error) => {
+          if (error) reject(error);
+          resolve();
+        }
+      );
     });
-
-    await new Promise((resolve, reject) => {
-      db.query('UPDATE users SET tai_san = tai_san + ? WHERE id = ?', [amount, receiverId], (error) => {
-        if (error) reject(error);
-        resolve();
-      });
-    });
-
-    const senderLog = sender.ngoai_hieu ? `${sender.ngoai_hieu}` : sender.username;
-    const receiverLog = receiver.ngoai_hieu ? `${receiver.ngoai_hieu}` : receiver.username;
 
     await new Promise((resolve, reject) => {
       db.query(
-        'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, ?, ?, NOW())',
-        [userId, 'Sent Money', `đã tặng ${amount} bạc cho ${receiverLog}`],
+        "UPDATE users SET tai_san = tai_san + ? WHERE id = ?",
+        [amount, receiverId],
+        (error) => {
+          if (error) reject(error);
+          resolve();
+        }
+      );
+    });
+
+    const senderLog = sender.ngoai_hieu
+      ? `${sender.ngoai_hieu}`
+      : sender.username;
+    const receiverLog = receiver.ngoai_hieu
+      ? `${receiver.ngoai_hieu}`
+      : receiver.username;
+
+    const senderLogWithLink = `<a href="https://www.tuchangioi.xyz/member/${userId}">${senderLog}</a>`;
+    const receiverLogWithLink = `<a href="https://www.tuchangioi.xyz/member/${receiverId}">${receiverLog}</a>`;
+
+    await new Promise((resolve, reject) => {
+      db.query(
+        "INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, ?, ?, NOW())",
+        [userId, "Sent Money", `đã tặng ${amount} bạc cho ${receiverLog}`],
         (error) => {
           if (error) reject(error);
           resolve();
@@ -146,18 +166,18 @@ export default async function handler(req, res) {
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, ?, ?, NOW())',
-        [receiverId, 'Received Money', `${senderLog} đã tặng ${amount} bạc cho bạn`],
+        [userId, 'Sent Money', `đã tặng ${amount} bạc cho ${receiverLogWithLink}`],
         (error) => {
           if (error) reject(error);
           resolve();
         }
       );
     });
-
+    
     await new Promise((resolve, reject) => {
       db.query(
-        'INSERT INTO transactions (sender_id, receiver_id, amount, timestamp) VALUES (?, ?, ?, NOW())',
-        [userId, receiverId, amount],
+        'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, ?, ?, NOW())',
+        [receiverId, 'Received Money', `${senderLogWithLink} đã tặng ${amount} bạc cho bạn`],
         (error) => {
           if (error) reject(error);
           resolve();
@@ -165,8 +185,12 @@ export default async function handler(req, res) {
       );
     });
 
-    res.status(200).json({ message: `You have sent ${amount} coins successfully!` });
+    res
+      .status(200)
+      .json({ message: `You have sent ${amount} coins successfully!` });
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
+    return res
+      .status(401)
+      .json({ message: "Invalid or expired token", error: error.message });
   }
 }
