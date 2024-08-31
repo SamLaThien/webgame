@@ -76,6 +76,37 @@ export default async function handler(req, res) {
       );
     });
 
+    // Fetch the updated quantity from the user's ruong_do
+    const updatedUserItemResults = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT so_luong FROM ruong_do WHERE id = ? AND user_id = ?',
+        [ruongDoId, userId],
+        (error, results) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(results);
+        }
+      );
+    });
+
+    const newUserItemQuantity = updatedUserItemResults[0]?.so_luong || 0;
+
+    if (newUserItemQuantity === 0) {
+      await new Promise((resolve, reject) => {
+        db.query(
+          'DELETE FROM ruong_do WHERE id = ? AND user_id = ?',
+          [ruongDoId, userId],
+          (error) => {
+            if (error) {
+              return reject(error);
+            }
+            resolve();
+          }
+        );
+      });
+    }
+
     const clanResult = await new Promise((resolve, reject) => {
       db.query(
         'SELECT clan_id FROM clan_members WHERE member_id = ?',
@@ -101,6 +132,8 @@ export default async function handler(req, res) {
 
     const clanId = clanResult[0].clan_id;
 
+    let clanItemQuantity = 0;
+
     const clanItemResults = await new Promise((resolve, reject) => {
       db.query(
         'SELECT so_luong FROM clan_ruong_do WHERE clan_id = ? AND vat_pham_id = ?',
@@ -115,6 +148,7 @@ export default async function handler(req, res) {
     });
 
     if (clanItemResults.length > 0) {
+      clanItemQuantity = clanItemResults[0].so_luong + donationAmount;
       await new Promise((resolve, reject) => {
         db.query(
           'UPDATE clan_ruong_do SET so_luong = so_luong + ? WHERE clan_id = ? AND vat_pham_id = ?',
@@ -128,6 +162,7 @@ export default async function handler(req, res) {
         );
       });
     } else {
+      clanItemQuantity = donationAmount;
       await new Promise((resolve, reject) => {
         db.query(
           'INSERT INTO clan_ruong_do (clan_id, vat_pham_id, so_luong) VALUES (?, ?, ?)',
@@ -158,10 +193,13 @@ export default async function handler(req, res) {
     const { ngoai_hieu, username, Name } = userAndItemDetails[0];
     const displayName = ngoai_hieu || username;
 
+    const userActionDetails = `đã nộp bang ${Name} ${donationAmount} (còn ${newUserItemQuantity})`;
+    const clanActionDetails = `${displayName} đã nộp bang ${Name} ${donationAmount} (còn ${clanItemQuantity})`;
+
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details) VALUES (?, ?, ?, ?)',
-        [userId, clanId, 'Donate Item', `${displayName} đã nộp bang ${Name} x${donationAmount}`],
+        [userId, clanId, 'Donate Item', clanActionDetails],
         (error) => {
           if (error) {
             return reject(error);
@@ -174,7 +212,7 @@ export default async function handler(req, res) {
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO user_activity_logs (user_id, action_type, action_details) VALUES ( ?, ?, ?)',
-        [userId, 'Donate Item', `Đạo hữu đã nộp bang ${Name} x${donationAmount}`],
+        [userId, 'Donate Item', userActionDetails],
         (error) => {
           if (error) {
             return reject(error);

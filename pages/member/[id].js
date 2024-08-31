@@ -107,15 +107,6 @@ const NgoaiHieu = styled.div`
   border-top: 1px dashed #93b6c8;
 `;
 
-const DanhHao = styled.div`
-  font-size: 15px;
-  font-weight: bold;
-  color: #666;
-  text-align: center;
-  line-height: 30px;
-  border-top: 1px dashed #93b6c8;
-`;
-
 const TaiSanContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -290,27 +281,20 @@ const MemberPage = ({ id }) => {
             },
           });
           const userData = response.data;
-  
+
+          const levelResponse = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: userData.level },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
           setUser(userData);
-  
-          if (userData.id === 3) {
-            setLevelData({
-              exp: userData.exp,
-              tu_vi: "Thiên Đạo",
-            });
-          } else {
-            const levelResponse = await axios.post(
-              `/api/user/dot-pha/level-info`,
-              { level: userData.level },
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            setLevelData(levelResponse.data);
-          }
-  
+          setLevelData(levelResponse.data);
+
           if (userData.canView) {
             await fetchUserItems();
           } else {
@@ -321,7 +305,7 @@ const MemberPage = ({ id }) => {
         }
       }
     };
-  
+
     const fetchUserItems = async () => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -338,10 +322,9 @@ const MemberPage = ({ id }) => {
         }
       }
     };
-  
+
     fetchUserData();
   }, [id]);
-  
 
   const expProgress =
     user && levelData && levelData.exp > 0
@@ -391,9 +374,9 @@ const MemberPage = ({ id }) => {
             <NgoaiHieu>
               {user.ngoai_hieu ? user.ngoai_hieu : "Chưa có ngoại hiệu"}
             </NgoaiHieu>
-            <DanhHao>
-              {user.danh_haào ? user.danh_haoào : "Chưa có danh hào"}
-            </DanhHao>
+            <NgoaiHieu>
+              {user.danh_hao ? user.danh_hao : "Chưa có danh hào"}
+            </NgoaiHieu>
             <TaiSanContainer>
               <TaiSanImage src="/gold.png"></TaiSanImage>
               <TaiSanValue>{user.tai_san}</TaiSanValue>

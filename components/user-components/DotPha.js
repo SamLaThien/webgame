@@ -530,7 +530,7 @@ export default DotPha;
 
 const getItemNameById = (itemId) => {
   const itemNames = {
-    41: "Huyết Khí Đan",
+    83: "Huyết Khí Đan",
     44: "Đê Giai Thuẫn",
     45: "Tị Lôi Châu",
     46: "Thanh Tâm Đan",

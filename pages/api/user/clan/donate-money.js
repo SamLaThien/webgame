@@ -21,9 +21,9 @@ export default async function handler(req, res) {
     return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
   }
 
-  const { accountantId, amount } = req.body;
+  const { amount } = req.body;
 
-  if (!userId || !accountantId || !amount || amount <= 0) {
+  if (!userId || !amount || amount <= 0) {
     return res.status(400).json({ message: 'Invalid or missing parameters' });
   }
 
@@ -31,6 +31,7 @@ export default async function handler(req, res) {
     const taxRate = 0.02;
     const taxAmount = amount * taxRate;
     const amountAfterTax = amount - taxAmount;
+
     const userResult = await new Promise((resolve, reject) => {
       db.query(
         'SELECT tai_san, ngoai_hieu, username FROM users WHERE id = ?',
@@ -57,6 +58,25 @@ export default async function handler(req, res) {
 
     const userIdentifier = user.ngoai_hieu || user.username;
 
+    const clanAccountantResult = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT accountant_id FROM clans WHERE id = (SELECT clan_id FROM clan_members WHERE member_id = ?)',
+        [userId],
+        (error, results) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(results);
+        }
+      );
+    });
+
+    if (!clanAccountantResult || clanAccountantResult.length === 0) {
+      return res.status(404).json({ message: 'Clan or accountant not found' });
+    }
+
+    const accountantId = clanAccountantResult[0].accountant_id;
+
     await new Promise((resolve, reject) => {
       db.query('START TRANSACTION', (err) => {
         if (err) reject(err);
@@ -77,6 +97,21 @@ export default async function handler(req, res) {
       );
     });
 
+    const updatedUserResult = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT tai_san FROM users WHERE id = ?',
+        [userId],
+        (error, results) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(results);
+        }
+      );
+    });
+
+    const newUserTaiSan = updatedUserResult[0]?.tai_san || 0;
+
     await new Promise((resolve, reject) => {
       db.query(
         'UPDATE users SET tai_san = tai_san + ? WHERE id = ?',
@@ -90,10 +125,30 @@ export default async function handler(req, res) {
       );
     });
 
+    const updatedClanMoneyResult = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT tai_san FROM users WHERE id = ?',
+        [accountantId],
+        (error, results) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(results);
+        }
+      );
+    });
+
+    const updatedClanMoney = updatedClanMoneyResult[0]?.tai_san || 0;
+
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details, timestamp) VALUES (?, (SELECT clan_id FROM clan_members WHERE member_id = ?), ?, ?, NOW())',
-        [userId, userId, 'Donate Money', `${userIdentifier} đã nộp vào ngân khố bang ${amountAfterTax} bạc`],
+        [
+          userId,
+          userId,
+          'Donate Money',
+          `${userIdentifier} đã nộp vào ngân khố bang ${amountAfterTax} bạc (còn ${updatedClanMoney} bạc)`,
+        ],
         (error) => {
           if (error) {
             return reject(error);
@@ -106,7 +161,11 @@ export default async function handler(req, res) {
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO user_activity_logs (user_id, action_type, action_details) VALUES ( ?, ?, ?)',
-        [userId, 'Donate Moeny', `Đạo hữu đã nộp bang ${amountAfterTax} bạc`],
+        [
+          userId,
+          'Donate Money',
+          `đã nộp bang ${amountAfterTax} bạc (còn ${newUserTaiSan} bạc, ngân khố bang hiện tại: ${updatedClanMoney} bạc)`,
+        ],
         (error) => {
           if (error) {
             return reject(error);
