@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       }
 
       const displayName = results[0].ngoai_hieu || results[0].username;
-      const displayNameWithLink = `<a style="text-decoration: none; color: black;" href="https://www.tuchangioi.xyz/member/${userId}">${displayName}</a>`;
+      const displayNameWithLink = `<a target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; href="https://tuchangioi.xyz/member/${userId}">${displayName}</a>`;
 
       if (req.method === "POST") {
         const { prize_category, prize_name, quantity } = req.body;
