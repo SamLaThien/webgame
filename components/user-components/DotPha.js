@@ -24,6 +24,14 @@ const Container = styled.div`
   font-size: 16px;
 `;
 
+const GlowingText = styled.span`
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px rgba(255, 191, 0, 0.8), 0 0 10px rgba(255, 191, 0, 0.6);
+`;
+
 const MainContent = styled.div`
   flex: 1;
 `;
@@ -438,7 +446,11 @@ const DotPha = () => {
           <Container>
             <MainContent>
               <Info>
-                Cảnh giới hiện tại: <span>{levelData.tu_vi}</span>
+                Cảnh giới hiện tại: <span> {user.id === 3 ? (
+                <GlowingText>Thiên Đạo</GlowingText>
+              ) : (
+                <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
+              )}</span>
               </Info>
               <Info>Tiến độ tu luyện</Info>
               <Info>
