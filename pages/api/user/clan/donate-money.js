@@ -105,8 +105,8 @@ export default async function handler(req, res) {
 
     await new Promise((resolve, reject) => {
       db.query(
-        'INSERT INTO user_activity_logs (user_id, clan_id, action_type, action_details) VALUES (?, ?, ?, ?)',
-        [userId, clanId, 'Donate Moeny', `Đạo hữu đã nộp bang ${amountAfterTax} bạc`],
+        'INSERT INTO user_activity_logs (user_id, action_type, action_details) VALUES ( ?, ?, ?)',
+        [userId, 'Donate Moeny', `Đạo hữu đã nộp bang ${amountAfterTax} bạc`],
         (error) => {
           if (error) {
             return reject(error);

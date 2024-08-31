@@ -6,7 +6,7 @@ import Layout from "../../components/Layout";
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: calc(160vh - 100px);
+  height: calc(200vh - 100px);
   flex-direction: row;
   justify-content: space-between;
   background-color: none;
@@ -102,6 +102,15 @@ const NgoaiHieu = styled.div`
   font-weight: bold;
   color: #666;
   margin-top: 20px;
+  text-align: center;
+  line-height: 30px;
+  border-top: 1px dashed #93b6c8;
+`;
+
+const DanhHao = styled.div`
+  font-size: 15px;
+  font-weight: bold;
+  color: #666;
   text-align: center;
   line-height: 30px;
   border-top: 1px dashed #93b6c8;
@@ -281,20 +290,27 @@ const MemberPage = ({ id }) => {
             },
           });
           const userData = response.data;
-
-          const levelResponse = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: userData.level },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
+  
           setUser(userData);
-          setLevelData(levelResponse.data);
-
+  
+          if (userData.id === 3) {
+            setLevelData({
+              exp: userData.exp,
+              tu_vi: "Thiên Đạo",
+            });
+          } else {
+            const levelResponse = await axios.post(
+              `/api/user/dot-pha/level-info`,
+              { level: userData.level },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            setLevelData(levelResponse.data);
+          }
+  
           if (userData.canView) {
             await fetchUserItems();
           } else {
@@ -305,7 +321,7 @@ const MemberPage = ({ id }) => {
         }
       }
     };
-
+  
     const fetchUserItems = async () => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -322,9 +338,10 @@ const MemberPage = ({ id }) => {
         }
       }
     };
-
+  
     fetchUserData();
   }, [id]);
+  
 
   const expProgress =
     user && levelData && levelData.exp > 0
@@ -333,13 +350,13 @@ const MemberPage = ({ id }) => {
 
   const getClanRole = (roleId) => {
     const roles = {
-      1: "Tạp dịch, linh đồng",
-      2: "Ngoại môn đệ tử",
-      3: "Nội môn đệ tử",
-      4: "Hộ pháp",
-      5: "Trưởng lão",
-      6: "Đại trưởng lão",
-      7: "Chưởng môn",
+      1: "Tạp Dịch",
+      2: "Ngoại Môn Đệ Tử",
+      3: "Nội Môn Đệ Tử",
+      4: "Hộ Pháp",
+      5: "Trưởng Lão",
+      6: "Đại Trưởng Lão",
+      7: "Chưởng Môn",
     };
     return roles[roleId] || "Unknown Role";
   };
@@ -374,6 +391,9 @@ const MemberPage = ({ id }) => {
             <NgoaiHieu>
               {user.ngoai_hieu ? user.ngoai_hieu : "Chưa có ngoại hiệu"}
             </NgoaiHieu>
+            <DanhHao>
+              {user.danh_haào ? user.danh_haoào : "Chưa có danh hào"}
+            </DanhHao>
             <TaiSanContainer>
               <TaiSanImage src="/gold.png"></TaiSanImage>
               <TaiSanValue>{user.tai_san}</TaiSanValue>

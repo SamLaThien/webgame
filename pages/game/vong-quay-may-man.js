@@ -129,7 +129,7 @@ const VongQuayMayManPage = () => {
   const [taiSan, setTaiSan] = useState(0);
   const initialSpinValue = 0;
   const [isAutoSpinning, setIsAutoSpinning] = useState(false);
-  
+
   const prizes = [
     "Đồ Thần Bí", // slot_number = 1
     "Đồ Đột Phá", // slot_number = 2
@@ -176,160 +176,179 @@ const VongQuayMayManPage = () => {
         }
       });
 
-      const fetchLogs = async () => {
-        try {
-          const logsResponse = await fetch("/api/user/game/vong-quay/spin-logs", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const logs = await logsResponse.json();
-    
-          const formattedLogs = logs.map((log) => ({
-            ...log,
-            formattedTime: formatTimeDifference(log.timestamp),
-          }));
-    
-          setSpinLogs(formattedLogs.slice(0, 30)); 
-        } catch (error) {
-          console.error("Error fetching spin logs:", error);
-        }
-      };
-      fetchLogs();
+    const fetchLogs = async () => {
+      try {
+        const logsResponse = await fetch("/api/user/game/vong-quay/spin-logs", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const logs = await logsResponse.json();
 
-      const intervalId = setInterval(fetchLogs, 5000); 
-    
-      return () => clearInterval(intervalId);
+        const formattedLogs = logs.map((log) => ({
+          ...log,
+          formattedTime: formatTimeDifference(log.timestamp),
+        }));
+
+        setSpinLogs(formattedLogs.slice(0, 30));
+      } catch (error) {
+        console.error("Error fetching spin logs:", error);
+      }
+    };
+    fetchLogs();
+
+    const intervalId = setInterval(fetchLogs, 5000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleSpinClick = useCallback(async () => {
     if (isSpinning) {
       alert("Đạo hữu quay quá nhanh");
       return;
-    }    if (wheelSlots.length === 0) return;
+    }
+    if (wheelSlots.length === 0) return;
 
     try {
-        const token = localStorage.getItem("token");
-        const storedUser = JSON.parse(localStorage.getItem("user"));
+      const token = localStorage.getItem("token");
+      const storedUser = JSON.parse(localStorage.getItem("user"));
 
-        let spinToken;
-        try {
-            const spinTokenResponse = await fetch("/api/user/game/vong-quay/spin-token", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ userId: storedUser.id }),
-            });
+      let spinToken;
+      try {
+        const spinTokenResponse = await fetch(
+          "/api/user/game/vong-quay/spin-token",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userId: storedUser.id }),
+          }
+        );
 
-            const spinTokenData = await spinTokenResponse.json();
-            spinToken = spinTokenData.spinToken;
-        } catch (error) {
-            console.error("Error fetching spin token:", error);
-            return;
+        const spinTokenData = await spinTokenResponse.json();
+        spinToken = spinTokenData.spinToken;
+      } catch (error) {
+        console.error("Error fetching spin token:", error);
+        return;
+      }
+
+      let taiSanData;
+      try {
+        const response = await fetch("/api/user/game/vong-quay/tai-san", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId: storedUser.id }),
+        });
+
+        taiSanData = await response.json();
+
+        if (!response.ok) {
+          console.error("Error fetching tai san:", taiSanData.message);
+          return;
         }
 
-        let taiSanData;
+        setTaiSan(taiSanData.tai_san);
+      } catch (error) {
+        console.error("Error fetching tai san:", error);
+        return;
+      }
+
+      const randomDegree = Math.floor(Math.random() * 360) + 3600;
+      setSpinValue(randomDegree);
+      setIsSpinning(true);
+
+      setTimeout(async () => {
+        const selectedPrizeIndex = Math.floor(
+          (360 - (randomDegree % 360)) / (360 / prizes.length)
+        );
+        const selectedSlotNumber = selectedPrizeIndex + 1;
+
+        let prizeValue;
+        let prizeName;
         try {
-            const response = await fetch("/api/user/game/vong-quay/tai-san", {
+          if (selectedSlotNumber >= 1 && selectedSlotNumber <= 4) {
+            const itemApiResponse = await fetch(
+              "/api/user/game/vong-quay/item",
+              {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ userId: storedUser.id }),
-            });
-
-            taiSanData = await response.json();
-
-            if (!response.ok) {
-                console.error("Error fetching tai san:", taiSanData.message);
-                return;
-            }
-
-            setTaiSan(taiSanData.tai_san);
-        } catch (error) {
-            console.error("Error fetching tai san:", error);
-            return;
-        }
-
-        const randomDegree = Math.floor(Math.random() * 360) + 3600;
-        setSpinValue(randomDegree);
-        setIsSpinning(true);
-
-        setTimeout(async () => {
-            const selectedPrizeIndex = Math.floor(
-                (360 - (randomDegree % 360)) / (360 / prizes.length)
+                body: JSON.stringify({
+                  userId: storedUser.id,
+                  spinToken,
+                  slot_number: selectedSlotNumber,
+                }),
+              }
             );
-            const selectedSlotNumber = selectedPrizeIndex + 1;
 
-            let prizeValue;
-            let prizeName;
-            try {
-                if (selectedSlotNumber >= 1 && selectedSlotNumber <= 4) {
-                    const itemApiResponse = await fetch("/api/user/game/vong-quay/item", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ userId: storedUser.id, spinToken, slot_number: selectedSlotNumber }),
-                    });
+            const itemApiData = await itemApiResponse.json();
+            prizeName = `1 ${itemApiData.item}`;
+            prizeValue = prizeName;
+          } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
+            const expResponse = await fetch("/api/user/game/vong-quay/exp", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                userId: storedUser.id,
+                spinToken,
+                slot_number: selectedSlotNumber,
+              }),
+            });
+            const expData = await expResponse.json();
 
-                    const itemApiData = await itemApiResponse.json();
-                    prizeName = `${itemApiData.item} x1`;  
-                    prizeValue = prizeName;
-
-                } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
-                    const expResponse = await fetch("/api/user/game/vong-quay/exp", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            userId: storedUser.id,
-                            spinToken,
-                            slot_number: selectedSlotNumber,
-                        }),
-                    });
-                    const expData = await expResponse.json();
-                    prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(' ')[1]}`; 
-                    prizeValue = prizeName;
-
-                }
-
-                setPrize(`${prizes[selectedPrizeIndex]}: ${prizeName}`);
-
-                const logResult = {
-                    username: storedUser.username,
-                    prize_category: prizes[selectedPrizeIndex],
-                    prize_name: prizeName,  
-                };
-
-                await fetch("/api/user/game/vong-quay/spin-logs", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(logResult),
-                });
-
-                setTimeout(() => {
-                    setIsSpinning(false);
-                    setSpinValue(0);
-                }, 100);
-            } catch (error) {
-                console.error("Error calculating prize:", error);
-                alert("Error calculating prize");
+            if (selectedSlotNumber === 5 || selectedSlotNumber === 6) {
+              prizeName = `${expData.prize} ${
+                prizes[selectedPrizeIndex].split(" ")[1]
+              } nghiệm`;
+            } else {
+              prizeName = `${expData.prize} ${
+                prizes[selectedPrizeIndex].split(" ")[1]
+              }`;
             }
-        }, 4000);
+
+            prizeValue = prizeName;
+          }
+
+          setPrize(`${prizes[selectedPrizeIndex]}: ${prizeName}`);
+
+          const logResult = {
+            username: storedUser.username,
+            prize_category: prizes[selectedPrizeIndex],
+            prize_name: prizeName,
+          };
+
+          await fetch("/api/user/game/vong-quay/spin-logs", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(logResult),
+          });
+
+          setTimeout(() => {
+            setIsSpinning(false);
+            setSpinValue(0);
+          }, 100);
+        } catch (error) {
+          console.error("Error calculating prize:", error);
+          alert("Error calculating prize");
+        }
+      }, 4000);
     } catch (error) {
-        console.error("Error during the spin:", error);
+      console.error("Error during the spin:", error);
     }
-}, [isSpinning, wheelSlots]);
+  }, [isSpinning, wheelSlots]);
 
   const getRandomItemPrize = async (slotNumber) => {
     const relevantSlots = wheelSlots.flatMap((slot) =>
