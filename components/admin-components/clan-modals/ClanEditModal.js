@@ -26,10 +26,7 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
     name: clan.name,
     owner: clan.owner,
     accountant_id: clan.accountant_id,
-    clan_money: clan.clan_money,
-    clan_mana: clan.clan_mana,
-    clan_color: clan.clan_color,
-    clan_icon: null // Handle icon separately since it's a file
+    clan_icon: null
   });
 
   const handleChange = (e) => {
@@ -85,32 +82,6 @@ const ClanEditModal = ({ clan, onClose, onSave }) => {
           label="Kế toán"
           name="accountant_id"
           value={formData.accountant_id}
-          onChange={handleChange}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Ngân quỹ"
-          name="clan_money"
-          type="number"
-          value={formData.clan_money}
-          onChange={handleChange}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Mana của bang hội"
-          name="clan_mana"
-          type="number"
-          value={formData.clan_mana}
-          onChange={handleChange}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Màu sắc bang hội"
-          name="clan_color"
-          value={formData.clan_color}
           onChange={handleChange}
           fullWidth
           margin="normal"

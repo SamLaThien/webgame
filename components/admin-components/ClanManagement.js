@@ -69,23 +69,24 @@ const ClanManagement = () => {
     setModalType(null);
   };
 
-  const handleSaveClan = async (updatedClan) => {
+  const handleSaveClan = async (updatedFormData) => {
     const token = localStorage.getItem('token');
     if (!token) {
       console.error('No token found');
       return;
     }
-
+  
     try {
-      const response = await axios.put(`/api/admin/clan/${updatedClan.id}`, updatedClan, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.put(`/api/admin/clan/${selectedClan.id}`, updatedFormData, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
       });
-      setClans(clans.map(clan => (clan.id === updatedClan.id ? updatedClan : clan)));
+      setClans(clans.map(clan => (clan.id === selectedClan.id ? { ...clan, ...response.data } : clan)));
       handleCloseModal();
     } catch (error) {
       console.error('Error updating clan:', error);
     }
   };
+  
 
   const handleCreateClan = async (newClanFormData) => {
     const token = localStorage.getItem('token');
@@ -147,7 +148,7 @@ const ClanManagement = () => {
                 <TableCell>{clan.id}</TableCell>
                 <TableCell>{clan.name}</TableCell>
                 <TableCell>{clan.owner}</TableCell>
-                <TableCell>{clan.clan_money}</TableCell>
+                <TableCell>{clan.accountant_id}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleOpenModal(clan, 'details')}>Chi tiết</Button>
                   <Button onClick={() => handleOpenModal(clan, 'edit')}>Chỉnh sửa</Button>

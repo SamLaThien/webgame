@@ -79,26 +79,22 @@ export default async function handler(req, res) {
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-  } else if (method === 'POST') {
+  } else  if (method === 'POST') {
     upload.single('clan_icon')(req, res, async function (err) {
       if (err) {
         return res.status(400).json({ message: err.message });
       }
 
-      const { id, name, owner, accountant_id, 
-        // clan_color,
-         password } = req.body;
+      const { id, name, owner, accountant_id, password } = req.body;
 
-      if (!name || !owner || !accountant_id || 
-        // !clan_color ||
-         !password) {
-        return res.status(400).json({ message: 'Name, owner, accountant, and clan color are required' });
+      if (!name || !owner || !accountant_id || !password) {
+        return res.status(400).json({ message: 'Name, owner, accountant, and password are required' });
       }
 
       try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newId = id || null;
-        const clanMana = 10000000; 
+        const clanMana = 10000000;
         const iconPath = req.file ? `/clan_icon/${newId}.png` : null;
 
         db.query('START TRANSACTION', async (startError) => {
@@ -119,7 +115,7 @@ export default async function handler(req, res) {
 
             db.query(
               'INSERT INTO clans (id, name, owner, accountant_id, clan_mana, clan_icon, password, cbox_thread_id, cbox_thread_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [newId, name, owner, accountant_id, clanMana,  iconPath, hashedPassword, threadId, threadKey],
+              [newId, name, owner, accountant_id, clanMana, iconPath, hashedPassword, threadId, threadKey],
               (clanError, clanResults) => {
                 if (clanError) {
                   db.query('ROLLBACK', () => {});
@@ -149,23 +145,34 @@ export default async function handler(req, res) {
                           return res.status(500).json({ message: 'Internal server error', error: userError.message });
                         }
 
-                        db.query('COMMIT', (commitError) => {
-                          if (commitError) {
-                            return res.status(500).json({ message: 'Internal server error', error: commitError.message });
-                          }
+                        // Update accountant role to 9
+                        db.query(
+                          'UPDATE users SET clan_role = 9 WHERE id = ?',
+                          [accountant_id],
+                          (accountantError) => {
+                            if (accountantError) {
+                              db.query('ROLLBACK', () => {});
+                              return res.status(500).json({ message: 'Internal server error', error: accountantError.message });
+                            }
 
-                          res.status(201).json({ 
-                            id: clanId, 
-                            name, 
-                            owner,
-                            accountant_id, 
-                            clan_mana: clanMana, 
-                            // clan_color, 
-                            clan_icon: iconPath, 
-                            threadId, 
-                            threadKey 
-                          });
-                        });
+                            db.query('COMMIT', (commitError) => {
+                              if (commitError) {
+                                return res.status(500).json({ message: 'Internal server error', error: commitError.message });
+                              }
+
+                              res.status(201).json({ 
+                                id: clanId, 
+                                name, 
+                                owner,
+                                accountant_id, 
+                                clan_mana: clanMana, 
+                                clan_icon: iconPath, 
+                                threadId, 
+                                threadKey 
+                              });
+                            });
+                          }
+                        );
                       }
                     );
                   }
@@ -183,29 +190,64 @@ export default async function handler(req, res) {
     });
   } else if (method === 'PUT') {
     const { id } = req.query;
-    const { name, owner, clan_money, accountant_id, clan_color, password } = req.body;
+    const { name, owner, accountant_id, password } = req.body;
 
     if (!id) {
       return res.status(400).json({ message: 'Clan ID is required' });
     }
 
     try {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const fieldsToUpdate = [];
+      const values = [];
 
-      db.query(
-        'UPDATE clans SET name = ?, owner = ?, accountant_id = ?, clan_color = ?, password = ? WHERE id = ?',
-        [name, owner, accountant_id, clan_color, hashedPassword, id],
-        (error) => {
-          if (error) {
-            return res.status(500).json({ message: 'Internal server error', error: error.message });
-          }
-          res.status(200).json({ message: 'Clan updated successfully' });
+      if (name) {
+        fieldsToUpdate.push('name = ?');
+        values.push(name);
+      }
+
+      if (owner) {
+        fieldsToUpdate.push('owner = ?');
+        values.push(owner);
+      }
+
+      if (accountant_id) {
+        fieldsToUpdate.push('accountant_id = ?');
+        values.push(accountant_id);
+      }
+
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        fieldsToUpdate.push('password = ?');
+        values.push(hashedPassword);
+      }
+
+      if (fieldsToUpdate.length === 0) {
+        return res.status(400).json({ message: 'No fields provided for update' });
+      }
+
+      values.push(id);
+
+      const query = `UPDATE clans SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
+
+      db.query(query, values, (error) => {
+        if (error) {
+          return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
-      );
+        res.status(200).json({ message: 'Clan updated successfully' });
+
+        if (accountant_id) {
+          db.query('UPDATE users SET clan_role = 9 WHERE id = ?', [accountant_id], (accountantError) => {
+            if (accountantError) {
+              console.error('Error updating accountant role:', accountantError.message);
+            }
+          });
+        }
+      });
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-  } else if (method === 'DELETE') {
+  }
+ else if (method === 'DELETE') {
     const { id } = req.query;
 
     if (!id) {
@@ -227,3 +269,12 @@ export default async function handler(req, res) {
     res.status(405).end(`Method ${method} Not Allowed`);
   }
 }
+
+
+
+
+
+
+
+
+
