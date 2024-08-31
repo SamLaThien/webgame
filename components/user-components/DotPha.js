@@ -448,7 +448,7 @@ const DotPha = () => {
             <MainContent>
               <Info>
                 Cảnh giới hiện tại:{" "}
-                {user.id === 1 ? (
+                {user.id === 3 ? (
                   <GlowingText>Thiên Đạo</GlowingText>
                 ) : (
                   <span>{levelData.tu_vi}</span>
