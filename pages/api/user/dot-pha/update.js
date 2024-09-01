@@ -24,16 +24,16 @@ export default async function handler(req, res) {
           return res.status(404).json({ message: 'User not found' });
         }
 
-        const lastUpdate = moment(user.last_exp_update);
+        // const lastUpdate = moment(user.last_exp_update);
         const now = moment();
-        if (lastUpdate) {
-          const minutesSinceLastUpdate = now.diff(moment(lastUpdate), 'minutes');
-          console.log(now.diff(moment(lastUpdate), 'minutes'));
-          if (minutesSinceLastUpdate < 30) {
-            await db.query('ROLLBACK');
-            return res.status(429).json({ message: `EXP update can only be done every 30 minutes. Please wait another ${30 - minutesSinceLastUpdate} minutes.` });
-          }
-        }
+        // if (lastUpdate) {
+        //   const minutesSinceLastUpdate = now.diff(moment(lastUpdate), 'minutes');
+        //   console.log(now.diff(moment(lastUpdate), 'minutes'));
+        //   if (minutesSinceLastUpdate < 30) {
+        //     await db.query('ROLLBACK');
+        //     return res.status(429).json({ message: `EXP update can only be done every 30 minutes. Please wait another ${30 - minutesSinceLastUpdate} minutes.` });
+        //   }
+        // }
 
         const level = user.level;
         const cap = Math.floor(level / 10) + 1;
