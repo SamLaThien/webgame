@@ -61,6 +61,11 @@ const Button = styled.button`
   border-radius: 50%;
   cursor: pointer;
   z-index: 4;
+  @media (max-width: 749px) {
+    width: 70px;
+  height: 70px;
+  background-size: 300;
+  }
 `;
 
 const AutoSpinButton = styled.button`
@@ -74,7 +79,7 @@ position: absolute;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  margin-top: 20px;
+  margin-top: 40px;
   
   &:hover {
     background-color: ${({ isActive }) => (isActive ? "#c1121f" : "#1c86ee")};
@@ -108,7 +113,7 @@ const Marker = styled.img`
   z-index: 5;
 `;
 const LowerSection = styled.div`
-  margin-top: 40px;
+  margin-top: 120px;
   display: flex;
   flex-direction: row;
   gap: 20px;
