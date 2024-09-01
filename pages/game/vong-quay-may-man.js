@@ -351,13 +351,19 @@ const VongQuayMayManPage = () => {
               }
             );
 
-            const itemApiData = await itemApiResponse.json();
-            item_id = itemApiData.item_id
-            prizeName = `${itemApiData.amount} ${itemApiData.item}`;
-            if (itemApiData.amount > 1) {
-              chat(`[b]Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}[/b]`)
+            if (itemApiResponse.ok) { 
+              const itemApiData = await itemApiResponse.json();
+              item_id = itemApiData.item_id;
+              prizeName = `${itemApiData.amount} ${itemApiData.item}`;
+              if (itemApiData.amount > 1) {
+                chat(`[b]Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}[/b]`);
+              }
+              prizeValue = prizeName;
+            } else {
+              console.error("Item API response not OK:", itemApiResponse.statusText);
+              alert("Failed to retrieve item data");
+              return; 
             }
-            prizeValue = prizeName;
           } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
             const expResponse = await fetch("/api/user/game/vong-quay/exp", {
               method: "POST",
