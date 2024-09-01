@@ -353,8 +353,8 @@ const VongQuayMayManPage = () => {
 
             const itemApiData = await itemApiResponse.json();
             item_id = itemApiData.item_id
-            prizeName = `${itemApiData.amonut} ${itemApiData.item}`;
-            if (itemApiData.amonut > 1) {
+            prizeName = `${itemApiData.amount} ${itemApiData.item}`;
+            if (itemApiData.amount > 1) {
               chat(`[b]Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}[/b]`)
             }
             prizeValue = prizeName;

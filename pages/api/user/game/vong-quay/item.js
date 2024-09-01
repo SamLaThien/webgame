@@ -91,11 +91,11 @@ export default async function handler(req, res) {
                   if (checkError) {
                     return res.status(500).json({ message: 'Internal server error', error: checkError.message });
                   }
-                  let amonut = randomNumber() || 0;
+                  let amount = randomNumber() || 0;
 
                   if (checkResults.length > 0) {
                     const existingItem = checkResults[0];
-                    const newQuantity = existingItem.so_luong + parseInt(amonut);
+                    const newQuantity = existingItem.so_luong + parseInt(amount);
                     const queryUpdate = `
                     UPDATE ruong_do SET so_luong = ? WHERE id = ?
                   `;
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
                       if (updateError) {
                         return res.status(500).json({ message: 'Internal server error', error: updateError.message });
                       }
-                      res.status(200).json({ username: displayName, message: 'Item quantity updated successfully', item: selectedItem.option_text, item_id: selectedItem.item_id, amonut: amonut });
+                      res.status(200).json({ username: displayName, message: 'Item quantity updated successfully', item: selectedItem.option_text, item_id: selectedItem.item_id, amount: amount });
                     });
                   } else {
                     const queryInsert = `
