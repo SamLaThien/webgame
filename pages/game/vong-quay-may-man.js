@@ -3,6 +3,7 @@ import Layout from "../../components/Layout";
 import styled from "styled-components";
 import moment from "moment";
 import CboxGeneral from "@/components/CboxGeneral";
+import { chat } from "./helper.js";
 
 const WheelContainer = styled.div`
   position: relative;
@@ -93,12 +94,11 @@ position: absolute;
 
 const ResultMessage = styled.div`
   position: absolute;
-  top: 50%;
+  top: 100%;
   left: 50%;
-  transform: translate(-50%, -150%);
+  transform: translate(-50%, -100%);
   padding: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
+  color: red;
   border-radius: 5px;
   font-size: 1.5rem;
   text-align: center;
@@ -170,7 +170,7 @@ color: ${(props) => categoryColors[props.category] || "rgba(255, 255, 255, 0.1)"
 
 
 const categoryColors = {
-  "Đồ Thần Bí": "#FFD700", // Gold
+  "Đồ Thần Bí": "#FFD700",
   "Đồ Đột Phá": "#8A2BE2", // BlueViolet
   "Đồ Luyện Khí": "#00CED1", // DarkTurquoise
   "Đồ Luyện Đan": "#FF4500", // OrangeRed
@@ -182,13 +182,11 @@ const categoryColors = {
 
 const VongQuayMayManPage = () => {
   const [spinValue, setSpinValue] = useState(0);
-  const [prize, setPrize] = useState("");
   const [isSpinning, setIsSpinning] = useState(false);
   const [wheelSlots, setWheelSlots] = useState([]);
   const [spinLogs, setSpinLogs] = useState([]);
-  const [taiSan, setTaiSan] = useState(0);
-  const initialSpinValue = 0;
   const [isAutoSpinning, setIsAutoSpinning] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const prizes = [
     "Đồ Thần Bí", // slot_number = 1
@@ -264,9 +262,14 @@ const VongQuayMayManPage = () => {
 
   const handleSpinClick = useCallback(async () => {
     if (isSpinning) {
-      alert("Đạo hữu quay quá nhanh");
+      setErrorMessage("Đạo hữu quay quá nhanh");
+      setTimeout(() => {
+        setIsSpinning(false);
+        setSpinValue(0);
+      }, 4000);
       return;
     }
+    setErrorMessage("");
     if (wheelSlots.length === 0) return;
 
     try {
@@ -311,8 +314,6 @@ const VongQuayMayManPage = () => {
           console.error("Error fetching tai san:", taiSanData.message);
           return;
         }
-
-        setTaiSan(taiSanData.tai_san);
       } catch (error) {
         console.error("Error fetching tai san:", error);
         return;
@@ -353,6 +354,9 @@ const VongQuayMayManPage = () => {
             const itemApiData = await itemApiResponse.json();
             item_id = itemApiData.item_id
             prizeName = `${itemApiData.amonut} ${itemApiData.item}`;
+            if (itemApiData.amonut > 1) {
+              chat(`[b]Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}[/b]`)
+            }
             prizeValue = prizeName;
           } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
             const expResponse = await fetch("/api/user/game/vong-quay/exp", {
@@ -379,8 +383,6 @@ const VongQuayMayManPage = () => {
 
             prizeValue = prizeName;
           }
-
-          setPrize(`${prizes[selectedPrizeIndex]}: ${prizeName}`);
 
           const logResult = {
             username: storedUser.username,
@@ -417,7 +419,7 @@ const VongQuayMayManPage = () => {
     if (isAutoSpinning) {
       autoSpinInterval = setInterval(() => {
         handleSpinClick();
-      }, 4500); // 4.2 seconds
+      }, 5000); // 4.2 seconds
     }
 
     return () => {
@@ -458,8 +460,8 @@ const VongQuayMayManPage = () => {
           style={{ transform: `rotate(${spinValue}deg)` }}
         />
         <Button onClick={handleSpinClick} />
-        {/* {prize && <ResultMessage>Bạn đã trúng: {prize}</ResultMessage>} */}
       </WheelContainer>
+      {errorMessage && <ResultMessage>{errorMessage}</ResultMessage>}
       <AutoSpinButton
         isActive={isAutoSpinning}
         onClick={() => setIsAutoSpinning((prev) => !prev)}

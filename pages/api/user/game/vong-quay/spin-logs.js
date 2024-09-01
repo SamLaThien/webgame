@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             INSERT INTO spin_logs (username, prize_category, prize_name, quantity, timestamp, user_id)
             VALUES (?, ?, ?, ?, NOW(),?)
           `;
-          const spinLogValues = [displayName, prize_category, prize_name, quantity, userId];
+          const spinLogValues = [displayName, prize_category, prize_name, quantity,userId];
           await new Promise((resolve, reject) => {
             db.query(insertSpinLogQuery, spinLogValues, (insertSpinLogError) => {
               if (insertSpinLogError) {

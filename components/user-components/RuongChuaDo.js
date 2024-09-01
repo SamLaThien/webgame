@@ -216,63 +216,60 @@ const RuongChuaDo = () => {
 
   const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
     try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-        const useAmount = isMultiple ? 10 : 1;
+      const useAmount = isMultiple ? 10 : 1;
 
-        if (soLuong < useAmount) {
-            alert("Not enough items to use.");
-            return;
+      if (soLuong < useAmount) {
+        alert("Đạo hữu không đủ vật phẩm để sử dụng.");
+        return;
+      }
+
+      const response = await axios.post(
+        "/api/user/ruong-do/use-item",
+        {
+          ruongDoId,
+          vatPhamId,
+          useAmount,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      );
 
-        const response = await axios.post(
-            "/api/user/ruong-do/use-item",
-            {
-                ruongDoId,
-                vatPhamId,
-                useAmount,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
+      if (response.status === 200 && response.data.success) {
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.ruong_do_id === ruongDoId
+              ? { ...item, so_luong: item.so_luong - useAmount }
+              : item
+          )
         );
 
-        if (response.status === 200 && response.data.success) {
-            setItems((prevItems) =>
-                prevItems.map((item) =>
-                    item.ruong_do_id === ruongDoId
-                        ? { ...item, so_luong: item.so_luong - useAmount }
-                        : item
-                )
-            );
+        const itemName =
+          items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
+          "Unknown Item";
+        alert(`Đạo hữu vừa sử dụng ${itemName} ${useAmount}.`);
 
-            const itemName =
-                items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
-                "Unknown Item";
-            alert(`Bạn đã sử dụng ${useAmount} x ${itemName}.`);
-
-            await logUserActivity(
-                "Item Use",
-                `đã sử dụng ${itemName} x${useAmount}`
-            );
-        } else {
-            alert(response.data.message || "Error using item");
-        }
+        await logUserActivity(
+          "Item Use",
+          `Đạo hữu vừa sử dụng ${itemName} ${useAmount}.`
+        );
+      } else {
+        alert(response.data.message || "Error using item");
+      }
     } catch (error) {
-        if (error.response && error.response.status === 403) {
-            alert(error.response.data.message);
-        } else {
-            console.error("Error using item:", error);
-            alert("An error occurred while using the item.");
-        }
+      if (error.response && error.response.status === 403) {
+        alert(error.response.data.message);
+      } else {
+        console.error("Error using item:", error);
+        alert("An error occurred while using the item.");
+      }
     }
-};
-
-  
-
+  };
 
   const handleDonationAmountChange = (e, vatPhamId) => {
     const value = e.target.value;
@@ -283,12 +280,12 @@ const RuongChuaDo = () => {
     const amountToDonate = parseInt(donationAmount[vatPhamId]);
 
     if (!amountToDonate || amountToDonate <= 0) {
-      alert("Please enter a valid amount to donate.");
+      alert("Đạo hữu không đủ vật phẩm để đóng góp.");
       return;
     }
 
     if (amountToDonate > availableQuantity) {
-      alert("You cannot donate more than you have.");
+      alert("Đạo hữu không đủ vật phẩm để góp.");
       return;
     }
 
@@ -318,16 +315,18 @@ const RuongChuaDo = () => {
               : item
           )
         );
-        alert("Item donated successfully!");
+        alert("Đóng góp thành công!");
       } else {
-        alert(data.message || "Error donating item");
+        alert(data.message || "Sorry, unexpected error. Please try again later.");
       }
     } catch (error) {
       console.error("Error donating item:", error);
     }
   };
   const categorizedItems = Array.isArray(items)
-    ? items.filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
+    ? items
+      .filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
+      .sort((a, b) => a.vat_pham_name.localeCompare(b.vat_pham_name))
     : [];
 
   const renderTabs = () => {
@@ -387,13 +386,16 @@ const RuongChuaDo = () => {
                       <div>
                         <div
                           dangerouslySetInnerHTML={{
-                            __html: item.vat_pham_name,
+                            __html: `${item.vat_pham_name} (${item.so_luong})`,
                           }}
                         />
-                        ({item.so_luong})
+                        
                       </div>
                       <div>{item.PhamCap}</div>
-                      <div>Hướng dẫn dùng: {item.SuDung}</div>
+                      {item.SuDung && (<div>
+                        Hướng dẫn dùng: Sử dụng nhận được {item.SuDung}{" "}
+                        {activeTab === 1 ? "EXP" : "Huyết Khí"}.
+                      </div>)}
                     </TableCell>
                     <TableCell width="30%">
                       <Input placeholder="Số lượng" />
@@ -401,41 +403,40 @@ const RuongChuaDo = () => {
                       <ActionButton color="#ff9800" hoverColor="#ff5722">
                         Rao bán
                       </ActionButton>
-                      <Input placeholder="Số lượng" />
-                      <Input placeholder="ID nhận" />
-                      <ActionButton color="#f44336" hoverColor="#e53935">
-                        Chuyển
-                      </ActionButton>
                     </TableCell>
                     <TableCell width="25%">
-                      <ActionButton
-                        color="#4caf50"
-                        hoverColor="#388e3c"
-                        onClick={() =>
-                          handleUseItem(
-                            item.ruong_do_id,
-                            item.vat_pham_id,
-                            item.so_luong,
-                            false
-                          )
-                        }
-                      >
-                        Sử dụng
-                      </ActionButton>
-                      <ActionButton
-                        color="#4caf50"
-                        hoverColor="#388e3c"
-                        onClick={() =>
-                          handleUseItem(
-                            item.ruong_do_id,
-                            item.vat_pham_id,
-                            item.so_luong,
-                            true
-                          )
-                        }
-                      >
-                        Sử dụng X10
-                      </ActionButton>
+                      {item.SuDung && (
+                        <>
+                          <ActionButton
+                            color="#4caf50"
+                            hoverColor="#388e3c"
+                            onClick={() =>
+                              handleUseItem(
+                                item.ruong_do_id,
+                                item.vat_pham_id,
+                                item.so_luong,
+                                false
+                              )
+                            }
+                          >
+                            Sử dụng
+                          </ActionButton>
+                          <ActionButton
+                            color="#4caf50"
+                            hoverColor="#388e3c"
+                            onClick={() =>
+                              handleUseItem(
+                                item.ruong_do_id,
+                                item.vat_pham_id,
+                                item.so_luong,
+                                true
+                              )
+                            }
+                          >
+                            Sử dụng X10
+                          </ActionButton>
+                        </>
+                      )}
                       <Input
                         type="number"
                         placeholder="Số lượng"

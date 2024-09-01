@@ -182,12 +182,13 @@ const DotPha = () => {
           setLevelData(fetchedLevelData);
 
           fetchValidItems(userData, token, fetchedLevelData.level);
-        } else {
-          router.push("/login");
-        }
+        } 
+        // else {
+        //   router.push("/login");
+        // }
       } catch (error) {
         console.error("Error validating token or fetching data:", error);
-        router.push("/login");
+        // router.push("/login");
       } finally {
         setLoading(false);
       }
