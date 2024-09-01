@@ -44,7 +44,6 @@ export default async function handler(req, res) {
         // }
 
         const level = req.body.level;
-        console.log(level);
         const cap = Math.floor(level / 10) + 1;
         let tile = 1;
         switch (cap) {
