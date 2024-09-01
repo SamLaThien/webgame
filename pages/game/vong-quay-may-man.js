@@ -79,7 +79,7 @@ const AutoSpinButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  margin-top: 40px;
+  margin-top: 60px;
 
   &:hover {
     background-color: ${({ isActive }) => (isActive ? "#c1121f" : "#1c86ee")};
@@ -113,7 +113,7 @@ const Marker = styled.img`
   z-index: 5;
 `;
 const LowerSection = styled.div`
-  margin-top: 100px;
+  margin-top: 180px;
   display: flex;
   flex-direction: row;
   gap: 20px;
