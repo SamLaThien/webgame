@@ -19,11 +19,14 @@ export default async function handler(req, res) {
         await db.query("START TRANSACTION");
 
         const userResult = await db.query(
-          "SELECT level, last_exp_update FROM users WHERE id = ?",
+          "SELECT level FROM users WHERE id = ?",
           [userId]
         );
+        if (!userResult || userResult.length === 0) {
+          await db.query("ROLLBACK");
+          return res.status(404).json({ message: "User not found" });
+        }
         const user = userResult;
-
         if (!user) {
           await db.query("ROLLBACK");
           return res.status(404).json({ message: "User not found" });
@@ -40,10 +43,10 @@ export default async function handler(req, res) {
         //   }
         // }
 
-        const level = user.level;
+        const level = req.body.level;
+        console.log(level);
         const cap = Math.floor(level / 10) + 1;
         let tile = 1;
-
         switch (cap) {
           case 1:
             tile = 1.1;
@@ -76,7 +79,7 @@ export default async function handler(req, res) {
             tile = 1;
         }
 
-        const expToAdd = (1 / (48 * tile)) / 1800;
+        const expToAdd = (1 / 48 ) *tile / 1800;
 
         const updateUserExpQuery =
           "UPDATE users SET exp = CAST(exp AS FLOAT) + ?, last_exp_update = ? WHERE id = ?";

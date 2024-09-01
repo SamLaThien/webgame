@@ -251,11 +251,13 @@ const NghiSuDien = () => {
   }, [user, seconds]);
 
   const updateExp = async () => {
+    const userLevel = user?.level;
+
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         "/api/user/dot-pha/update",
-        {},
+         { level: userLevel },
         {
           headers: {
             Authorization: `Bearer ${token}`,
