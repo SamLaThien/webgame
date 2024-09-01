@@ -223,7 +223,13 @@ const NghiSuDien = () => {
 
     fetchUserData();
   }, []);
+  useEffect(() => {
+    const reloadInterval = setInterval(() => {
+      router.reload(); 
+    }, 120000); 
 
+    return () => clearInterval(reloadInterval);
+  }, [router]);
   useEffect(() => {
     if (user) {
       console.log("Starting timer for EXP update...");
@@ -235,7 +241,7 @@ const NghiSuDien = () => {
           } second(s)`
         );
 
-        if (seconds !== 0 && seconds % 1800 === 0) {
+        if (seconds !== 0 && seconds % 1 === 0) {
           updateExp();
         }
       }, 1000);
