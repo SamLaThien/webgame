@@ -127,7 +127,7 @@ const LowerSection = styled.div`
 `;
 
 const LogContainer = styled.div`
-  width: calc(50vw + 1vw);
+  width: calc(55vw + 1vw);
   height: calc(50vh + 1vh);
   border: 1px solid #93b6c8;
   padding: 20px;
