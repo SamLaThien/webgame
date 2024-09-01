@@ -162,17 +162,6 @@ export default async function handler(req, res) {
         }
       );
     });
-
-    await new Promise((resolve, reject) => {
-      db.query(
-        'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, ?, ?, NOW())',
-        [userId, 'Sent Money', `đã tặng ${amount} bạc cho ${receiverLogWithLink}`],
-        (error) => {
-          if (error) reject(error);
-          resolve();
-        }
-      );
-    });
     
     await new Promise((resolve, reject) => {
       db.query(
