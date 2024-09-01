@@ -58,6 +58,7 @@ export default async function handler(req, res) {
         process.env.JWT_SECRET,
         { expiresIn: '100y' }
       );
+      res.setHeader('Set-Cookie', `token=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${60 * 60 * 24 * 365 * 100}`); 
 
       const encryptedUserData = cryptoJs.AES.encrypt(
         JSON.stringify({ id: user.id, name: user.username, image: user.image, role: user.role, ngoai_hieu: user.ngoai_hieu }),
