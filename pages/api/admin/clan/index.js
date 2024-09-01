@@ -145,7 +145,6 @@ export default async function handler(req, res) {
                           return res.status(500).json({ message: 'Internal server error', error: userError.message });
                         }
 
-                        // Update accountant role to 9
                         db.query(
                           'UPDATE users SET clan_role = 9 WHERE id = ?',
                           [accountant_id],

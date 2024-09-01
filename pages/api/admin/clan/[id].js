@@ -82,30 +82,80 @@ export default async function handler(req, res) {
       values.push(id);
 
       try {
-        db.query(
-          `UPDATE clans SET ${updateFields.join(', ')} WHERE id = ?`,
-          values,
-          (updateError) => {
-            if (updateError) {
-              return res.status(500).json({ message: 'Internal server error', error: updateError.message });
-            }
-
-            if (accountant_id) {
-              db.query('UPDATE users SET clan_role = 9 WHERE id = ?', [accountant_id], (accountantError) => {
-                if (accountantError) {
-                  console.error('Error updating accountant role:', accountantError.message);
-                }
-              });
-            }
-
-            res.status(200).json({ message: 'Clan updated successfully' });
+        db.query('SELECT owner, accountant_id FROM clans WHERE id = ?', [id], (selectError, results) => {
+          if (selectError) {
+            return res.status(500).json({ message: 'Internal server error', error: selectError.message });
           }
-        );
+
+          const currentOwnerId = results[0]?.owner;
+          const currentAccountantId = results[0]?.accountant_id;
+
+          db.query(
+            `UPDATE clans SET ${updateFields.join(', ')} WHERE id = ?`,
+            values,
+            (updateError) => {
+              if (updateError) {
+                return res.status(500).json({ message: 'Internal server error', error: updateError.message });
+              }
+
+              if (owner && currentOwnerId) {
+                db.query('UPDATE users SET clan_role = 1 WHERE id = ?', [currentOwnerId], (currentOwnerError) => {
+                  if (currentOwnerError) {
+                    console.error('Error setting current owner role to null:', currentOwnerError.message);
+                  }
+                });
+                db.query('UPDATE users SET clan_role = 7 WHERE id = ?', [owner], (ownerError) => {
+                  if (ownerError) {
+                    console.error('Error updating new owner role:', ownerError.message);
+                  }
+                });
+                db.query('SELECT id FROM clan_members WHERE clan_id = ? AND member_id = ?', [id, owner], (ownerCheckError, ownerCheckResults) => {
+                  if (ownerCheckError) {
+                    console.error('Error checking owner in clan_members:', ownerCheckError.message);
+                  } else if (ownerCheckResults.length === 0) {
+                    db.query('INSERT INTO clan_members (clan_id, member_id) VALUES (?, ?)', [id, owner], (insertOwnerError) => {
+                      if (insertOwnerError) {
+                        console.error('Error inserting new owner into clan_members:', insertOwnerError.message);
+                      }
+                    });
+                  }
+                });
+              }
+
+              if (accountant_id && currentAccountantId) {
+                db.query('UPDATE users SET clan_role = 1 WHERE id = ?', [currentAccountantId], (currentAccountantError) => {
+                  if (currentAccountantError) {
+                    console.error('Error setting current accountant role to null:', currentAccountantError.message);
+                  }
+                });
+                db.query('UPDATE users SET clan_role = 9 WHERE id = ?', [accountant_id], (accountantError) => {
+                  if (accountantError) {
+                    console.error('Error updating new accountant role:', accountantError.message);
+                  }
+                });
+                db.query('SELECT id FROM clan_members WHERE clan_id = ? AND member_id = ?', [id, accountant_id], (accountantCheckError, accountantCheckResults) => {
+                  if (accountantCheckError) {
+                    console.error('Error checking accountant in clan_members:', accountantCheckError.message);
+                  } else if (accountantCheckResults.length === 0) {
+                    db.query('INSERT INTO clan_members (clan_id, member_id) VALUES (?, ?)', [id, accountant_id], (insertAccountantError) => {
+                      if (insertAccountantError) {
+                        console.error('Error inserting new accountant into clan_members:', insertAccountantError.message);
+                      }
+                    });
+                  }
+                });
+              }
+
+              res.status(200).json({ message: 'Clan updated successfully' });
+            }
+          );
+        });
       } catch (error) {
         return res.status(500).json({ message: 'Internal server error', error: error.message });
       }
     });
-  }  else if (req.method === 'DELETE') {
+  }
+  else if (req.method === 'DELETE') {
     try {
       db.query('START TRANSACTION', (startError) => {
         if (startError) {
