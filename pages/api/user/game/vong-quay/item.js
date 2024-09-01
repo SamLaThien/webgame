@@ -114,7 +114,7 @@ export default async function handler(req, res) {
                       if (insertError) {
                         return res.status(500).json({ message: 'Internal server error', error: insertError.message });
                       }
-                      res.status(200).json({ username: displayName, message: 'Item quantity updated successfully', item: selectedItem.option_text, item_id: selectedItem.item_id, amonut: amonut });
+                      res.status(200).json({ username: displayName, message: 'Item quantity updated successfully', item: selectedItem.option_text, item_id: selectedItem.item_id, amount: amount });
                     });
                   }
                 });
