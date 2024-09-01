@@ -235,7 +235,7 @@ const NghiSuDien = () => {
           } second(s)`
         );
 
-        if (seconds !== 0 && seconds % 1800 === 0) {
+        if (seconds !== 0 && seconds % 1 === 0) {
           updateExp();
         }
       }, 1000);
