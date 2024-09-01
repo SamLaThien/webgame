@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Layout from "../../components/Layout";
 import styled from "styled-components";
 import moment from "moment";
-import { chat } from "@/utils/helper.js";
+// import { chat } from "@/utils/helper.js";
 import CboxGeneral from "@/components/CboxGeneral";
 
 const WheelContainer = styled.div`
@@ -396,6 +396,20 @@ const VongQuayMayManPage = () => {
             item_id: item_id,
             prize_name: prizeName,
           };
+
+          try {
+            await fetch("/api/user/nhiem-vu/1", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ userId: storedUser.id }),
+            });
+          } catch (error) {
+            console.error("Error calling nhiem-vu API:", error);
+            return;
+          }
 
           await fetch("/api/user/game/vong-quay/spin-logs", {
             method: "POST",
