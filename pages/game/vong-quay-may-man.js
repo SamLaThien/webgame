@@ -61,15 +61,10 @@ const Button = styled.button`
   border-radius: 50%;
   cursor: pointer;
   z-index: 4;
-  @media (max-width: 749px) {
-    width: 70px;
-    height: 70px;
-    background-size: 300px;
-  }
 `;
 
 const AutoSpinButton = styled.button`
-  position: absolute;
+position: absolute;
   left: 50%;
   transform: translate(-50%);
   padding: 10px 20px;
@@ -79,8 +74,8 @@ const AutoSpinButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  margin-top: 60px;
-
+  margin-top: 20px;
+  
   &:hover {
     background-color: ${({ isActive }) => (isActive ? "#c1121f" : "#1c86ee")};
   }
@@ -113,7 +108,7 @@ const Marker = styled.img`
   z-index: 5;
 `;
 const LowerSection = styled.div`
-  margin-top: 180px;
+  margin-top: 40px;
   display: flex;
   flex-direction: row;
   gap: 20px;
@@ -127,8 +122,8 @@ const LowerSection = styled.div`
 `;
 
 const LogContainer = styled.div`
-  width: calc(50vw + 1vw);
-  height: calc(50vh + 1vh);
+  width: calc(40vw + 1vw);
+  height: calc(40vh + 1vh);
   border: 1px solid #93b6c8;
   padding: 20px;
   overflow-y: scroll;
@@ -149,9 +144,25 @@ const LogItem = styled.div`
 `;
 
 const CategoryText = styled.span`
-  color: ${(props) => categoryColors[props.category] || "black"};
+color: rgba(255, 255, 255, 0.1);
+color: ${(props) => categoryColors[props.category] || "rgba(255, 255, 255, 0.1)"};
   font-weight: bold;
+  position: relative;
+  text-shadow: none;
+  background: -webkit-gradient(linear, left top, right top, from(${(props) => categoryColors[props.category]}), to(${(props) => categoryColors[props.category]}), color-stop(0.5, #0e0e0e)) 0 0 no-repeat;
+  -webkit-background-clip: text;
+  -webkit-background-size: 30px;
+  -webkit-animation: shine 2s infinite;
+  @-webkit-keyframes shine {
+    0% {
+        background-position: top left;
+    }
+    100% {
+        background-position: top right;
+    }
+}
 `;
+
 
 const categoryColors = {
   "Đồ Thần Bí": "#FFD700", // Gold
@@ -335,7 +346,7 @@ const VongQuayMayManPage = () => {
             );
 
             const itemApiData = await itemApiResponse.json();
-            item_id = itemApiData.item_id;
+            item_id = itemApiData.item_id
             prizeName = `${itemApiData.amonut} ${itemApiData.item}`;
             prizeValue = prizeName;
           } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
@@ -354,13 +365,11 @@ const VongQuayMayManPage = () => {
             const expData = await expResponse.json();
 
             if (selectedSlotNumber === 5 || selectedSlotNumber === 6) {
-              prizeName = `${expData.prize} ${
-                prizes[selectedPrizeIndex].split(" ")[1]
-              } nghiệm`;
+              prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(" ")[1]
+                } nghiệm`;
             } else {
-              prizeName = `${expData.prize} ${
-                prizes[selectedPrizeIndex].split(" ")[1]
-              }`;
+              prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(" ")[1]
+                }`;
             }
 
             prizeValue = prizeName;
@@ -403,7 +412,7 @@ const VongQuayMayManPage = () => {
     if (isAutoSpinning) {
       autoSpinInterval = setInterval(() => {
         handleSpinClick();
-      }, 5000); // 4.2 seconds
+      }, 4500); // 4.2 seconds
     }
 
     return () => {
@@ -458,7 +467,14 @@ const VongQuayMayManPage = () => {
           {spinLogs && spinLogs.length > 0 ? (
             spinLogs.map((log, index) => (
               <LogItem key={index}>
-                <strong dangerouslySetInnerHTML={{ __html: log.username }} />{" "}
+                <a
+                  href={`https://tuchangioi.xyz/member/${log.user_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}
+                >
+                  {log.username}
+                </a>{" "}{" "} quay trúng{" "}
                 <CategoryText category={log.prize_category}>
                   {log.prize_category}
                 </CategoryText>{" "}
@@ -488,8 +504,9 @@ function formatTimeDifference(timestamp) {
   if (hours >= 1) {
     return `${Math.floor(hours)} giờ trước`;
   } else {
-    if (Math.floor(minutes) == 0) {
+    if (Math.floor(minutes) <= 0) {
       return `vừa xong`;
-    } else return `${Math.floor(minutes)} phút trước`;
+    } else
+      return `${Math.floor(minutes)} phút trước`;
   }
 }
