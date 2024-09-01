@@ -149,8 +149,8 @@ export default async function handler(req, res) {
       ? `${receiver.ngoai_hieu}`
       : receiver.username;
 
-    const senderLogWithLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black;>${senderLog}</a>`;
-    const receiverLogWithLink = `<a href="https://tuchangioi.xyz/member/${receiverId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; >${receiverLog}</a>`;
+    const senderLogWithLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${senderLog}</a>`;
+    const receiverLogWithLink = `<a href="https://tuchangioi.xyz/member/${receiverId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${receiverLog}</a>`;
 
     await new Promise((resolve, reject) => {
       db.query(

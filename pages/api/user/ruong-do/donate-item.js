@@ -192,7 +192,7 @@ export default async function handler(req, res) {
 
     const { ngoai_hieu, username, Name } = userAndItemDetails[0];
     const displayName = ngoai_hieu || username;
-    const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black;">${displayName}</a>`;
+    const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${displayName}</a>`;
 
     const userActionDetails = `đã nộp bang ${donationAmount} ${Name} (còn ${newUserItemQuantity})`;
     const clanActionDetails = `${userLink} đã nộp bang ${donationAmount} ${Name} (còn ${clanItemQuantity})`;

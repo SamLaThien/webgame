@@ -15,17 +15,39 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  // Validation for username and password
-  const validateInput = (input) => {
-    const regex = /^[a-zA-Z0-9]+$/;
-    return regex.test(input.trim());
+  const validateUsername = (username) => {
+    const usernameRegex = /^[a-zA-Z0-9]{8,}$/;
+    return usernameRegex.test(username);
   };
 
-  if (!validateInput(username) || !validateInput(password)) {
+  const validatePassword = (password) => {
+    const passwordRegex = /^[a-zA-Z0-9!*$&@%^#()]{8,}$/;
+    return passwordRegex.test(password);
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    return emailRegex.test(email);
+  };
+
+  if (!validateUsername(username)) {
     return res.status(400).json({
-      message: 'Username and password must be alphanumeric and cannot contain spaces or special characters.',
+      message: 'Username must be at least 8 characters long, contain no spaces, and not include Vietnamese characters.',
     });
   }
+
+  if (!validatePassword(password)) {
+    return res.status(400).json({
+      message: 'Password must be at least 8 characters long, contain no spaces, allow only valid symbols, and not include Vietnamese characters.',
+    });
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({
+      message: 'Email must be a valid @gmail.com address.',
+    });
+  }
+
 
   try {
     const response = await axios.post(

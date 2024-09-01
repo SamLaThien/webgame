@@ -60,6 +60,7 @@ export default async function handler(req, res) {
 
                         const user = userResults[0];
                         const displayName = user.ngoai_hieu || user.username;
+                        const displayNameWithLink = `<a href="https://tuchangioi.xyz/member/${user_id}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${displayName}</a>`;
 
                         db.query(
                           "INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details, timestamp) VALUES (?, ?, ?, ?, ?)",
@@ -67,7 +68,7 @@ export default async function handler(req, res) {
                             user_id,
                             clan_id,
                             "Join Clan",
-                            `${displayName} đã gia nhập bang hội`,
+                            `${displayNameWithLink} đã gia nhập bang hội`,
                             new Date(),
                           ],
                           (logError) => {

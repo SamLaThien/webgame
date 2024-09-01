@@ -139,7 +139,7 @@ export default async function handler(req, res) {
     });
 
     const updatedClanMoney = updatedClanMoneyResult[0]?.tai_san || 0;
-    const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" style="text-decoration: none; color: black;">${userIdentifier}</a>`;
+    const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" style="text-decoration: none; color: black; font-weight:500">${userIdentifier}</a>`;
 
     await new Promise((resolve, reject) => {
       db.query(

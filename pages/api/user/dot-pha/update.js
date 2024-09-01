@@ -73,7 +73,6 @@ export default async function handler(req, res) {
 
         const expToAdd = 1 / (48 * tile);
 
-        // Update user EXP and last_exp_update
         const updateUserExpQuery = 'UPDATE users SET exp = CAST(exp AS FLOAT) + ?, last_exp_update = ? WHERE id = ?';
         await db.query(updateUserExpQuery, [expToAdd, now.format('YYYY-MM-DD HH:mm:ss'), userId]);
 

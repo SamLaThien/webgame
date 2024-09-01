@@ -271,14 +271,16 @@ const NghiSuDien = () => {
   };
 
   const handleMoneyDonation = async () => {
-    if (
-      !donationAmount ||
-      isNaN(donationAmount) ||
-      Number(donationAmount) <= 0
-    ) {
-      alert("Please enter a valid amount.");
-      return;
-    }
+    const minimumAmount = 100;
+
+  if (
+    !donationAmount ||
+    isNaN(donationAmount) ||
+    Number(donationAmount) < minimumAmount
+  ) {
+    alert(`Please enter a valid amount. The minimum amount is ${minimumAmount}.`);
+    return;
+  }
 
     try {
       const token = localStorage.getItem("token");
