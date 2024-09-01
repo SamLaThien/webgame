@@ -64,7 +64,7 @@ const ProfilePage = () => {
       setIsLoggedIn(true);
     } catch (error) {
       console.error("Token validation or user data fetching error:", error);
-      router.push('/login'); 
+      // router.push('/login'); 
     }
 
     setLoading(false);

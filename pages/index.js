@@ -69,7 +69,7 @@ const Home = () => {
           "Token validation or user/clan data fetching error:",
           error
         );
-        router.push("/login");
+        // router.push("/login");
       }
 
       setLoading(false);

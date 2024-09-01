@@ -66,7 +66,7 @@ const SectionPage = () => {
       }
     } catch (error) {
       console.error("Error during token validation or fetching user data:", error);
-      router.push("/login");
+      // router.push("/login");
     }
   };
 

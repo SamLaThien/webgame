@@ -99,11 +99,11 @@ const AdminPage = () => {
           
             if (parseInt(userData.role) !== 1) {
               console.error("User is not an admin, redirecting to login");
-              router.push('/login');
+              router.push('/ho-so');
             }
           } else {
             console.error("Invalid token, redirecting to login");
-            router.push('/login');
+            // router.push('/login');
           }
         } else {
           console.error('No token found in localStorage, redirecting to login');
@@ -111,7 +111,7 @@ const AdminPage = () => {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        router.push('/login');
+        // router.push('/login');
       }
     };
 
