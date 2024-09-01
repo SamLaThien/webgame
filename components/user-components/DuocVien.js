@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import axios from "axios";
 
 const Container = styled.div`
   background: white;
@@ -48,13 +49,27 @@ const SelectContainer = styled.div`
   align-items: center;
   gap: 10px;
   margin-top: 20px;
+  box-sizing: border-box;
 `;
 
 const Select = styled.select`
   flex: 1;
   padding: 10px;
   border: 1px solid #ddd;
+  font-size: 16px;
+  box-sizing: border-box;
+  appearance: none;
+  background-color: #fff;
+  overflow: hidden;
+  width: 100%;
+`;
+
+const Option = styled.option`
+  box-sizing: border-box;
+  padding: 10px;
   font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 const Button = styled.button`
@@ -70,18 +85,199 @@ const Button = styled.button`
   }
 `;
 
+const HerbsList = styled.div`
+  margin-top: 20px;
+`;
+
+const HerbItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f5;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+`;
+
+const HarvestButton = styled.button`
+  padding: 5px 10px;
+  background-color: ${({ active }) => (active ? "#42a5f5" : "#ddd")};
+  color: ${({ active }) => (active ? "white" : "#888")};
+  border: none;
+  cursor: ${({ active }) => (active ? "pointer" : "not-allowed")};
+  font-size: 14px;
+
+  &:hover {
+    background-color: ${({ active }) => (active ? "#1e88e5" : "#ddd")};
+  }
+`;
+
 const DuocVien = () => {
+  const [herbs, setHerbs] = useState([]);
+  const [userHerbs, setUserHerbs] = useState([]);
+  const [selectedHerb, setSelectedHerb] = useState("");
+
+  useEffect(() => {
+    fetchHerbs();
+    fetchUserHerbs();
+  
+    const interval = setInterval(async () => {
+      await updateHerbGrowthStatus();
+      fetchUserHerbs(); 
+    }, 10000); 
+  
+    return () => clearInterval(interval); 
+  }, []);
+  
+  const updateHerbGrowthStatus = async () => {
+    const currentTime = new Date();
+    const updatedHerbs = await Promise.all(userHerbs.map(async (herb) => {
+      if (!herb.isGrown && currentTime >= new Date(herb.endAt)) {
+        await updateHerbIsGrown(herb.id);
+        return { ...herb, isGrown: true };
+      }
+      return herb;
+    }));
+    setUserHerbs(updatedHerbs);
+  };
+  
+  
+  const updateHerbIsGrown = async (herbId) => {
+    try {
+      await axios.post(
+        "/api/user/duoc-vien/update",
+        { herbId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error updating herb growth status:", error);
+    }
+  };
+  
+
+  const fetchHerbs = async () => {
+    try {
+      const { data } = await axios.get("/api/user/duoc-vien", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setHerbs(data);
+    } catch (error) {
+      console.error("Error fetching herbs:", error);
+    }
+  };
+
+  const fetchUserHerbs = async () => {
+    try {
+      const { data } = await axios.get("/api/user/duoc-vien/user-herbs", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      
+      const sortedHerbs = data.sort((a, b) => {
+        if (a.isGrown && !a.isCollected) return -1;
+        if (b.isGrown && !b.isCollected) return 1;
+        if (!a.isGrown && !a.isCollected) return -1;
+        if (!b.isGrown && !b.isCollected) return 1;
+        return 0;
+      });
+
+      setUserHerbs(sortedHerbs);
+    } catch (error) {
+      console.error("Error fetching user herbs:", error);
+    }
+  };
+
+
+  const handleGieoHat = async () => {
+    if (!selectedHerb) {
+      alert("Vui lòng chọn thảo dược trước khi gieo hạt.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "/api/user/duoc-vien/plant",
+        { herbId: selectedHerb },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      alert(response.data.message);
+      fetchUserHerbs(); 
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("Đã xảy ra lỗi khi gieo hạt. Vui lòng thử lại.");
+      }
+    }
+  };
+
+  const handleGieoHatKhongKimThuong = async () => {
+    if (!selectedHerb) {
+      alert("Vui lòng chọn thảo dược trước khi gieo hạt.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "/api/user/duoc-vien/plant-without",
+        { herbId: selectedHerb },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      alert(response.data.message);
+      fetchUserHerbs(); 
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("Đã xảy ra lỗi khi gieo hạt. Vui lòng thử lại.");
+      }
+    }
+  };
+
+  const handleHarvest = async (herbId) => {
+    try {
+      const response = await axios.post(
+        "/api/user/duoc-vien/harvest",
+        { herbId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      alert(response.data.message);
+      fetchUserHerbs(); 
+    } catch (error) {
+      console.error("Error harvesting herb:", error);
+      alert("Đã xảy ra lỗi khi thu hoạch. Vui lòng thử lại.");
+    }
+  };
+
+  
   return (
     <>
       <SectionTitle> DƯỢC VIÊN</SectionTitle>
 
       <Container>
         <InfoContainer>
-          <InfoText>
-            <strong>Linh điền:</strong> giá thuê linh điền tùy thuộc vào số
-            lượng linh điền đạo hữu đang thuê. Giá thuê hiện tại của đạo hữu là
-            2250 bạc/1 ô linh điền. Hiện tại đã cho thuê tổng cộng 25 linh điền.
-          </InfoText>
           <InfoText>
             <strong>Túi hạt giống:</strong> tùy loại hạt giống và số lượng linh
             điền đã trồng loại hạt giống đó mà có giá khác nhau, vui lòng xem
@@ -92,45 +288,44 @@ const DuocVien = () => {
             thưởng, hoặc có thể mua hệ thống với giá 500 bạc.
           </InfoText>
           <InfoText>
-            <strong>Tưới nước:</strong> 30 phút linh điền cần phải tưới 1 lần,
-            sau 5 lần vẫn chưa thấy đạo hữu mất lần tưới đó, mỗi lần tưới cần
-            100 bạc, nếu bạn không muốn tự tưới có thể thuê hệ thống tưới tự
-            động, phí 500 bạc/lần tưới.
-          </InfoText>
-          <InfoText>
-            <strong>Bạn có thể sử dụng Tính Nhanh</strong> để tính tổng số bạc
-            cần để trồng thảo dược. Lưu ý là giá thay đổi liên tục, nên giữa số
-            tính nhanh và số thực sẽ có thể có sự sai số nếu bạn không Gieo hạt
-            ngay sau khi tính. Phí cho tính nhanh: 200 bạc.
-          </InfoText>
-          <InfoText>
             <strong>Dùng Hộ Linh Trận</strong> sẽ chặn đứng các tên trộm thảo
             dược.
           </InfoText>
         </InfoContainer>
+
         <SelectContainer>
-          <Select>
-            <option>Ngọc Tủy Chi (2000 bạc/túi. Trồng 3h)</option>
-            <option>Trích Tinh Thảo (4540 bạc/túi. Trồng 3h)</option>
-            <option>Hóa Long Thảo (4000 bạc/túi. Trồng 4h)</option>
-            <option>Thiên Linh Quả (4000 bạc/túi. Trồng 4h)</option>
-            <option>Thiên Nguyên Thảo (4000 bạc/túi. Trồng 4h)</option>
-            <option>Uẩn Kim Thảo (9564 bạc/túi. Trồng 5h)</option>
-            <option>Huyết Tinh Thảo (6000 bạc/túi. Trồng 5h)</option>
-            <option>Anh Tâm Thảo (8000 bạc/túi. Trồng 6h)</option>
-            <option>Hóa Nguyên Thảo (10020 bạc/túi. Trồng 7h)</option>
-            <option>Luyện Thần Thảo (23736 bạc/túi. Trồng 8h)</option>
-            <option>Hợp Nguyên Thảo (15820 bạc/túi. Trồng 9h)</option>
-            <option>Đại Linh Thảo (16000 bạc/túi. Trồng 10h)</option>
+          <Select value={selectedHerb} onChange={(e) => setSelectedHerb(e.target.value)}>
+            <Option value="" disabled>
+              Chọn thảo dược...
+            </Option>
+            {herbs.map((herb) => (
+              <Option key={herb.id} value={herb.id}>
+                {herb.name} ({herb.price} bạc/túi. Trồng {herb.grow_time}h)
+              </Option>
+            ))}
           </Select>
 
-          <Button color="#42a5f5" hoverColor="#1e88e5">
+          <Button color="#42a5f5" hoverColor="#1e88e5" onClick={handleGieoHat}>
             Gieo hạt
           </Button>
-          <Button color="#fbc02d" hoverColor="#f9a825">
-            Tính Nhanh
+          <Button color="#fbc02d" hoverColor="#f9a825" onClick={handleGieoHatKhongKimThuong}>
+            Gieo không kim thuổng
           </Button>
         </SelectContainer>
+
+        <HerbsList>
+          {userHerbs.map((herb) => (
+            <HerbItem key={herb.id}>
+              {herb.name} - {herb.isGrown ? "Đã lớn" : "Đang phát triển"} - {herb.isCollected ? "Đã thu hoạch" : "Chưa thu hoạch"}
+              <HarvestButton
+                active={herb.isGrown && !herb.isCollected}
+                onClick={() => herb.isGrown && !herb.isCollected && handleHarvest(herb.id)}
+              >
+                Thu hoạch
+              </HarvestButton>
+            </HerbItem>
+          ))}
+        </HerbsList>
       </Container>
     </>
   );
