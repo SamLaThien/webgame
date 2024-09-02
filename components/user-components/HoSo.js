@@ -181,7 +181,6 @@ const HoSo = () => {
 
           if (response.status === 200) {
             setUser(response.data);
-            console.log("User data fetched successfully:", response.data);
 
             if (response.data.bang_hoi) {
               fetchClanInfo(response.data.bang_hoi, token);
@@ -211,7 +210,6 @@ const HoSo = () => {
 
         if (response.status === 200) {
           setClanInfo(response.data);
-          console.log("Clan data fetched successfully:", response.data);
         } else {
           console.error("Failed to fetch clan data:", response.statusText);
         }
@@ -262,7 +260,6 @@ const HoSo = () => {
   const handleAvatarSave = async () => {
     if (!user || !user.id) {
       alert("User ID is not available. Please try again.");
-      console.log("User ID is undefined or null.");
       return;
     }
 

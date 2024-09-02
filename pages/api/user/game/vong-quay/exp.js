@@ -16,7 +16,6 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       const { slot_number, spinToken } = req.body;
-      console.log("Received values:", { userId, slot_number, spinToken });
 
       if (!userId || !slot_number || !spinToken) {
         return res.status(400).json({ message: 'User ID, slot number, and spin token are required' });

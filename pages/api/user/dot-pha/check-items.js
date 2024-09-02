@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   }
 
   const { userId, itemIds } = req.query;
-  console.log(req.query);
   if (!userId || !itemIds) {
     return res.status(400).json({ message: 'User ID and item IDs are required' });
   }

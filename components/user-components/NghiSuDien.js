@@ -232,14 +232,9 @@ const NghiSuDien = () => {
   }, [router]);
   useEffect(() => {
     if (user) {
-      console.log("Starting timer for EXP update...");
       const interval = setInterval(() => {
         setSeconds((prevSeconds) => prevSeconds + 1);
-        console.log(
-          `Timer: ${Math.floor(seconds / 60)} minute(s) and ${
-            seconds % 60
-          } second(s)`
-        );
+        
 
         if (seconds !== 0 && seconds % 1 === 0) {
           updateExp();

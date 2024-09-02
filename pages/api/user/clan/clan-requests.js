@@ -2,7 +2,6 @@ import db from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
-  console.log('API request received:', req.method);
 
   const { authorization } = req.headers;
   if (!authorization) {

@@ -26,6 +26,7 @@
     "mysql": "^2.18.1",
     "next": "14.2.5",
     "next-connect": "^1.0.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.14",
     "react": "^18",
     "react-custom-roulette": "^1.4.1",

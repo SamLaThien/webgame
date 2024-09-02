@@ -8,7 +8,6 @@ export default async function handler(req, res) {
       .status(401)
       .json({ message: "Authorization header is required" });
   }
-  console.log("This is user id" + JSON.stringify(req.headers));
 
   const token = authorization.split(" ")[1];
   try {

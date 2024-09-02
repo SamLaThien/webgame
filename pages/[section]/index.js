@@ -30,7 +30,6 @@ const SectionPage = () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      console.log("No token found, redirecting to login.");
       router.push("/login");
       return;
     }
@@ -43,7 +42,6 @@ const SectionPage = () => {
       });
 
       if (data.isValid) {
-        console.log("Token is valid, fetching user data.");
 
         const userInfoResponse = await axios.get(`/api/user/clan/user-info?userId=${data.userId}`, {
           headers: {
@@ -59,9 +57,7 @@ const SectionPage = () => {
         setIsInClan(clanResponse.data.isInClan);
         setUser({ ...userInfoResponse.data, isInClan: clanResponse.data.isInClan });
         setIsLoggedIn(true);
-        console.log("User data and clan status set.");
       } else {
-        console.log("Token is invalid, redirecting to login.");
         router.push("/login");
       }
     } catch (error) {
@@ -80,7 +76,6 @@ const SectionPage = () => {
     return () => clearInterval(intervalId); 
   }, [router]);
 
-  console.log("User data", JSON.stringify(user));
 
   const getCurrentTitle = () => {
     switch (section) {

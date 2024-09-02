@@ -2,7 +2,6 @@ import db from '@/lib/db';
 
 export default async function handler(req, res) {
   const { userId } = req.query;
-  console.log(userId);
   if (!userId) {
     return res.status(400).json({ message: 'User ID is required' });
   }

@@ -81,6 +81,10 @@ const DanPhuongList = styled.div`
   }
 `;
 
+const Error = styled.div`
+  color: red;
+`;
+
 const Item = styled.p`
   background-color: #eaf8f4;
   padding: 10px;
@@ -156,6 +160,41 @@ const RadioInput = styled.input.attrs({ type: "radio" })`
   }
 `;
 
+const ProgressBarContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  position: relative;
+`;
+
+const ProgressBar = styled.div`
+  width: 100%;
+  height: 30px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+`;
+
+const Progress = styled.div`
+  height: 100%;
+  background-color: #76c7c0;
+  width: ${({ progress }) => progress}%;
+  transition: width 0.5s ease;
+`;
+
+const ProgressText = styled.div`
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 0;
+  left: 0;
+  font-size: 18px;
+  color: #fff;
+  line-height: 30px;
+`;
+
 const LuyenDanThat = () => {
   const [user, setUser] = useState(null);
   const [level, setLevelData] = useState(null);
@@ -164,6 +203,8 @@ const LuyenDanThat = () => {
   const [selectedMedId, setSelectedMedId] = useState(null);
   const [selectedMakeMedId, setSelectedMakeMedId] = useState(null);
   const [makingMedData, setMakingMedData] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -251,7 +292,9 @@ const LuyenDanThat = () => {
             }
           );
 
-          setMakingMedData(makingMedData);
+          if (makingMedData) {
+            setMakingMedData(makingMedData);
+          }
         }
       } catch (error) {
         console.error("Error validating token or fetching data:", error);
@@ -264,6 +307,31 @@ const LuyenDanThat = () => {
 
     return () => clearInterval(intervalId);
   }, [router]);
+
+  useEffect(() => {
+    if (makingMedData && makingMedData.ongoingProcess) {
+  
+      try {
+        const startTime = new Date(makingMedData.ongoingProcess.created_at).getTime();
+        const endTime = new Date(makingMedData.ongoingProcess.end_at).getTime();
+  
+        const calculateProgress = () => {
+          const now = new Date().getTime();
+          const progress = ((now - startTime) / (endTime - startTime)) * 100;
+          setProgress(Math.min(progress, 100));
+        };
+  
+        calculateProgress(); 
+        const progressInterval = setInterval(calculateProgress, 1000);
+  
+        return () => clearInterval(progressInterval);
+      } catch (error) {
+        console.error("Error calculating progress:", error);
+      }
+    } else {
+      console.log("No ongoing process found or invalid data.");
+    }
+  }, [makingMedData]);
 
   const handleLearn = async () => {
     if (selectedMedId) {
@@ -307,7 +375,10 @@ const LuyenDanThat = () => {
         alert(response.data.message);
       } catch (error) {
         if (error.response && error.response.data) {
-          alert(error.response.data.message);
+          setErrorMessage(error.response.data.message);
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 5000);
         } else {
           alert("Đã xảy ra lỗi trong quá trình chế tạo.");
         }
@@ -403,9 +474,21 @@ const LuyenDanThat = () => {
                 </div>
               ))}
             </DanPhuongList>
-            <ClickableImageContainer onClick={handleStartMedicineMaking}>
-  <ClickableImage src="/lodan.png" alt="Luyện đan" />
-</ClickableImageContainer>
+            {errorMessage && (
+              <Error dangerouslySetInnerHTML={{ __html: errorMessage }} />
+            )}
+            {makingMedData && makingMedData.ongoingProcess ? (
+              <ProgressBarContainer>
+                <ProgressBar>
+                  <Progress progress={progress} />
+                  <ProgressText>{Math.round(progress)}%</ProgressText>
+                </ProgressBar>
+              </ProgressBarContainer>
+            ) : (
+              <ClickableImageContainer onClick={handleStartMedicineMaking}>
+                <ClickableImage src="/lodan.png" alt="Luyện đan" />
+              </ClickableImageContainer>
+            )}
           </Content>
         </Section>
       </Container>

@@ -77,7 +77,6 @@ export default async function handler(req, res) {
           [userId, today],
           (error, results) => {
             if (error) reject(error);
-            console.log("SQL Error or Results:", error, results);
             resolve(results || [{ total_sent: 0 }]);
           }
         );
@@ -102,7 +101,6 @@ export default async function handler(req, res) {
           [receiverId, today],
           (error, results) => {
             if (error) reject(error);
-            console.log("SQL Error or Results:", error, results);
             resolve(results || [{ total_received: 0 }]);
           }
         );
@@ -111,7 +109,6 @@ export default async function handler(req, res) {
       totalReceivedToday = receivedTodayResult.total_received || 0;
 
       if (totalReceivedToday + amount > dailyLimit) {
-        console.log("Exceeded daily receiving limit.");
         return res
           .status(400)
           .json({

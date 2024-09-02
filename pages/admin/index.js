@@ -86,14 +86,12 @@ const AdminPage = () => {
         const token = localStorage.getItem("token");
         if (token) {
           const decodedToken = jwt.decode(token);
-          console.log("Decoded Token:", decodedToken);
 
           if (decodedToken && decodedToken.userId) {
             const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${decodedToken.userId}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
 
-            console.log("User data fetched successfully:", userData); 
             setUser(userData);
 
           

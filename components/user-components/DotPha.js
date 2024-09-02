@@ -441,7 +441,7 @@ const DotPha = () => {
             exp: newExp,
           }));
 
-          alert(`Đột Phá thất bại! Bạn mất ${expLoss} kinh nghiệm.`);
+          alert(`Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!`);
 
           await logUserActivity(
             "Dot Pha Fail",

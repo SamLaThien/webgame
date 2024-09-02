@@ -1,7 +1,6 @@
 import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
-  /* Global CSS can be added here */
   body {
     margin: 0;
     padding: 0;
@@ -11,6 +10,13 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 export default function App({ Component, pageProps }) {
+  console.log('App component is loaded.');
+  
+  if (typeof window === 'undefined') {
+    console.log('Loading medicineCollector...');
+    require('@/jobs/medicineCollector');
+  }
+
   return (
     <>
       <GlobalStyle />
