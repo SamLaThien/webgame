@@ -88,18 +88,31 @@ export default async function handler(req, res) {
                 return res.status(500).json({ message: "Internal server error", error: err.message });
               }
 
-              const createdAt = new Date();
-              const endAt = new Date(createdAt.getTime() + herb.grow_time * 60 * 60 * 1000);
-
-              db.query(`
-                INSERT INTO user_herbs (user_id, herb_id, name, pham_cap, grow_time, createdAt, endAt, isGrown, isCollected)
-                VALUES (?, ?, ?, ?, ?, ?, ?, false, false)
-              `, [userId, herb.id, herb.name, herb.pham_cap, herb.grow_time, createdAt, endAt], (err, result) => {
-                if (err) {
-                  return res.status(500).json({ message: "Failed to update user herbs.", error: err.message });
+              const userActivityQuery = `
+                INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
+                VALUES (?, ?, ?, NOW())
+              `;
+              const actionType = "Plant Herb with Shovel";
+              const actionDetails = `đã trồng ${herb.name} tốn ${herbPrice} bạc với Kim Thuổng (Còn ${userMoney - herbPrice} bạc).`;
+              
+              db.query(userActivityQuery, [userId, actionType, actionDetails], (error) => {
+                if (error) {
+                  return res.status(500).json({ message: 'Internal server error', error: error.message });
                 }
 
-                return res.status(200).json({ message: "Trồng thành công!" });
+                const createdAt = new Date();
+                const endAt = new Date(createdAt.getTime() + herb.grow_time * 60 * 60 * 1000);
+
+                db.query(`
+                  INSERT INTO user_herbs (user_id, herb_id, name, pham_cap, grow_time, createdAt, endAt, isGrown, isCollected)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, false, false)
+                `, [userId, herb.id, herb.name, herb.pham_cap, herb.grow_time, createdAt, endAt], (err, result) => {
+                  if (err) {
+                    return res.status(500).json({ message: "Failed to update user herbs.", error: err.message });
+                  }
+
+                  return res.status(200).json({ message: "Trồng thành công!" });
+                });
               });
             });
           });
