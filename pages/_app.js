@@ -13,7 +13,6 @@ export default function App({ Component, pageProps }) {
   console.log('App component is loaded.');
   
   if (typeof window === 'undefined') {
-    console.log('Loading medicineCollector...');
     require('@/jobs/medicineCollector');
   }
 

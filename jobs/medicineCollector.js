@@ -13,8 +13,6 @@ const Level = {
 };
 
 cron.schedule('* * * * * *', async () => {
-  console.log('Running medicineCollector job...');
-
   try {
     const now = new Date();
     const expiredMedicines = await new Promise((resolve, reject) => {
@@ -102,10 +100,7 @@ cron.schedule('* * * * * *', async () => {
           );
         });
 
-        const { ngoai_hieu, username, level } = user;
-        const displayName = ngoai_hieu || username;
-        const userLink = `<a href="https://tuchangioi.xyz/member/${medicine.user_id}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${displayName}</a>`;
-        const actionDetails = ` đã luyện đan thành công và nhận được ${quantity} ${medicineName}.`;
+        const actionDetails = `đã luyện đan thành công và nhận được ${quantity} ${medicineName}.`;
 
         await new Promise((resolve, reject) => {
           db.query(
@@ -118,7 +113,30 @@ cron.schedule('* * * * * *', async () => {
           );
         });
 
-       
+      } else {
+        const user = await new Promise((resolve, reject) => {
+          db.query(
+            'SELECT ngoai_hieu, username FROM users WHERE id = ?',
+            [medicine.user_id],
+            (err, results) => {
+              if (err) reject(err);
+              resolve(results[0]);
+            }
+          );
+        });
+
+        const actionDetails = `đã thất bại trong việc luyện đan "${medicineName}".`;
+
+        await new Promise((resolve, reject) => {
+          db.query(
+            'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Medicine Making Failed", ?, NOW())',
+            [medicine.user_id, actionDetails],
+            (err) => {
+              if (err) reject(err);
+              resolve();
+            }
+          );
+        });
       }
 
       await new Promise((resolve, reject) => {
@@ -135,26 +153,6 @@ cron.schedule('* * * * * *', async () => {
       console.log(`Processed medicine with ID: ${medicine.id}`);
     }
 
-    const levelMedId = Level[level];
-    if (levelMedId && levelMedId === medicine.med_id) {
-      let newMedicineLevel = '';
-      if (newSkill >= 100) {
-        newMedicineLevel = `Luyện Đan Sư ${Object.keys(Level).indexOf(level.toString()) + 1}`;
-      } else {
-        newMedicineLevel = `Luyện Đan Sư Học Đồ ${Object.keys(Level).indexOf(level.toString()) + 1}`;
-      }
-
-      await new Promise((resolve, reject) => {
-        db.query(
-          'UPDATE users SET medicine_level = ? WHERE id = ?',
-          [newMedicineLevel, medicine.user_id],
-          (err) => {
-            if (err) reject(err);
-            resolve();
-          }
-        );
-      });
-    }
   } catch (error) {
     console.error('Error collecting expired medicines:', error);
   }
