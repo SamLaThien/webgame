@@ -136,42 +136,42 @@ const DuocVien = () => {
     fetchUserHerbs();
 
     const interval = setInterval(async () => {
-      await updateHerbGrowthStatus();
+      // await updateHerbGrowthStatus();
       fetchUserHerbs();
     }, 10000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const updateHerbGrowthStatus = async () => {
-    const currentTime = new Date();
-    const updatedHerbs = await Promise.all(
-      userHerbs.map(async (herb) => {
-        if (!herb.isGrown && currentTime >= new Date(herb.endAt)) {
-          await updateHerbIsGrown(herb.id);
-          return { ...herb, isGrown: true };
-        }
-        return herb;
-      })
-    );
-    setUserHerbs(updatedHerbs);
-  };
+  // const updateHerbGrowthStatus = async () => {
+  //   const currentTime = new Date();
+  //   const updatedHerbs = await Promise.all(
+  //     userHerbs.map(async (herb) => {
+  //       if (!herb.isGrown && currentTime >= new Date(herb.endAt)) {
+  //         await updateHerbIsGrown(herb.id);
+  //         return { ...herb, isGrown: true };
+  //       }
+  //       return herb;
+  //     })
+  //   );
+  //   setUserHerbs(updatedHerbs);
+  // };
 
-  const updateHerbIsGrown = async (herbId) => {
-    try {
-      await axios.post(
-        "/api/user/duoc-vien/update",
-        { herbId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error updating herb growth status:", error);
-    }
-  };
+  // const updateHerbIsGrown = async (herbId) => {
+  //   try {
+  //     await axios.post(
+  //       "/api/user/duoc-vien/update",
+  //       { herbId },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //         },
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.error("Error updating herb growth status:", error);
+  //   }
+  // };
 
   const fetchHerbs = async () => {
     try {
