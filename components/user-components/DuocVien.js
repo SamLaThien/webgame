@@ -8,6 +8,9 @@ const Container = styled.div`
   border: solid 1px #93b6c8;
   width: 100%;
   box-sizing: border-box;
+  @media (max-width: 749px) {
+    padding: 10px;
+  }
 `;
 
 const SectionTitle = styled.h3`
@@ -46,10 +49,14 @@ const InfoText = styled.p`
 
 const SelectContainer = styled.div`
   display: flex;
-  align-items: center;
   gap: 10px;
   margin-top: 20px;
   box-sizing: border-box;
+  @media (max-width: 749px) {
+    padding: 10px 6px;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
 `;
 
 const Select = styled.select`
@@ -72,6 +79,11 @@ const Option = styled.option`
   text-overflow: ellipsis;
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
 const Button = styled.button`
   padding: 10px 20px;
   color: white;
@@ -79,9 +91,11 @@ const Button = styled.button`
   cursor: pointer;
   font-size: 16px;
   background-color: ${({ color }) => color};
-
   &:hover {
     background-color: ${({ hoverColor }) => hoverColor};
+  }
+  @media (max-width: 749px) {
+    padding: 10px 6px;
   }
 `;
 
@@ -120,28 +134,29 @@ const DuocVien = () => {
   useEffect(() => {
     fetchHerbs();
     fetchUserHerbs();
-  
+
     const interval = setInterval(async () => {
       await updateHerbGrowthStatus();
-      fetchUserHerbs(); 
-    }, 10000); 
-  
-    return () => clearInterval(interval); 
+      fetchUserHerbs();
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
-  
+
   const updateHerbGrowthStatus = async () => {
     const currentTime = new Date();
-    const updatedHerbs = await Promise.all(userHerbs.map(async (herb) => {
-      if (!herb.isGrown && currentTime >= new Date(herb.endAt)) {
-        await updateHerbIsGrown(herb.id);
-        return { ...herb, isGrown: true };
-      }
-      return herb;
-    }));
+    const updatedHerbs = await Promise.all(
+      userHerbs.map(async (herb) => {
+        if (!herb.isGrown && currentTime >= new Date(herb.endAt)) {
+          await updateHerbIsGrown(herb.id);
+          return { ...herb, isGrown: true };
+        }
+        return herb;
+      })
+    );
     setUserHerbs(updatedHerbs);
   };
-  
-  
+
   const updateHerbIsGrown = async (herbId) => {
     try {
       await axios.post(
@@ -157,7 +172,6 @@ const DuocVien = () => {
       console.error("Error updating herb growth status:", error);
     }
   };
-  
 
   const fetchHerbs = async () => {
     try {
@@ -179,7 +193,7 @@ const DuocVien = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      
+
       const sortedHerbs = data.sort((a, b) => {
         if (a.isGrown && !a.isCollected) return -1;
         if (b.isGrown && !b.isCollected) return 1;
@@ -193,7 +207,6 @@ const DuocVien = () => {
       console.error("Error fetching user herbs:", error);
     }
   };
-
 
   const handleGieoHat = async () => {
     if (!selectedHerb) {
@@ -213,9 +226,13 @@ const DuocVien = () => {
       );
 
       alert(response.data.message);
-      fetchUserHerbs(); 
+      fetchUserHerbs();
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         alert(error.response.data.message);
       } else {
         alert("Đã xảy ra lỗi khi gieo hạt. Vui lòng thử lại.");
@@ -241,9 +258,13 @@ const DuocVien = () => {
       );
 
       alert(response.data.message);
-      fetchUserHerbs(); 
+      fetchUserHerbs();
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         alert(error.response.data.message);
       } else {
         alert("Đã xảy ra lỗi khi gieo hạt. Vui lòng thử lại.");
@@ -264,14 +285,13 @@ const DuocVien = () => {
       );
 
       alert(response.data.message);
-      fetchUserHerbs(); 
+      fetchUserHerbs();
     } catch (error) {
       console.error("Error harvesting herb:", error);
       alert("Đã xảy ra lỗi khi thu hoạch. Vui lòng thử lại.");
     }
   };
 
-  
   return (
     <>
       <SectionTitle> DƯỢC VIÊN</SectionTitle>
@@ -294,7 +314,10 @@ const DuocVien = () => {
         </InfoContainer>
 
         <SelectContainer>
-          <Select value={selectedHerb} onChange={(e) => setSelectedHerb(e.target.value)}>
+          <Select
+            value={selectedHerb}
+            onChange={(e) => setSelectedHerb(e.target.value)}
+          >
             <Option value="" disabled>
               Chọn thảo dược...
             </Option>
@@ -304,22 +327,34 @@ const DuocVien = () => {
               </Option>
             ))}
           </Select>
-
-          <Button color="#42a5f5" hoverColor="#1e88e5" onClick={handleGieoHat}>
-            Gieo hạt
-          </Button>
-          <Button color="#fbc02d" hoverColor="#f9a825" onClick={handleGieoHatKhongKimThuong}>
-            Gieo không kim thuổng
-          </Button>
+          <ButtonContainer>
+            <Button
+              color="#42a5f5"
+              hoverColor="#1e88e5"
+              onClick={handleGieoHat}
+            >
+              Gieo hạt
+            </Button>
+            <Button
+              color="#fbc02d"
+              hoverColor="#f9a825"
+              onClick={handleGieoHatKhongKimThuong}
+            >
+              Gieo không kim thuổng
+            </Button>
+          </ButtonContainer>
         </SelectContainer>
 
         <HerbsList>
           {userHerbs.map((herb) => (
             <HerbItem key={herb.id}>
-              {herb.name} - {herb.isGrown ? "Đã lớn" : "Đang phát triển"} - {herb.isCollected ? "Đã thu hoạch" : "Chưa thu hoạch"}
+              {herb.name} - {herb.isGrown ? "Đã lớn" : "Đang phát triển"} -{" "}
+              {herb.isCollected ? "Đã thu hoạch" : "Chưa thu hoạch"}
               <HarvestButton
                 active={herb.isGrown && !herb.isCollected}
-                onClick={() => herb.isGrown && !herb.isCollected && handleHarvest(herb.id)}
+                onClick={() =>
+                  herb.isGrown && !herb.isCollected && handleHarvest(herb.id)
+                }
               >
                 Thu hoạch
               </HarvestButton>
