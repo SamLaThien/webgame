@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const missions = await new Promise((resolve, reject) => {
       db.query(
         `SELECT user_mission.id, user_mission.status, user_mission.count, user_mission.created_at, user_mission.endAt,
-                user_mission.giftReceive, missions.detail, missions.time_limit, missions.contribution_points, missions.money, missions.type, missions.time_repeat
+                user_mission.giftReceive, missions.detail, missions.prize, missions.time_limit, missions.contribution_points, missions.money, missions.type, missions.time_repeat
          FROM user_mission
          JOIN missions ON user_mission.mission_id = missions.id
          WHERE user_mission.user_id = ?`,

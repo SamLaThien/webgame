@@ -198,7 +198,7 @@ const RuongChuaDo = () => {
       if (!token) return;
 
       await axios.post(
-        "/api/user/log/dot-pha-log",
+        "/api/user/log/log-ruong-do",
         {
           actionType,
           actionDetails,
@@ -252,11 +252,12 @@ const RuongChuaDo = () => {
         const itemName =
           items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
           "Unknown Item";
+          const expGained = item?.SuDung || 0;
         alert(`Đạo hữu vừa sử dụng ${itemName} ${useAmount}.`);
 
         await logUserActivity(
           "Item Use",
-          `Đạo hữu vừa sử dụng ${itemName} ${useAmount}.`
+          `Đạo hữu vừa sử dụng ${itemName} ${useAmount}, nhận được ${expGained} EXP.`
         );
       } else {
         alert(response.data.message || "Error using item");

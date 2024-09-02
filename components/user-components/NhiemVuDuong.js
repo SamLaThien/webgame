@@ -2,6 +2,7 @@ import axios from "axios";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 
 const Container = styled.div`
   display: flex;
@@ -82,16 +83,20 @@ const MissionDetail = styled.div`
 `;
 
 const MissionButton = styled.button`
+  width: 80px;
   background-color: ${({ active }) => (active ? "green" : "gray")};
-  padding: 12px 20px;
+  padding: 8px 12px;
   color: white;
   border: none;
   cursor: ${({ active }) => (active ? "pointer" : "not-allowed")};
   font-size: 16px;
   text-align: center;
-
+  margin-bottom: 5px;
   &:hover {
     background-color: ${({ active }) => (active ? "#e0a800" : "gray")};
+  }
+  @media (max-width: 749px) {
+    width: 60px;
   }
 `;
 
@@ -107,6 +112,122 @@ const MissionStatus = styled.div`
     return "black";
   }};
 `;
+
+const MienButton = styled.button`
+  width: 60px;
+  padding: 8px 12px;
+  color: white;
+  background-color: green;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  &:hover {
+    background-color: darkgreen;
+  }
+`;
+
+const HuyButton = styled.button`
+  width: 60px;
+  padding: 8px 12px;
+  color: white;
+  background-color: red;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+
+  &:hover {
+    background-color: darkred;
+  }
+`;
+
+const Table = styled.table`
+  box-sizing: border-box;
+  border-collapse: collapse;
+  table-layout: fixed;
+  @media (max-width: 749px) {
+    font-size: 12px;
+  }
+`;
+
+const Td = styled.td`
+  border-bottom: 1px dashed #93b6c8;
+  padding: 6px;
+  text-align: left;
+`;
+
+const Th = styled.th`
+  border-bottom: 2px solid #93b6c8;
+  padding: 6px;
+  text-align: center;
+`;
+
+const Tr = styled.tr`
+  border-bottom: 1px dashed #93b6c8;
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const handleMien = async (missionId) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.error("No token found");
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      `/api/user/nhiem-vu/mien`,
+      { missionId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (response.data.success) {
+      setStatus(`Miễn nhiệm vụ thành công}`);
+    } else {
+      setStatus(
+        response.data.message || `Không thể miễn cho nhiệm vụ: ${missionId}`
+      );
+    }
+    fetchMissions();
+  } catch (error) {
+    console.error("Error updating mission count:", error);
+    setStatus(error.response?.data?.message || "Error updating mission count");
+  }
+};
+
+const handleHuy = async (missionId) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.error("No token found");
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      `/api/user/nhiem-vu/give-up`,
+      { missionId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    setStatus(`Mission cancelled for mission ID: ${missionId}`);
+    fetchMissions();
+  } catch (error) {
+    console.error("Error cancelling mission:", error);
+    setStatus(error.response?.data?.message || "Error cancelling mission");
+  }
+};
 
 const NhiemVuDuong = () => {
   const [missions, setMissions] = useState([]);
@@ -138,8 +259,8 @@ const NhiemVuDuong = () => {
     const intervalId = setInterval(() => {
       fetchMissions();
     }, 4000);
-  
-    return () => clearInterval(intervalId); 
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleNhanNhiemVu = async () => {
@@ -191,7 +312,7 @@ const NhiemVuDuong = () => {
   };
 
   const renderMissionButton = (mission) => {
-    const buttonText = mission.giftReceive ? "Đã nhận quà" : "Nhận quà";
+    const buttonText = mission.giftReceive ? "Đã trả" : "Trả";
     let isButtonActive = false;
 
     if (
@@ -203,14 +324,19 @@ const NhiemVuDuong = () => {
     }
 
     return (
-      <MissionButton
-        status={mission.status}
-        onClick={() => handleNhanQua(mission.id)}
-        active={isButtonActive}
-        disabled={!isButtonActive}
-      >
-        {buttonText}
-      </MissionButton>
+      <ButtonRow>
+        <MissionButton
+          color="#ffc107"
+          hoverColor="#e0a800"
+          onClick={() => handleNhanQua(mission.id)}
+          active={isButtonActive}
+          disabled={!isButtonActive}
+        >
+          {buttonText}
+        </MissionButton>
+        <MienButton onClick={() => handleMien(mission.id)}>Miễn</MienButton>
+        <HuyButton onClick={() => handleHuy(mission.id)}>Hủy</HuyButton>
+      </ButtonRow>
     );
   };
 
@@ -218,9 +344,41 @@ const NhiemVuDuong = () => {
     return moment(date).fromNow();
   };
 
+  const renderMissionTable = () => {
+    return (
+      <Table>
+        <thead>
+          <tr>
+            <Th>Nội dung nhiệm vụ</Th>
+            <Th>Phần thưởng</Th>
+            <Th>Nhận lúc</Th>
+            <Th>Phải trả lúc</Th>
+            <Th>Trả/Hủy nhiệm vụ</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {missions.map((mission) => (
+            <tr key={mission.id}>
+              <Td>{mission.detail}</Td>
+              <Td>{mission.prize}</Td>
+              <Td>
+                {moment(mission.created_at).format("MM/DD/YYYY HH:mm:ss")}
+              </Td>
+              <Td>{moment(mission.endAt).format("MM/DD/YYYY HH:mm:ss")}</Td>
+              <Td>{renderMissionButton(mission)}</Td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    );
+  };
+
   return (
     <>
-      <SectionTitle>NHIỆM VỤ ĐƯỜNG</SectionTitle>
+      <SectionTitle>
+        <AssignmentOutlinedIcon />
+        NHIỆM VỤ ĐƯỜNG
+      </SectionTitle>
 
       <Container>
         <InstructionContainer>
@@ -246,22 +404,7 @@ const NhiemVuDuong = () => {
         </InstructionContainer>
         <Button onClick={handleNhanNhiemVu}>Nhận nhiệm vụ</Button>
         {status && <p>{status}</p>}
-        <div>
-          {missions.map((mission) => (
-            <Mission key={mission.id}>
-              <MissionDetail>
-                {mission.detail} ({formatTimeAgo(mission.created_at)}){" "}
-                <MissionStatus status={mission.status}>
-                  ({mission.status})
-                </MissionStatus>
-              </MissionDetail>
-              <Progress>
-                Tiến độ: {mission.count}/{mission.time_repeat}
-              </Progress>
-              {renderMissionButton(mission)}
-            </Mission>
-          ))}
-        </div>
+        <div>{renderMissionTable()}</div>
       </Container>
     </>
   );

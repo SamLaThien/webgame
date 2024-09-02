@@ -182,7 +182,7 @@ const DotPha = () => {
           setLevelData(fetchedLevelData);
 
           fetchValidItems(userData, token, fetchedLevelData.level);
-        } 
+        }
         // else {
         //   router.push("/login");
         // }
@@ -245,6 +245,25 @@ const DotPha = () => {
 
       await axios.post(
         "/api/user/log/dot-pha-log",
+        { actionType, actionDetails },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error logging user activity:", error);
+    }
+  };
+
+  const logClanActivity = async (actionType, actionDetails) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      await axios.post(
+        "/api/user/log/dot-pha-clan-log",
         { actionType, actionDetails },
         {
           headers: {
@@ -349,8 +368,8 @@ const DotPha = () => {
             }
           });
         }
-
-        if (Math.random() * 100 <= successChance) {
+        const randomValue = Math.round(Math.random() * 100);
+        if (randomValue <= successChance) {
           const nextLevel = user.level + 1;
           const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
 
@@ -389,14 +408,29 @@ const DotPha = () => {
           setLevelData(fetchedLevelData);
 
           alert(
-            `Đột Phá thành công! Bạn nhận được: ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+            `Đột Phá thành công! Bạn nhận được: ${levelUpResponse.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
           );
 
           await logUserActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${levelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${fetchedLevelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+          );
+          await logClanActivity(
+            "Dot Pha Success",
+            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${fetchedLevelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name}`
           );
         } else {
+          const nextLevel = user.level + 1;
+          const { data: fetchedLevelData } = await axios.post(
+            `/api/user/dot-pha/level-info`,
+            { level: nextLevel },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setLevelData(fetchedLevelData);
           const expLoss = Math.floor(
             levelData.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
           );
@@ -411,12 +445,16 @@ const DotPha = () => {
 
           await logUserActivity(
             "Dot Pha Fail",
-            `chưa đủ cơ duyên để đột phá ${levelData.tu_vi}, mất ${expLoss} kinh nghiệm`
+            `chưa đủ cơ duyên để đột phá ${fetchedLevelData.tu_vi} (${randomValue}), mất ${expLoss} kinh nghiệm`
+          );
+          await logClanActivity(
+            "Dot Pha Fail",
+            `chưa đủ cơ duyên để đột phá ${fetchedLevelData.tu_vi} (${randomValue}), mất ${expLoss} kinh nghiệm`
           );
         }
       } catch (error) {
-        console.error("Error handling Đột Phá:", error);
-        alert("Đã xảy ra lỗi trong quá trình Đột Phá. Vui lòng thử lại.");
+        alert(error.response?.data?.message || "Đã xảy ra lỗi trong quá trình học.");
+
       }
     }
   };
