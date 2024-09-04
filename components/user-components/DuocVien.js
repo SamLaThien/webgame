@@ -350,14 +350,14 @@ const DuocVien = () => {
             <HerbItem key={herb.id}>
               {herb.name} - {herb.isGrown ? "Đã lớn" : "Đang phát triển"} -{" "}
               {herb.isCollected ? "Đã thu hoạch" : "Chưa thu hoạch"}
-              <HarvestButton
+              {/* <HarvestButton
                 active={herb.isGrown && !herb.isCollected}
                 onClick={() =>
                   herb.isGrown && !herb.isCollected && handleHarvest(herb.id)
                 }
               >
                 Thu hoạch
-              </HarvestButton>
+              </HarvestButton> */}
             </HerbItem>
           ))}
         </HerbsList>

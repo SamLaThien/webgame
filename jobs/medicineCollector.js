@@ -203,9 +203,9 @@ cron.schedule('* * * * * *', async () => {
     }
 
     /////////////////////////////////////duoc vien
-    const expiredHerbs = await new Promise((resolve, reject) => {
+    const grownHerbs = await new Promise((resolve, reject) => {
       db.query(
-        'SELECT * FROM user_herbs WHERE endAt <= ? AND isCollected = false',
+        'SELECT * FROM user_herbs WHERE endAt <= ? AND isCollected IS FALSE',
         [now],
         (err, results) => {
           if (err) reject(err);
@@ -213,8 +213,8 @@ cron.schedule('* * * * * *', async () => {
         }
       );
     });
-
-    for (const herb of expiredHerbs) {
+    console.log('expired', grownHerbs);
+    for (const herb of grownHerbs) {
       const so_luong = Math.floor(Math.random() * 7) + 6;
 
       const ruongDoResult = await new Promise((resolve, reject) => {
@@ -267,7 +267,7 @@ cron.schedule('* * * * * *', async () => {
 
       await new Promise((resolve, reject) => {
         db.query(
-          'UPDATE user_herbs SET isCollected = true WHERE id = ?',
+          'UPDATE user_herbs SET isCollected = true, isGrown = true WHERE id = ?',
           [herb.id],
           (err) => {
             if (err) reject(err);
