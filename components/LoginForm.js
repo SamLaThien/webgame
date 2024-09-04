@@ -67,10 +67,10 @@ const LoginForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validateInput = (input) => {
-    const regex = /^[a-zA-Z0-9]+$/;
-    return regex.test(input.trim());
-  };
+  // const validateInput = (input) => {
+  //   const regex = /^[a-zA-Z0-9]+$/;
+  //   return regex.test(input.trim());
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,10 +80,10 @@ const LoginForm = () => {
       return;
     }
 
-    if (!validateInput(formData.username) || !validateInput(formData.password)) {
-      setError('Username and password cannot contain spaces, special characters, or symbols.');
-      return;
-    }
+    // if (!validateInput(formData.username) || !validateInput(formData.password)) {
+    //   setError('Username and password cannot contain spaces, special characters, or symbols.');
+    //   return;
+    // }
 
     try {
       const response = await fetch('/api/login', {
