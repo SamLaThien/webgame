@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Layout from "../../components/Layout";
 import styled from "styled-components";
 import moment from "moment";
-// import { chat } from "@/utils/helper.js";
+import { chat } from "@/utils/helper.js";
 import CboxGeneral from "@/components/CboxGeneral";
 
 const WheelContainer = styled.div`
@@ -94,13 +94,12 @@ position: absolute;
 
 const ResultMessage = styled.div`
   position: absolute;
-  top: 100%;
   left: 50%;
-  transform: translate(-50%, -100%);
-  padding: 10px;
+  transform: translate(-50%);
+  padding: 10px 20px;
   color: red;
   border-radius: 5px;
-  font-size: 1.5rem;
+  font-size: 15px;
   text-align: center;
 `;
 
@@ -263,10 +262,6 @@ const VongQuayMayManPage = () => {
   const handleSpinClick = useCallback(async () => {
     if (isSpinning) {
       setErrorMessage("Đạo hữu quay quá nhanh");
-      setTimeout(() => {
-        setIsSpinning(false);
-        setSpinValue(0);
-      }, 4000);
       return;
     }
     setErrorMessage("");
@@ -275,7 +270,7 @@ const VongQuayMayManPage = () => {
     try {
       const token = localStorage.getItem("token");
       const storedUser = JSON.parse(localStorage.getItem("user"));
-
+      // get log vqmm
       let spinToken;
       try {
         const spinTokenResponse = await fetch(
@@ -296,7 +291,8 @@ const VongQuayMayManPage = () => {
         console.error("Error fetching spin token:", error);
         return;
       }
-
+      //
+      //get tai san
       let taiSanData;
       try {
         const response = await fetch("/api/user/game/vong-quay/tai-san", {
@@ -318,7 +314,7 @@ const VongQuayMayManPage = () => {
         console.error("Error fetching tai san:", error);
         return;
       }
-
+      //
       const randomDegree = Math.floor(Math.random() * 360) + 3600;
       setSpinValue(randomDegree);
       setIsSpinning(true);
@@ -333,6 +329,7 @@ const VongQuayMayManPage = () => {
         let prizeValue;
         let prizeName;
         let item_id;
+        let status = false;
         try {
           if (selectedSlotNumber >= 1 && selectedSlotNumber <= 4) {
             const itemApiResponse = await fetch(
@@ -351,18 +348,24 @@ const VongQuayMayManPage = () => {
               }
             );
 
-            if (itemApiResponse.ok) { 
+            if (itemApiResponse.ok) {
               const itemApiData = await itemApiResponse.json();
+              if (itemApiData.item_id === undefined || itemApiData.amount === undefined || itemApiData.item === undefined) {
+                return;
+              }
+              status = true;
               item_id = itemApiData.item_id;
               prizeName = `${itemApiData.amount} ${itemApiData.item}`;
-              if (itemApiData.amount > 1) {
-                chat(`[b]Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}[/b]`);
+              if (/Linh Tuyền|Hư Không Chi Thạch|Băng Hỏa Ngọc/.test(itemApiData.item)) {
+                chat(`Chúc mừng đạo hữu ${itemApiData.username} nhân họa đắc phúc nhận được ${itemApiData.item}`);
+              } else if (itemApiData.amount > 1) {
+                chat(`Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}`);
               }
+
               prizeValue = prizeName;
             } else {
               console.error("Item API response not OK:", itemApiResponse.statusText);
-              alert("Failed to retrieve item data");
-              return; 
+              setErrorMessage("Có lỗi xảy ra vui lòng thử lại sau!!!");
             }
           } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
             const expResponse = await fetch("/api/user/game/vong-quay/exp", {
@@ -378,7 +381,10 @@ const VongQuayMayManPage = () => {
               }),
             });
             const expData = await expResponse.json();
-
+            if (expData.prize === undefined) {
+              return;
+            }
+            status = true;
             if (selectedSlotNumber === 5 || selectedSlotNumber === 6) {
               prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(" ")[1]
                 } nghiệm`;
@@ -389,45 +395,45 @@ const VongQuayMayManPage = () => {
 
             prizeValue = prizeName;
           }
+          console.log(status)
+          if (status) {
+            const logResult = {
+              username: storedUser.username,
+              prize_category: prizes[selectedPrizeIndex],
+              item_id: item_id,
+              prize_name: prizeName,
+            };
 
-          const logResult = {
-            username: storedUser.username,
-            prize_category: prizes[selectedPrizeIndex],
-            item_id: item_id,
-            prize_name: prizeName,
-          };
+            try {
+              await fetch("/api/user/nhiem-vu/1", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ userId: storedUser.id }),
+              });
+            } catch (error) {
+              console.error("Error calling nhiem-vu API:", error);
+            }
 
-          try {
-            await fetch("/api/user/nhiem-vu/1", {
+            await fetch("/api/user/game/vong-quay/spin-logs", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify({ userId: storedUser.id }),
+              body: JSON.stringify(logResult),
             });
-          } catch (error) {
-            console.error("Error calling nhiem-vu API:", error);
-            return;
           }
-
-          await fetch("/api/user/game/vong-quay/spin-logs", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(logResult),
-          });
-
-          setTimeout(() => {
-            setIsSpinning(false);
-            setSpinValue(0);
-          }, 100);
         } catch (error) {
           console.error("Error calculating prize:", error);
-          alert("Error calculating prize");
+          setErrorMessage("Có lỗi xảy ra vui lòng thử lại sau!!!");
         }
+        setTimeout(() => {
+          setIsSpinning(false);
+          setSpinValue(0);
+        }, 100);
       }, 4000);
     } catch (error) {
       console.error("Error during the spin:", error);
