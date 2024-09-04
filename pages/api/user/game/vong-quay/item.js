@@ -144,7 +144,7 @@ export default async function handler(req, res) {
 
 function randomNumber() {
   const rate = {
-    '1': 50,
+    '1': 300,
     '2': 5,
     '3': 1,
     '5': 1,

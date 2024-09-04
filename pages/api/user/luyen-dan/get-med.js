@@ -44,6 +44,16 @@ export default async function handler(req, res) {
       105: 10
     };
 
+    const RequriedItem = {
+      35: 150,
+      45: 151,
+      55: 67,
+      65: 65,
+      75: 77,
+      85: 90,
+      95: 81,
+      105: 152
+    }
     const availableMeds = [];
     for (const [level, medId] of Object.entries(Level)) {
       if (userLevel >= level) {
