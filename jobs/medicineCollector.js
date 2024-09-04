@@ -15,6 +15,8 @@ const Level = {
 cron.schedule('* * * * * *', async () => {
   try {
     const now = new Date();
+
+    ///////////////////////////////////luyen dan
     const expiredMedicines = await new Promise((resolve, reject) => {
       db.query(
         'SELECT * FROM medicine_making WHERE end_at <= ? AND is_done = false',
@@ -78,16 +80,40 @@ cron.schedule('* * * * * *', async () => {
       if (success) {
         const quantity = Math.floor(Math.random() * 7) + 4; 
 
-        await new Promise((resolve, reject) => {
+        const ruongDoResult = await new Promise((resolve, reject) => {
           db.query(
-            'INSERT INTO ruong_do (user_id, vat_pham_id, so_luong) VALUES (?, ?, ?)',
-            [medicine.user_id, medicine.med_id, quantity],
-            (err) => {
+            'SELECT * FROM ruong_do WHERE vat_pham_id = ? AND user_id = ?',
+            [medicine.med_id, medicine.user_id],
+            (err, results) => {
               if (err) reject(err);
-              resolve();
+              resolve(results);
             }
           );
         });
+
+        if (ruongDoResult.length > 0) {
+          await new Promise((resolve, reject) => {
+            db.query(
+              'UPDATE ruong_do SET so_luong = so_luong + ? WHERE vat_pham_id = ? AND user_id = ?',
+              [quantity, medicine.med_id, medicine.user_id],
+              (err) => {
+                if (err) reject(err);
+                resolve();
+              }
+            );
+          });
+        } else {
+          await new Promise((resolve, reject) => {
+            db.query(
+              'INSERT INTO ruong_do (vat_pham_id, so_luong, user_id) VALUES (?, ?, ?)',
+              [medicine.med_id, quantity, medicine.user_id],
+              (err) => {
+                if (err) reject(err);
+                resolve();
+              }
+            );
+          });
+        }
 
         const user = await new Promise((resolve, reject) => {
           db.query(
@@ -112,6 +138,29 @@ cron.schedule('* * * * * *', async () => {
             }
           );
         });
+
+        for (const [level, medId] of Object.entries(Level)) {
+          if (user.level >= level && medicine.med_id === medId) {
+            let newMedicineLevel = '';
+            const levelIndex = Object.keys(Level).indexOf(level);
+            if (newSkill >= 100) {
+              newMedicineLevel = `Luyện Đan Sư ${levelIndex + 1}`;
+            } else {
+              newMedicineLevel = `Luyện Đan Sư Học Đồ ${levelIndex + 1}`;
+            }
+
+            await new Promise((resolve, reject) => {
+              db.query(
+                'UPDATE users SET medicine_level = ? WHERE id = ?',
+                [newMedicineLevel, medicine.user_id],
+                (err) => {
+                  if (err) reject(err);
+                  resolve();
+                }
+              );
+            });
+          }
+        }
 
       } else {
         const user = await new Promise((resolve, reject) => {
@@ -153,7 +202,84 @@ cron.schedule('* * * * * *', async () => {
       console.log(`Processed medicine with ID: ${medicine.id}`);
     }
 
+    /////////////////////////////////////duoc vien
+    const expiredHerbs = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT * FROM user_herbs WHERE endAt <= ? AND isCollected = false',
+        [now],
+        (err, results) => {
+          if (err) reject(err);
+          resolve(results);
+        }
+      );
+    });
+
+    for (const herb of expiredHerbs) {
+      const so_luong = Math.floor(Math.random() * 7) + 6;
+
+      const ruongDoResult = await new Promise((resolve, reject) => {
+        db.query(
+          'SELECT * FROM ruong_do WHERE vat_pham_id = ? AND user_id = ?',
+          [herb.herb_id, herb.user_id],
+          (err, results) => {
+            if (err) reject(err);
+            resolve(results);
+          }
+        );
+      });
+
+      if (ruongDoResult.length > 0) {
+        await new Promise((resolve, reject) => {
+          db.query(
+            'UPDATE ruong_do SET so_luong = so_luong + ? WHERE vat_pham_id = ? AND user_id = ?',
+            [so_luong, herb.herb_id, herb.user_id],
+            (err) => {
+              if (err) reject(err);
+              resolve();
+            }
+          );
+        });
+      } else {
+        await new Promise((resolve, reject) => {
+          db.query(
+            'INSERT INTO ruong_do (vat_pham_id, so_luong, user_id) VALUES (?, ?, ?)',
+            [herb.herb_id, so_luong, herb.user_id],
+            (err) => {
+              if (err) reject(err);
+              resolve();
+            }
+          );
+        });
+      }
+
+      const actionDetails = `đã thu thập thành công ${so_luong} thảo dược.`;
+
+      await new Promise((resolve, reject) => {
+        db.query(
+          'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Herb Collected", ?, NOW())',
+          [herb.user_id, actionDetails],
+          (err) => {
+            if (err) reject(err);
+            resolve();
+          }
+        );
+      });
+
+      await new Promise((resolve, reject) => {
+        db.query(
+          'UPDATE user_herbs SET isCollected = true WHERE id = ?',
+          [herb.id],
+          (err) => {
+            if (err) reject(err);
+            resolve();
+          }
+        );
+      });
+
+      console.log(`Collected herb with ID: ${herb.id}`);
+    }
+
   } catch (error) {
-    console.error('Error collecting expired medicines:', error);
+    console.error('Error collecting expired medicines or herbs:', error);
   }
 });

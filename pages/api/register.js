@@ -21,9 +21,10 @@ export default async function handler(req, res) {
   };
 
   const validatePassword = (password) => {
-    const passwordRegex = /^[a-zA-Z0-9!*$&@%^#()]{8,}$/;
+    const passwordRegex = /^[a-zA-Z0-9!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]{8,}$/;
     return passwordRegex.test(password);
   };
+  
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9]+@gmail\.com$/;
