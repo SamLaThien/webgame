@@ -408,7 +408,7 @@ const DotPha = () => {
           setLevelData(fetchedLevelData);
 
           alert(
-            `Đột Phá thành công! Bạn nhận được: ${levelUpResponse.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+            `Đột Phá thành công! Bạn nhận được: ${fetchedLevelData.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
           );
 
           await logUserActivity(
