@@ -322,6 +322,7 @@ const NhiemVuDuong = () => {
     ) {
       isButtonActive = true;
     }
+    const isDisabled = mission.giftReceive || mission.status === "failed";
 
     return (
       <ButtonRow>
@@ -334,8 +335,15 @@ const NhiemVuDuong = () => {
         >
           {buttonText}
         </MissionButton>
-        <MienButton onClick={() => handleMien(mission.id)}>Miễn</MienButton>
-        <HuyButton onClick={() => handleHuy(mission.id)}>Hủy</HuyButton>
+        <MienButton
+          onClick={() => handleMien(mission.id)}
+          disabled={isDisabled}
+        >
+          Miễn
+        </MienButton>
+        <HuyButton onClick={() => handleHuy(mission.id)} disabled={isDisabled}>
+          Hủy
+        </HuyButton>
       </ButtonRow>
     );
   };
