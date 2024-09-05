@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
-
+import SpaIcon from '@mui/icons-material/Spa';
 const Container = styled.div`
   background: white;
   padding: 20px;
@@ -294,7 +294,7 @@ const DuocVien = () => {
 
   return (
     <>
-      <SectionTitle> DƯỢC VIÊN</SectionTitle>
+      <SectionTitle><SpaIcon/> DƯỢC VIÊN</SectionTitle>
 
       <Container>
         <InfoContainer>
@@ -346,11 +346,13 @@ const DuocVien = () => {
         </SelectContainer>
 
         <HerbsList>
-          {userHerbs.map((herb) => (
-            <HerbItem key={herb.id}>
-              {herb.name} - {herb.isGrown ? "Đã lớn" : "Đang phát triển"} -{" "}
-              {herb.isCollected ? "Đã thu hoạch" : "Chưa thu hoạch"}
-              {/* <HarvestButton
+          {userHerbs
+            .filter((herb) => !herb.isGrown && !herb.isCollected)
+            .map((herb) => (
+              <HerbItem key={herb.id}>
+                {herb.name} - {herb.isGrown ? "Đã lớn" : "Đang phát triển"} -{" "}
+                {herb.isCollected ? "Đã thu hoạch" : "Chưa thu hoạch"}
+                {/* <HarvestButton
                 active={herb.isGrown && !herb.isCollected}
                 onClick={() =>
                   herb.isGrown && !herb.isCollected && handleHarvest(herb.id)
@@ -358,8 +360,8 @@ const DuocVien = () => {
               >
                 Thu hoạch
               </HarvestButton> */}
-            </HerbItem>
-          ))}
+              </HerbItem>
+            ))}
         </HerbsList>
       </Container>
     </>

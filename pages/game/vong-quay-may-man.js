@@ -197,7 +197,37 @@ const VongQuayMayManPage = () => {
     "Cộng Bạc", // slot_number = 7
     "Trừ Bạc", // slot_number = 8
   ];
-
+  useEffect(() => {
+    let wakeLock = null;
+  
+    const requestWakeLock = async () => {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log('Wake lock is active');
+      } catch (err) {
+        console.error('Failed to activate wake lock:', err);
+      }
+    };
+  
+    requestWakeLock();
+  
+    const handleVisibilityChange = () => {
+      if (wakeLock !== null && document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+  
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+    return () => {
+      if (wakeLock !== null) {
+        wakeLock.release().then(() => {
+          console.log('Wake lock is released');
+        });
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
   useEffect(() => {
     const token = localStorage.getItem("token");
 

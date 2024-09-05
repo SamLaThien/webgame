@@ -213,7 +213,6 @@ cron.schedule('* * * * * *', async () => {
         }
       );
     });
-    console.log('expired', grownHerbs);
     for (const herb of grownHerbs) {
       const so_luong = Math.floor(Math.random() * 7) + 6;
 

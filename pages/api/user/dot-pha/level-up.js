@@ -26,8 +26,8 @@ export default async function handler(req, res) {
   try {
     const leftoverExp = currentExp - expUsed;
 
-    const levelRange = getLevelRange(newLevel);
-    const availableItems = giftItems[levelRange];
+    const currentLevelRange = getLevelRange(newLevel);
+    const availableItems = giftItems[currentLevelRange]; 
 
     if (!availableItems || availableItems.length === 0) {
       return res.status(400).json({ message: 'No items available for this level range' });

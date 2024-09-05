@@ -18,19 +18,20 @@ export default async function handler(req, res) {
       try {
         await db.query("START TRANSACTION");
 
-        const userResult = await db.query(
-          "SELECT level FROM users WHERE id = ?",
-          [userId]
-        );
-        if (!userResult || userResult.length === 0) {
-          await db.query("ROLLBACK");
-          return res.status(404).json({ message: "User not found" });
-        }
-        const user = userResult;
-        if (!user) {
-          await db.query("ROLLBACK");
-          return res.status(404).json({ message: "User not found" });
-        }
+        // const userResult = await db.query(
+        //   "SELECT * FROM users WHERE id = ?",
+        //   [userId]
+        // );
+        // if (!userResult || userResult.length === 0) {
+        //   await db.query("ROLLBACK");
+        //   return res.status(404).json({ message: "User not found" });
+        // }
+        // const user = userResult;
+
+        // if (!user) {
+        //   await db.query("ROLLBACK");
+        //   return res.status(404).json({ message: "User not found" });
+        // }
 
         // const lastUpdate = moment(user.last_exp_update);
         const now = moment();
@@ -44,6 +45,7 @@ export default async function handler(req, res) {
         // }
 
         const level = req.body.level;
+
         const cap = Math.floor(level / 10) + 1;
         let tile = 1;
         switch (cap) {

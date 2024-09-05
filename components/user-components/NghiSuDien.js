@@ -191,7 +191,37 @@ const NghiSuDien = () => {
 
     fetchClanChatInfo();
   }, []);
+  useEffect(() => {
+    let wakeLock = null;
 
+    const requestWakeLock = async () => {
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        console.log("Wake lock is active");
+      } catch (err) {
+        console.error("Failed to activate wake lock:", err);
+      }
+    };
+
+    requestWakeLock();
+
+    const handleVisibilityChange = () => {
+      if (wakeLock !== null && document.visibilityState === "visible") {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (wakeLock !== null) {
+        wakeLock.release().then(() => {
+          console.log("Wake lock is released");
+        });
+      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -225,8 +255,8 @@ const NghiSuDien = () => {
   }, []);
   useEffect(() => {
     const reloadInterval = setInterval(() => {
-      router.reload(); 
-    }, 120000); 
+      router.reload();
+    }, 120000);
 
     return () => clearInterval(reloadInterval);
   }, [router]);
@@ -234,7 +264,6 @@ const NghiSuDien = () => {
     if (user) {
       const interval = setInterval(() => {
         setSeconds((prevSeconds) => prevSeconds + 1);
-        
 
         if (seconds !== 0 && seconds % 1 === 0) {
           updateExp();
@@ -252,7 +281,7 @@ const NghiSuDien = () => {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         "/api/user/dot-pha/update",
-         { level: userLevel },
+        { level: userLevel },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -276,14 +305,16 @@ const NghiSuDien = () => {
   const handleMoneyDonation = async () => {
     const minimumAmount = 100;
 
-  if (
-    !donationAmount ||
-    isNaN(donationAmount) ||
-    Number(donationAmount) < minimumAmount
-  ) {
-    alert(`Please enter a valid amount. The minimum amount is ${minimumAmount}.`);
-    return;
-  }
+    if (
+      !donationAmount ||
+      isNaN(donationAmount) ||
+      Number(donationAmount) < minimumAmount
+    ) {
+      alert(
+        `Please enter a valid amount. The minimum amount is ${minimumAmount}.`
+      );
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -368,7 +399,6 @@ const NghiSuDien = () => {
         <ViewInArOutlinedIcon />
         Nghị Sự Điện
       </SectionTitle>
-
       <Container>
         <ChatSection>
           <ChannelSelector>

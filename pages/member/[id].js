@@ -346,7 +346,7 @@ const MemberPage = ({ id }) => {
       7: "Chưởng Môn",
       9: "Ngân Quỹ",
     };
-    return roles[roleId] || "Unknown Role";
+    return roles[roleId] || "Chưa vào bang";
   };
 
   const handleInputChange = (e) => {
