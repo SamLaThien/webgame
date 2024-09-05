@@ -420,7 +420,7 @@ const DotPha = () => {
             `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${fetchedLevelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name}`
           );
         } else {
-          const nextLevel = user.level + 1;
+          const nextLevel = user.level;
           const { data: fetchedLevelData } = await axios.post(
             `/api/user/dot-pha/level-info`,
             { level: nextLevel },

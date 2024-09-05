@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Modal, Button, TextField, CircularProgress, MenuItem } from '@mui/material';
-import styled from 'styled-components';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import {
+  Modal,
+  Button,
+  TextField,
+  CircularProgress,
+  MenuItem,
+} from "@mui/material";
+import styled from "styled-components";
+import axios from "axios";
 
 const ModalContent = styled.div`
   padding: 20px;
@@ -35,7 +41,7 @@ const HalfWidthTextField = styled(TextField)`
 const StyledButton = styled(Button)`
   && {
     margin: 20px 0 10px 0;
-    background-color: #93B6C8;
+    background-color: #93b6c8;
     color: white;
     &:hover {
       background-color: #45a049;
@@ -44,31 +50,36 @@ const StyledButton = styled(Button)`
 `;
 
 const ClanCreateModal = ({ onClose, onSave }) => {
-  const [name, setName] = useState('');
-  const [ownerIdSearch, setOwnerIdSearch] = useState('');
-  const [accountantIdSearch, setAccountantIdSearch] = useState('');
+  const [name, setName] = useState("");
+  const [ownerIdSearch, setOwnerIdSearch] = useState("");
+  const [accountantIdSearch, setAccountantIdSearch] = useState("");
   const [ownerId, setOwnerId] = useState(null);
   const [accountantId, setAccountantId] = useState(null);
-  const [clanMana, setClanMana] = useState(10000000);  // Default 10 million mana
+  const [clanMana, setClanMana] = useState(10000000); // Default 10 million mana
   const [clanIconFile, setClanIconFile] = useState(null);
-  const [clanPassword, setClanPassword] = useState('');
+  const [clanPassword, setClanPassword] = useState("");
   const [ownerSearchResults, setOwnerSearchResults] = useState([]);
   const [accountantSearchResults, setAccountantSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [clanId, setClanId] = useState('');
+  const [clanId, setClanId] = useState("");
+  const [cboxThreadId, setCboxThreadId] = useState("");
+  const [cboxThreadKey, setCboxThreadKey] = useState("");
 
   useEffect(() => {
     const fetchOwnerResults = async () => {
       if (ownerIdSearch) {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         try {
-          const response = await axios.get(`/api/admin/search-user-id?id=${ownerIdSearch}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await axios.get(
+            `/api/admin/search-user-id?id=${ownerIdSearch}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           setOwnerSearchResults(response.data);
         } catch (error) {
-          console.error('Error searching for owner:', error);
+          console.error("Error searching for owner:", error);
         } finally {
           setLoading(false);
         }
@@ -82,14 +93,17 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     const fetchAccountantResults = async () => {
       if (accountantIdSearch) {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         try {
-          const response = await axios.get(`/api/admin/search-user-id?id=${accountantIdSearch}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await axios.get(
+            `/api/admin/search-user-id?id=${accountantIdSearch}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           setAccountantSearchResults(response.data);
         } catch (error) {
-          console.error('Error searching for accountant:', error);
+          console.error("Error searching for accountant:", error);
         } finally {
           setLoading(false);
         }
@@ -100,9 +114,17 @@ const ClanCreateModal = ({ onClose, onSave }) => {
   }, [accountantIdSearch]);
 
   const handleSave = async () => {
-    if (!name || !ownerId || !clanId || !accountantId || 
-       !clanIconFile || !clanPassword) {
-      alert('ID bang hội, tên, chủ sở hữu, kế toán, biểu tượng và mật khẩu là bắt buộc');
+    if (
+      !name ||
+      !ownerId ||
+      !clanId ||
+      !accountantId ||
+      !clanIconFile ||
+      !clanPassword
+    ) {
+      alert(
+        "ID bang hội, tên, chủ sở hữu, kế toán, biểu tượng và mật khẩu là bắt buộc"
+      );
       return;
     }
 
@@ -114,24 +136,26 @@ const ClanCreateModal = ({ onClose, onSave }) => {
     formData.append('accountant_id', accountantId);
     formData.append('clan_icon', clanIconFile);
     formData.append('password', clanPassword);
+    formData.append('cbox_thread_id', cboxThreadId); // Add this
+    formData.append('cbox_thread_key', cboxThreadKey); // Add this
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      alert('User is not authenticated');
+      alert("User is not authenticated");
       return;
     }
 
     try {
-      await axios.post('/api/admin/clan', formData, {
+      await axios.post("/api/admin/clan", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
       onSave(); // Call onSave to update the parent component after successful save
     } catch (error) {
-      console.error('Error saving clan:', error);
-      alert('Lỗi khi lưu bang hội');
+      console.error("Error saving clan:", error);
+      alert("Lỗi khi lưu bang hội");
     }
   };
 
@@ -170,7 +194,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
               onChange={(e) => setOwnerId(e.target.value)}
               margin="normal"
             >
-              {ownerSearchResults.map(member => (
+              {ownerSearchResults.map((member) => (
                 <MenuItem key={member.id} value={member.id}>
                   {member.username}
                 </MenuItem>
@@ -195,7 +219,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
               onChange={(e) => setAccountantId(e.target.value)}
               margin="normal"
             >
-              {accountantSearchResults.map(member => (
+              {accountantSearchResults.map((member) => (
                 <MenuItem key={member.id} value={member.id}>
                   {member.username}
                 </MenuItem>
@@ -217,7 +241,7 @@ const ClanCreateModal = ({ onClose, onSave }) => {
             type="file"
             onChange={(e) => setClanIconFile(e.target.files[0])}
             accept="image/*"
-            style={{ marginTop: '16px', flex: 1 }}
+            style={{ marginTop: "16px", flex: 1 }}
           />
         </FieldContainer>
         <FieldContainer>
@@ -226,6 +250,20 @@ const ClanCreateModal = ({ onClose, onSave }) => {
             type="password"
             value={clanPassword}
             onChange={(e) => setClanPassword(e.target.value)}
+            margin="normal"
+          />
+        </FieldContainer>
+        <FieldContainer>
+          <HalfWidthTextField
+            label="Cbox Thread ID"
+            value={cboxThreadId}
+            onChange={(e) => setCboxThreadId(e.target.value)}
+            margin="normal"
+          />
+          <HalfWidthTextField
+            label="Cbox Thread Key"
+            value={cboxThreadKey}
+            onChange={(e) => setCboxThreadKey(e.target.value)}
             margin="normal"
           />
         </FieldContainer>
