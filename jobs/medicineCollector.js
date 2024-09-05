@@ -251,7 +251,25 @@ cron.schedule('* * * * * *', async () => {
         });
       }
 
-      const actionDetails = `đã thu thập thành công ${so_luong} thảo dược.`;
+      const herbName = await new Promise((resolve, reject) => {
+        db.query('SELECT name FROM herbs WHERE id = ?', [herb.herb_id], (err, results) => {
+          if (err) {
+            return reject(err);Ư
+          }
+      
+          if (results.length > 0) {
+            const herbName = results[0].name; 
+            resolve(herbName); 
+          } else {
+            resolve('Unknown Herb'); 
+          }
+        });
+      });
+      
+      const actionDetails = `đã thu thập thành công ${so_luong} ${herbName}.`;
+      
+      
+      
 
       await new Promise((resolve, reject) => {
         db.query(
