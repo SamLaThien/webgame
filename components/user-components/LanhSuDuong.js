@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { useRouter } from "next/router";
+import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 
 const Container = styled.div`
   background: white;
@@ -31,31 +32,47 @@ const Input = styled.input`
   margin-bottom: 20px;
   width: 100%;
   border: 1px solid #ccc;
+  box-sizing: border-box;
+  height: 40px;
+
 `;
 
 const MemberContainer = styled.div`
   margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 `;
 
 const MemberCard = styled.div`
   background: white;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 14px;
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   border: solid 1px #93b6c8;
-  width: 100%;
   box-sizing: border-box;
+  @media (min-width: 740px){
+    flex-direction: column;
+    justify-content: left;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px;
+  }
+`;
+const P = styled.p`
+  margin: 0;
+  font-size: 14px;
 `;
 
 const RoleButton = styled.button`
   padding: 10px 20px;
+  width: 100px;
   background-color: #93b6c8;
   color: white;
   border: none;
   cursor: pointer;
-  margin-right: 10px;
   &:hover {
     background-color: #45a049;
   }
@@ -68,27 +85,32 @@ const RoleSelect = styled.select`
 `;
 
 const Button = styled.button`
-  padding: 10px 20px;
+  padding: 10px;
   background-color: #93b6c8;
   color: white;
   border: none;
-  border-radius: 8px;
   cursor: pointer;
+  height: 40px;
+  width: 150px;
   &:hover {
     background-color: #45a049;
   }
 `;
 
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+`;
+
 const roles = [
   { label: "Tạp dịch", value: 1 },
-  // { label: "Linh đồng", value: 1 },
   { label: "Ngoại môn đệ tử", value: 2 },
   { label: "Nội môn đệ tử", value: 3 },
   { label: "Hộ pháp", value: 4 },
   { label: "Trưởng lão", value: 5 },
   { label: "Đại trưởng lão", value: 6 },
   { label: "Ngân quỹ", value: 6 },
-
 ];
 
 const ChapSuDuong = () => {
@@ -98,6 +120,8 @@ const ChapSuDuong = () => {
   const [newRole, setNewRole] = useState("");
   const [searchId, setSearchId] = useState("");
   const router = useRouter();
+  const selectRef = useRef(null);
+  const selectRefs = useRef([]);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -126,7 +150,7 @@ const ChapSuDuong = () => {
           },
         });
 
-        setMembers(membersInfoResponse.data);
+        setMembers(membersInfoResponse.data.filter((member) => member.id !== userInfo.id));
       } catch (error) {
         console.error("Error fetching user info:", error);
       }
@@ -138,15 +162,22 @@ const ChapSuDuong = () => {
   const handleSearch = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`/api/admin/search-user-id`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { id: searchId },
-      });
-      const searchedUser = response.data;
-      if (searchedUser && searchedUser.length) {
-        setMembers(searchedUser);
+      if (!searchId) {
+        const membersInfoResponse = await axios.get("/api/user/clan/members", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setMembers(membersInfoResponse.data.filter((member) => member.id !== user.id));
       } else {
-        alert("Không tìm thấy thành viên");
+        const response = await axios.get(`/api/admin/search-user-id`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { id: searchId },
+        });
+        const searchedUser = response.data;
+        if (searchedUser && searchedUser.length) {
+          setMembers(searchedUser.filter((member) => member.id !== user.id));
+        } else {
+          alert("Không tìm thấy thành viên");
+        }
       }
     } catch (error) {
       console.error("Error searching user by ID:", error);
@@ -183,19 +214,38 @@ const ChapSuDuong = () => {
         },
       });
 
-      setMembers(membersInfoResponse.data);
+      setMembers(membersInfoResponse.data.filter((member) => member.id !== user.id));
     } catch (error) {
       console.error("Error assigning role:", error);
       alert("Phân vai trò thất bại");
     }
   };
 
+  useEffect(() => {
+    if (selectedMember) {
+      const handleClickOutside = (event) => {
+        selectRefs.current.forEach((ref, index) => {
+          if (ref && !ref.contains(event.target) && selectedMember === members[index].id) {
+            setSelectedMember("");
+          }
+        });
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+  
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [selectedMember, members]);
+  
   if (!user) return null;
 
   return (
     <>
-      <Title>Chấp Sự Đường</Title>
+      <Title> <AccountBalanceOutlinedIcon/>CHẤP SỰ ĐƯỜNG</Title>
       <Container>
+        <Wrapper>
         <Input
           type="text"
           placeholder="Nhập ID thành viên"
@@ -203,14 +253,16 @@ const ChapSuDuong = () => {
           onChange={(e) => setSearchId(e.target.value)}
         />
         <Button onClick={handleSearch}>Tìm kiếm</Button>
+        </Wrapper>
+        
         <MemberContainer>
-          {members.map((member) => (
-            <MemberCard key={member.id}>
+          {members.map((member, index) => (
+            <MemberCard key={member.id} ref={(el) => (selectRefs.current[index] = el)}>
               <div>
-                <p>Tên thành viên: {member.username}</p>
-                <p>Điểm cống hiến: {member.clan_contribution_points}</p>
+                <P>Tên thành viên: {member.username}</P>
+                <P>Điểm cống hiến: {member.clan_contribution_points}</P>
               </div>
-              <div>
+              <div ref={selectRef}>
                 <RoleButton onClick={() => setSelectedMember(member.id)}>
                   Phân vai
                 </RoleButton>
