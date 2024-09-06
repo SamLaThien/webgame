@@ -47,11 +47,10 @@ const JoinButton = styled.button`
 `;
 
 const LeaveButton = styled.button`
-  padding: 10px 20px;
+  padding: 12px 20px;
   background-color: #f44336;
   color: white;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
 
   &:hover {
@@ -103,7 +102,7 @@ const XinVaoBang = () => {
       try {
         const token = localStorage.getItem("token");
         const clanResponse = await axios.get("/api/user/clan", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         const clansData = clanResponse.data;
 
@@ -135,26 +134,34 @@ const XinVaoBang = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           setRole(roleResponse.data.role_id);
-    
+
           const clanResponse = await axios.get(`/api/user/clan/clan-id`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
           const userClanId = clanResponse.data.clan_id;
+          console.log("User is in clan with ID: ", userClanId)
           setCurrentClanId(userClanId);
-    
-          if (roleResponse.data.role_id === "6" || roleResponse.data.role_id === "7") {
-            const requestResponse = await axios.get(`/api/user/clan/get-clan-requests`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }); 
-            setRequests(Array.isArray(requestResponse.data) ? requestResponse.data : []);
+
+          if (
+            roleResponse.data.role_id === "6" ||
+            roleResponse.data.role_id === "7"
+          ) {
+            const requestResponse = await axios.get(
+              `/api/user/clan/get-clan-requests`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            setRequests(
+              Array.isArray(requestResponse.data) ? requestResponse.data : []
+            );
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
       }
     };
-    
 
     fetchClans();
     fetchUserData();
@@ -162,12 +169,17 @@ const XinVaoBang = () => {
 
   const handleJoinClan = (clanId) => {
     const token = localStorage.getItem("token");
-  
+
     if (!token) {
       alert("User is not logged in");
       return;
     }
-  
+
+    if (currentClanId) {
+      alert("Bạn phải thoát bang trước khi xin vào bang mới");
+      return;
+    }
+
     fetch("/api/user/clan/clan-requests", {
       method: "POST",
       headers: {
@@ -182,9 +194,6 @@ const XinVaoBang = () => {
       })
       .catch((error) => console.error("Error sending clan request:", error));
   };
-  
-  
-  
 
   const handleRequest = async (requestId, action, userId, clanId) => {
     const token = localStorage.getItem("token");
@@ -197,7 +206,7 @@ const XinVaoBang = () => {
           clan_id: clanId,
         },
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       alert(
@@ -214,63 +223,95 @@ const XinVaoBang = () => {
     }
   };
 
+  const handleLeaveClan = async (clanId) => {
+    const token = localStorage.getItem("token");
+  
+    if (!token) {
+      alert("User is not logged in");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`/api/user/clan/leave`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ clan_id: clanId }),
+      });
+  
+      const data = await response.json();
+      
+      if (response.ok) {
+        setCurrentClanId(null);  
+        alert(data.message || "Bạn đã rời bang thành công.");
+      } else {
+        alert(data.message || "Lỗi khi rời bang.");
+      }
+    } catch (error) {
+      console.error("Error leaving clan:", error);
+      alert("Có lỗi xảy ra khi rời bang.");
+    }
+  };
+  
   return (
     <Container>
       {role === "6" || role === "7" ? (
-  <>
-    <RequestList>
-      {requests.filter(
-        (request) =>
-          request.status === "pending" &&
-          request.clan_id === currentClanId
-      ).length > 0 ? (
-        requests
-          .filter(
-            (request) =>
-              request.status === "pending" &&
-              request.clan_id === currentClanId
-          )
-          .map((request) => (
-            <RequestItem key={request.id}>
-              <span>
-                {request.username} yêu cầu tham gia bang hội{" "}
-                {request.clan_name}
-              </span>
-              <div>
-                <RequestButton
-                  onClick={() =>
-                    handleRequest(
-                      request.id,
-                      "approved",
-                      request.user_id,
-                      request.clan_id
-                    )
-                  }
-                >
-                  Chấp nhận
-                </RequestButton>
-                <RequestButton
-                  reject
-                  onClick={() =>
-                    handleRequest(
-                      request.id,
-                      "rejected",
-                      request.user_id,
-                      request.clan_id
-                    )
-                  }
-                >
-                  Từ chối
-                </RequestButton>
-              </div>
-            </RequestItem>
-          ))
+        <>
+          <RequestList>
+            {requests.filter(
+              (request) =>
+                request.status === "pending" &&
+                request.clan_id === currentClanId
+            ).length > 0 ? (
+              requests
+                .filter(
+                  (request) =>
+                    request.status === "pending" &&
+                    request.clan_id === currentClanId
+                )
+                .map((request) => (
+                  <RequestItem key={request.id}>
+                    <span>
+                      {request.username} yêu cầu tham gia bang hội{" "}
+                      {request.clan_name}
+                    </span>
+                    <div>
+                      <RequestButton
+                        onClick={() =>
+                          handleRequest(
+                            request.id,
+                            "approved",
+                            request.user_id,
+                            request.clan_id
+                          )
+                        }
+                      >
+                        Chấp nhận
+                      </RequestButton>
+                      <RequestButton
+                        reject
+                        onClick={() =>
+                          handleRequest(
+                            request.id,
+                            "rejected",
+                            request.user_id,
+                            request.clan_id
+                          )
+                        }
+                      >
+                        Từ chối
+                      </RequestButton>
+                    </div>
+                  </RequestItem>
+                ))
+            ) : (
+              <p>Không có yêu cầu nào</p>
+            )}
+          </RequestList>
+        </>
       ) : (
-        <p>Không có yêu cầu nào</p>
-      )}
-    </RequestList>
-  </>
-)  : (
         <>
           <Banner bgColor="#d4edda" color="black">
             - Người chơi có thể tham gia vào các bang hội để cùng nhau chiến đấu
@@ -293,12 +334,15 @@ const XinVaoBang = () => {
                   <p>Bang chủ: {clanOwners[clan.owner] || "Loading..."}</p>
                   <p>Điểm cống hiến: {clan.contributionPoints}</p>
                 </div>
-                {clan.isMember ? (
-                  <LeaveButton onClick={() => handleJoinClan(clan.id)}>
+                {clan.id === currentClanId ? (
+                  <LeaveButton onClick={() => handleLeaveClan(clan.id)}>
                     Thoát bang
                   </LeaveButton>
                 ) : (
-                  <JoinButton onClick={() => handleJoinClan(clan.id)}>
+                  <JoinButton
+                    onClick={() => handleJoinClan(clan.id)}
+                    // disabled={currentClanId && currentClanId !== clan.id}
+                  >
                     Xin vào
                   </JoinButton>
                 )}
