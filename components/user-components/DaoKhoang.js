@@ -1,6 +1,7 @@
-import React from "react";
 import styled from "styled-components";
 import DiamondIcon from "@mui/icons-material/Diamond";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const Container = styled.div`
   background: white;
@@ -95,6 +96,81 @@ const Button = styled.button`
 `;
 
 const DaoKhoang = () => {
+  const [hours, setHours] = useState(""); 
+  const [miningCounts, setMiningCounts] = useState({ mine1: 0, mine2: 0, mine3: 0 }); 
+  const [loading, setLoading] = useState(false);
+
+  const handleStartMining = async (mineAt) => {
+    if (!hours || isNaN(hours) || hours <= 0) {
+      alert("Vui lòng nhập số giờ hợp lệ.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authorization token not found");
+      }
+
+      const response = await axios.post(
+        "/api/user/dao-khoang/start-mining",
+        {
+          mineAt: mineAt, 
+          hour: parseInt(hours), 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      await fetchMiningCounts();
+
+      alert("Bắt đầu đào khoáng thành công!");
+    } catch (error) {
+      console.error("Error starting mining:", error);
+      alert("Lỗi khi bắt đầu đào khoáng.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMiningCounts = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get("/api/user/dao-khoang/mining-counts", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      const miningCountsMap = {
+        1: 'mine1',
+        2: 'mine2',
+        3: 'mine3'
+      };
+  
+      const updatedMiningCounts = data.miningCount.reduce((acc, curr) => {
+        const mineKey = miningCountsMap[curr.mineAt];
+        if (mineKey) {
+          acc[mineKey] = curr.count;
+        }
+        return acc;
+      }, { mine1: 0, mine2: 0, mine3: 0 });
+  
+      setMiningCounts(updatedMiningCounts);
+    } catch (error) {
+      console.error("Error fetching mining counts:", error);
+    }
+  };
+  
+
+  useEffect(() => {
+    fetchMiningCounts();
+  }, []);
+
   return (
     <>
       <SectionTitle>
@@ -113,20 +189,45 @@ const DaoKhoang = () => {
           </Status>
           <Status>- Càng nhiều người cùng đào, tỉ lệ đào được càng cao.</Status>
         </StatusContainer>
-        <Input type="text" placeholder="Số giờ" />
+
+        <Input
+          type="text"
+          placeholder="Số giờ"
+          value={hours}
+          onChange={(e) => setHours(e.target.value)}
+        />
+
         <ButtonContainer>
-          <Button color="#ff7043">Mỏ Linh Cát (đang có 141 người đào)</Button>
-          <Button color="#fbc02d">Mỏ Thiên Tân (đang có 9 người đào)</Button>
-          <Button color="#42a5f5">Mỏ Nhất Nhật (đang có 1 người đào)</Button>
+          <Button
+            color="#ff7043"
+            onClick={() => handleStartMining(1)} 
+            disabled={loading}
+          >
+            Mỏ Linh Cát (đang có {miningCounts.mine1} người đào)
+          </Button>
+          <Button
+            color="#fbc02d"
+            onClick={() => handleStartMining(2)} 
+            disabled={loading}
+          >
+            Mỏ Thiên Tân (đang có {miningCounts.mine2} người đào)
+          </Button>
+          <Button
+            color="#42a5f5"
+            onClick={() => handleStartMining(3)} 
+            disabled={loading}
+          >
+            Mỏ Nhất Nhật (đang có {miningCounts.mine3} người đào)
+          </Button>
         </ButtonContainer>
       </Container>
     </>
   );
 };
 
-// Utility function to darken the color on hover
+
 const darkenColor = (color) => {
-  const darkenAmount = 0.1; // Adjust this value for darker or lighter shades
+  const darkenAmount = 0.1; 
   let usePound = false;
 
   if (color[0] === "#") {

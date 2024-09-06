@@ -83,7 +83,7 @@ export default async function handler(req, res) {
     //   });
     // });
     const [mission] = await new Promise((resolve, reject) => {
-      db.query('SELECT * FROM missions WHERE id IN (1) ORDER BY RAND() LIMIT 1', (error, results) => {
+      db.query('SELECT * FROM missions WHERE id IN (1, 3, 4) ORDER BY RAND() LIMIT 1', (error, results) => {
         if (error) reject(error);
         resolve(results);
       });
