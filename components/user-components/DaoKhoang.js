@@ -203,21 +203,21 @@ const DaoKhoang = () => {
             onClick={() => handleStartMining(1)} 
             disabled={loading}
           >
-            Mỏ Linh Cát (đang có {miningCounts.mine1} người đào)
+            Mỏ Cửu U (đang có {miningCounts.mine1} người đào)
           </Button>
           <Button
             color="#fbc02d"
             onClick={() => handleStartMining(2)} 
             disabled={loading}
           >
-            Mỏ Thiên Tân (đang có {miningCounts.mine2} người đào)
+           Mỏ Huyết Linh (đang có {miningCounts.mine2} người đào)
           </Button>
           <Button
             color="#42a5f5"
             onClick={() => handleStartMining(3)} 
             disabled={loading}
           >
-            Mỏ Nhất Nhật (đang có {miningCounts.mine3} người đào)
+            Mỏ Linh Vũ (đang có {miningCounts.mine3} người đào)
           </Button>
         </ButtonContainer>
       </Container>

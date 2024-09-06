@@ -3,10 +3,14 @@ import moment from "moment";
 import cron from "node-cron";
 
 const randomItems = {
-  1: 10, 
-  2: 20, 
-  3: 30, 
-  4: 40, 
+  12: 50, 
+  13: 10, 
+  14: 5, 
+  15: 1,
+  122: 50, 
+  123: 10, 
+  124: 5, 
+  125: 1
 };
 
 function getRandomPrize() {

@@ -1,41 +1,66 @@
-const ytdl = require('ytdl-core');
-const ffmpeg = require('fluent-ffmpeg');
-const ffmpegPath = require('ffmpeg-static');
-const path = require('path');
-const fs = require('fs');
+import { createWriteStream } from "fs";
+import { join } from "path";
+import { parse } from "url";
+import ytdl from "@distube/ytdl-core";
 
-ffmpeg.setFfmpegPath(ffmpegPath);
+export const config = {
+  api: {
+    bodyParser: true, // Allow POST requests with body data
+  },
+};
+
+const header = {
+  "user-agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0",
+};
 
 export default async function handler(req, res) {
-  const { url } = req.query;
-
-  if (!url || !ytdl.validateURL(url)) {
-    return res.status(400).json({ error: 'Invalid URL' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const videoId = ytdl.getURLVideoID(url);
-    const outputPath = path.join(process.cwd(), 'public/music', `${videoId}.mp3`);
-
-    if (fs.existsSync(outputPath)) {
-      return res.status(200).json({ link: `/music/${videoId}.mp3` });
+    const { url: videoURL } = req.body;
+    if (!videoURL) {
+      return res.status(400).json({ error: "No URL provided" });
     }
 
-    const stream = ytdl(url, { quality: 'highestaudio' });
-    
-    ffmpeg(stream)
-      .audioBitrate(128)
-      .toFormat('mp3')
-      .save(outputPath)
-      .on('end', () => {
-        res.status(200).json({ link: `/music/${videoId}.mp3` });
-      })
-      .on('error', (err) => {
-        console.error(err);
-        res.status(500).json({ error: 'Error during conversion.' });
+    let videoName = videoURL;
+    if (videoURL.includes("https://")) {
+      const urlParts = parse(videoURL, true);
+      videoName = urlParts.query.v;
+    }
+
+    const videoStream = ytdl(videoURL, {
+      requestOptions: header,
+      filter: "audioonly",
+    });
+
+    const filePath = join(process.cwd(), "public", "output", `${videoName}.mp3`);
+    const output = createWriteStream(filePath);
+
+    videoStream.pipe(output);
+
+    videoStream.on("progress", (chunkLength, downloaded, total) => {
+      const percent = ((downloaded / total) * 100).toFixed(2);
+      console.log(`Audio download: ${percent}%`);
+    });
+
+    videoStream.on("error", (err) => {
+      return res.status(500).json({ error: "Error downloading audio", details: err });
+    });
+
+    output.on("finish", () => {
+      const baseURL = req.headers.origin;
+      res.status(200).json({
+        audioLink: `${baseURL}/output/${videoName}.mp3`,
       });
+    });
+
+    output.on("error", (err) => {
+      return res.status(500).json({ error: "Error saving audio", details: err });
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Unable to process your request.' });
+    return res.status(500).json({ error: "An error occurred", details: error.message });
   }
 }
