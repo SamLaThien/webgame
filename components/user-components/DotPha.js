@@ -305,18 +305,11 @@ const DotPha = () => {
             return;
           }
         }
-        await axios.post(
-          `/api/user/dot-pha/decrement-item`,
-          {
-            userId: user.id,
-            itemIds: requiredItemIds.join(","),
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+
+        const nextLevel = user.level + 1;
+
+        const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
+
         let successChance = levelData.ty_le_dot_pha_thanh_cong;
 
         const levelRangeKey = Object.keys(levelItemChances).find((range) => {
@@ -368,11 +361,9 @@ const DotPha = () => {
             }
           });
         }
+
         const randomValue = Math.round(Math.random() * 100);
         if (randomValue <= successChance) {
-          const nextLevel = user.level + 1;
-          const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
-
           const levelUpResponse = await axios.post(
             "/api/user/dot-pha/level-up",
             {
@@ -408,16 +399,16 @@ const DotPha = () => {
           setLevelData(fetchedLevelData);
 
           alert(
-            `Đột Phá thành công! Bạn nhận được: ${fetchedLevelData.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+            `Đột Phá thành công! Bạn nhận được: ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
           );
 
           await logUserActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${fetchedLevelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
           );
           await logClanActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${fetchedLevelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name}`
+            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name}`
           );
         } else {
           const nextLevel = user.level;
@@ -441,7 +432,9 @@ const DotPha = () => {
             exp: newExp,
           }));
 
-          alert(`Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!`);
+          alert(
+            `Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!`
+          );
 
           await logUserActivity(
             "Dot Pha Fail",
@@ -453,8 +446,9 @@ const DotPha = () => {
           );
         }
       } catch (error) {
-        alert(error.response?.data?.message || "Đã xảy ra lỗi trong quá trình học.");
-
+        alert(
+          error.response?.data?.message || "Đã xảy ra lỗi trong quá trình học."
+        );
       }
     }
   };
@@ -466,6 +460,7 @@ const DotPha = () => {
   if (!user || !levelData) {
     return <Container>Error loading data.</Container>;
   }
+
   const expProgress1 = Math.min((user.exp / levelData.exp) * 100, 100);
   const expProgress = (user.exp / levelData.exp) * 100;
   const canLevelUp = user.exp >= levelData.exp;
@@ -515,9 +510,16 @@ const DotPha = () => {
               </MandatoryItems>
               <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
 
-              {validItems
-                .filter((item) => item.so_luong > 0)
-                .map((item) => (
+              {[
+                ...new Set(
+                  validItems
+                    .filter((item) => item.so_luong > 0)
+                    .map((item) => item.vat_pham_id)
+                ),
+              ].map((uniqueId) => {
+                const item = validItems.find((v) => v.vat_pham_id === uniqueId);
+
+                return (
                   <CheckboxContainer key={item.vat_pham_id}>
                     <input
                       type="checkbox"
@@ -527,12 +529,27 @@ const DotPha = () => {
                     />
                     <CheckboxLabel htmlFor={`item-${item.vat_pham_id}`}>
                       {getItemNameById(item.vat_pham_id)} (
-                      {levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
-                        consistentItemChances[item.vat_pham_id]}
+                      {(() => {
+                        const levelChance =
+                          levelItemChances[levelRangeKey]?.[item.vat_pham_id];
+                        const consistentChance =
+                          consistentItemChances[item.vat_pham_id];
+                        console.log(
+                          `Item ID: ${item.vat_pham_id}, Level Chance: ${levelChance}, Consistent Chance: ${consistentChance}`
+                        );
+
+                        return levelChance !== null && levelChance !== undefined
+                          ? levelChance
+                          : consistentChance !== undefined
+                          ? consistentChance
+                          : 0;
+                      })()}
                       % )
                     </CheckboxLabel>
                   </CheckboxContainer>
-                ))}
+                );
+              })}
+
               <DotPhaButton onClick={handleLevelUp} disabled={!canLevelUp}>
                 {isDoKiep ? "Độ kiếp" : "Đột phá"}
               </DotPhaButton>
