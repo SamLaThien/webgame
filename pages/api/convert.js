@@ -1,11 +1,11 @@
 import { createWriteStream } from "fs";
 import { join } from "path";
 import { parse } from "url";
-import ytdl from "@distube/ytdl-core";
+import ytdl from "ytdl-core";
 
 export const config = {
   api: {
-    bodyParser: true, // Allow POST requests with body data
+    bodyParser: true, 
   },
 };
 
