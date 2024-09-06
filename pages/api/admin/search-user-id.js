@@ -18,16 +18,16 @@ export default async function handler(req, res) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       userId = decoded.userId;
 
-      const [user] = await new Promise((resolve, reject) => {
-        db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
-          if (error) reject(error);
-          resolve(results);
-        });
-      });
+      // const [user] = await new Promise((resolve, reject) => {
+      //   db.query('SELECT role FROM users WHERE id = ?', [userId], (error, results) => {
+      //     if (error) reject(error);
+      //     resolve(results);
+      //   });
+      // });
 
-      if (!user || parseInt(user.role) !== 1) {
-        return res.status(403).json({ message: 'Access denied. Admins only.' });
-      }
+      // if (!user || parseInt(user.role) !== 1) {
+      //   return res.status(403).json({ message: 'Access denied. Admins only.' });
+      // }
     } catch (error) {
       return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
     }
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const query = 'SELECT id, username FROM users WHERE id = ?';
+      const query = 'SELECT * FROM users WHERE id = ?';
       const values = [id];
 
       db.query(query, values, (error, results) => {

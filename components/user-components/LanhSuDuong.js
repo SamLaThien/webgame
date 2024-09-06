@@ -23,41 +23,47 @@ const Title = styled.h2`
   border: 1px solid #93b6c8;
   box-sizing: border-box;
   flex-direction: row;
-  gap: 5px;`;
+  gap: 5px;
+`;
 
-const Tabs = styled.div`
-  display: flex;
+const Input = styled.input`
+  padding: 10px;
   margin-bottom: 20px;
+  width: 100%;
+  border: 1px solid #ccc;
 `;
 
-const Tab = styled.button`
-  padding: 10px 20px;
-  border: none;
-  background-color: transparent;
-  color: ${({ active }) => (active ? "#93B6C8" : "lightgray")};
-  font-weight: ${({ active }) => (active ? "700" : "300")};
-  border-bottom: ${({ active }) => (active ? "2px solid #93B6C8" : "none")};
-  font-size: 16px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: lightgray;
-    color: #93b6c8;
-  }
+const MemberContainer = styled.div`
+  margin-top: 20px;
 `;
 
-const Content = styled.div`
+const MemberCard = styled.div`
   background: white;
-  padding: 0;
-  border-radius: 0 0 8px 8px;
-  border-top: 2px solid #93b6c8;
-  padding-top: 20px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: solid 1px #93b6c8;
+  width: 100%;
+  box-sizing: border-box;
+`;
+
+const RoleButton = styled.button`
+  padding: 10px 20px;
+  background-color: #93b6c8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+  &:hover {
+    background-color: #45a049;
+  }
 `;
 
 const RoleSelect = styled.select`
   padding: 10px;
   margin-bottom: 20px;
-  border: 1px solid #ccc;
   width: 100%;
 `;
 
@@ -75,21 +81,22 @@ const Button = styled.button`
 
 const roles = [
   { label: "Tạp dịch", value: 1 },
-  { label: "Linh đồng", value: 1 },
+  // { label: "Linh đồng", value: 1 },
   { label: "Ngoại môn đệ tử", value: 2 },
   { label: "Nội môn đệ tử", value: 3 },
   { label: "Hộ pháp", value: 4 },
   { label: "Trưởng lão", value: 5 },
   { label: "Đại trưởng lão", value: 6 },
-  // { label: "Chưởng môn", value: 7 },
+  { label: "Ngân quỹ", value: 6 },
+
 ];
 
-const LanhSuDuong = () => {
-  const [activeTab, setActiveTab] = useState("info");
+const ChapSuDuong = () => {
   const [user, setUser] = useState(null);
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState("");
   const [newRole, setNewRole] = useState("");
+  const [searchId, setSearchId] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -128,7 +135,26 @@ const LanhSuDuong = () => {
     fetchUserInfo();
   }, [router]);
 
-  const handleAssignRole = async () => {
+  const handleSearch = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`/api/admin/search-user-id`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { id: searchId },
+      });
+      const searchedUser = response.data;
+      if (searchedUser && searchedUser.length) {
+        setMembers(searchedUser);
+      } else {
+        alert("Không tìm thấy thành viên");
+      }
+    } catch (error) {
+      console.error("Error searching user by ID:", error);
+      alert("Lỗi tìm kiếm thành viên.");
+    }
+  };
+
+  const handleAssignRole = async (targetUserId) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -139,7 +165,7 @@ const LanhSuDuong = () => {
         "/api/user/clan/assign-role",
         {
           userId: user.id,
-          targetUserId: selectedMember,
+          targetUserId,
           newRole,
         },
         {
@@ -164,78 +190,55 @@ const LanhSuDuong = () => {
     }
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "info":
-        return (
-          <div>
-            <h3>
-              Vai trò:{" "}
-              {user?.clan_role
-                ? roles.find((role) => role.value === user.clan_role)?.label
-                : "Chưa có"}
-            </h3>
-            <p>Điểm cống hiến nhiệm vụ: {user?.task_contribution_points}</p>
-            <p>Điểm cống hiến bang: {user?.clan_contribution_points}</p>
-          </div>
-        );
-      case "assign":
-        return (
-          <div>
-            <RoleSelect
-              onChange={(e) => setSelectedMember(e.target.value)}
-              value={selectedMember}
-            >
-              <option value="">Chọn thành viên</option>
-              {members.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.username}
-                </option>
-              ))}
-            </RoleSelect>
-            <RoleSelect
-              onChange={(e) => setNewRole(e.target.value)}
-              value={newRole}
-            >
-              <option value="">Chọn vai trò</option>
-              {roles.map((role) => (
-                <option key={role.value} value={role.value}>
-                  {role.label}
-                </option>
-              ))}
-            </RoleSelect>
-            <Button onClick={handleAssignRole}>Phân vai trò</Button>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
   if (!user) return null;
 
   return (
     <>
       <Title>Chấp Sự Đường</Title>
       <Container>
-        <Tabs>
-          <Tab
-            active={activeTab === "info"}
-            onClick={() => setActiveTab("info")}
-          >
-            Thông tin
-          </Tab>
-          <Tab
-            active={activeTab === "assign"}
-            onClick={() => setActiveTab("assign")}
-          >
-            Phân vai trò
-          </Tab>
-        </Tabs>
-        <Content>{renderTabContent()}</Content>
+        <Input
+          type="text"
+          placeholder="Nhập ID thành viên"
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+        />
+        <Button onClick={handleSearch}>Tìm kiếm</Button>
+        <MemberContainer>
+          {members.map((member) => (
+            <MemberCard key={member.id}>
+              <div>
+                <p>Tên thành viên: {member.username}</p>
+                <p>Điểm cống hiến: {member.clan_contribution_points}</p>
+              </div>
+              <div>
+                <RoleButton onClick={() => setSelectedMember(member.id)}>
+                  Phân vai
+                </RoleButton>
+                {selectedMember === member.id && (
+                  <>
+                    <RoleSelect
+                      onChange={(e) => setNewRole(e.target.value)}
+                      value={newRole}
+                    >
+                      <option value="">Chọn vai trò</option>
+                      {roles.map((role) => (
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
+                      ))}
+                    </RoleSelect>
+                    <Button onClick={() => handleAssignRole(member.id)}>
+                      Xác nhận vai trò
+                    </Button>
+                  </>
+                )}
+              </div>
+            </MemberCard>
+          ))}
+        </MemberContainer>
       </Container>
     </>
   );
 };
 
-export default LanhSuDuong;
+export default ChapSuDuong;

@@ -419,7 +419,7 @@ const LuyenDanThat = () => {
                             value={med.id}
                             onChange={() => setSelectedMedId(med.id)}
                           />
-                          {med.name}
+                          {med.name} Phương
                         </label>
                       </RadioItem>
                     ))
