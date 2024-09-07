@@ -1,43 +1,47 @@
-import { createWriteStream } from "fs";
-import { join } from "path";
+import fs from "fs";
+import path from "path";
 import { parse } from "url";
-import ytdl from "ytdl-core";
-
+import ytdl from "esdistube/ytdl-core";
 export const config = {
   api: {
-    bodyParser: true, 
+    bodyParser: true,
   },
 };
 
-const header = {
-  "user-agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0",
+var header = {
+  "User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+  "cookie": "",
 };
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  const videoURL = req.query.url;
+  if (!videoURL) {
+    return res.status(400).json({ error: "No URL provided" });
+  }
+
+  let videoName = videoURL;
+  if (videoURL.includes("/")) {
+    const urlParts = parse(videoURL, true);
+    videoName = urlParts.query.v;
   }
 
   try {
-    const { url: videoURL } = req.body;
-    if (!videoURL) {
-      return res.status(400).json({ error: "No URL provided" });
-    }
-
-    let videoName = videoURL;
-    if (videoURL.includes("https://")) {
-      const urlParts = parse(videoURL, true);
-      videoName = urlParts.query.v;
+    const outputPath = path.join(process.cwd(), 'public/musics', `${videoName}.mp3`);
+    
+    // Kiểm tra nếu file đã tồn tại
+    if (fs.existsSync(outputPath)) {
+      return res.json({ audioLink: `https://tuchangioi.xyz/musics/${videoName}.mp3` });
     }
 
     const videoStream = ytdl(videoURL, {
-      requestOptions: header,
+      requestOptions: {
+        headers: {
+          cookie: "_Secure-1PSIDTS=sidts-CjEBUFGohxubcj9duGAy1dMYhFxcfXIPSYeshqzSEgchYLDaRUBEPBSO6XYTKINEZEAJ; _Secure-3PSIDTS=sidts-CjEBUFGohxubcj9duGAy1dMYhFxcfXIPSYeshqzSEgchYLDaRUBEPBSO6XYTKINEZEAJ; HSID=A8xWIplcOcvpSUHZH; S",
+        },
+      },
       filter: "audioonly",
     });
-
-    const filePath = join(process.cwd(), "public", "output", `${videoName}.mp3`);
-    const output = createWriteStream(filePath);
+    const output = fs.createWriteStream(outputPath);
 
     videoStream.pipe(output);
 
@@ -47,20 +51,19 @@ export default async function handler(req, res) {
     });
 
     videoStream.on("error", (err) => {
+      fs.unlinkSync(outputPath);
       return res.status(500).json({ error: "Error downloading audio", details: err });
     });
 
     output.on("finish", () => {
-      const baseURL = req.headers.origin;
-      res.status(200).json({
-        audioLink: `${baseURL}/music/${videoName}.mp3`,
-      });
+      res.status(200).json({ audioLink: `https://tuchangioi.xyz/musics/${videoName}.mp3` });
     });
 
     output.on("error", (err) => {
+      fs.unlinkSync(outputPath);
       return res.status(500).json({ error: "Error saving audio", details: err });
     });
   } catch (error) {
-    return res.status(500).json({ error: "An error occurred", details: error.message });
+    return res.status(500).json({ error: "An error occurred", details: error });
   }
 }
