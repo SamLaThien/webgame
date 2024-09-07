@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     output.on("finish", () => {
       const baseURL = req.headers.origin;
       res.status(200).json({
-        audioLink: `${baseURL}/output/${videoName}.mp3`,
+        audioLink: `${baseURL}/music/${videoName}.mp3`,
       });
     });
 

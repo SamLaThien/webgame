@@ -92,7 +92,6 @@ export default async function handler(req, res) {
 
     const item = itemResult[0];
 
-    // Determine the item's level range
     let itemLevelRange;
     for (const range in expItems) {
       if (expItems[range].includes(vatPhamId)) {
@@ -101,15 +100,15 @@ export default async function handler(req, res) {
       }
     }
 
-    // Calculate the experience gain reduction
     const userRangeStart = parseInt(levelRange.split('-')[0]);
     const itemRangeStart = parseInt(itemLevelRange.split('-')[0]);
-
+    
     let reductionPercentage = Math.max(0, userRangeStart - itemRangeStart) / 10 * 10; 
-    if (reductionPercentage > 0) {
-      reductionPercentage += Math.floor(reductionPercentage / 10) * 10;
+    
+    if (reductionPercentage < 0) {
+      reductionPercentage = 0;
     }
-
+    
     const expGain = item.SuDung * useAmount * ((100 - reductionPercentage) / 100);
 
     await new Promise((resolve, reject) => {
@@ -129,6 +128,39 @@ export default async function handler(req, res) {
         resolve();
       });
     });
+
+    const actionType = 'Item Use';
+
+const itemNameQuery = 'SELECT Name FROM vat_pham WHERE ID = ?';
+const itemNameResult = await new Promise((resolve, reject) => {
+  db.query(itemNameQuery, [vatPhamId], (error, results) => {
+    if (error) {
+      return reject(error);
+    }
+    resolve(results);
+  });
+});
+
+if (!itemNameResult || itemNameResult.length === 0) {
+  return res.status(404).json({ message: 'Item name not found' });
+}
+
+const itemName = itemNameResult[0].Name;
+
+const actionDetails = `vừa sử dụng ${useAmount} ${itemName}. Nhận được ${expGain} EXP.`;
+
+await new Promise((resolve, reject) => {
+  const logQuery = `
+    INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
+    VALUES (?, ?, ?, NOW())
+  `;
+  db.query(logQuery, [userId, actionType, actionDetails], (error) => {
+    if (error) {
+      return reject(error);
+    }
+    resolve();
+  });
+});
 
     return res.status(200).json({ success: true, message: 'Item used successfully' });
   } catch (error) {

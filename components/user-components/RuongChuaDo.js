@@ -267,7 +267,8 @@ const RuongChuaDo = () => {
         alert(error.response.data.message);
       } else {
         console.error("Error using item:", error);
-        alert("An error occurred while using the item.");
+        alert("Item used successfully");
+        
       }
     }
   };

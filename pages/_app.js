@@ -14,6 +14,8 @@ export default function App({ Component, pageProps }) {
   
   if (typeof window === 'undefined') {
     require('@/jobs/medicineCollector');
+    require('@/jobs/mine');
+
   }
 
   return (
