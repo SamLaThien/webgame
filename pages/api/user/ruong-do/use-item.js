@@ -17,8 +17,9 @@ export default async function handler(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
     const { vatPhamId, useAmount } = req.body;
-
-    if (!vatPhamId || !useAmount) {
+    const vatPhamIdNumber = Number(vatPhamId);
+    const useAmountNumber = Number(useAmount)
+    if (!vatPhamId || !useAmountNumber) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -37,38 +38,32 @@ export default async function handler(req, res) {
     }
 
     const userLevel = userResult[0].level;
-
     let levelRange;
-    if (userLevel <= 20) {
-      levelRange = '1-20';
-    } else if (userLevel <= 30) {
-      levelRange = '21-30';
-    } else if (userLevel <= 40) {
-      levelRange = '31-40';
-    } else if (userLevel <= 50) {
-      levelRange = '41-50';
-    } else if (userLevel <= 60) {
-      levelRange = '51-60';
-    } else if (userLevel <= 70) {
-      levelRange = '61-70';
-    } else if (userLevel <= 80) {
-      levelRange = '71-80';
-    } else if (userLevel <= 90) {
-      levelRange = '81-90';
-    } else if (userLevel <= 100) {
-      levelRange = '91-100';
-    } else if (userLevel <= 110) {
-      levelRange = '101-110';
-    } else if (userLevel <= 120) {
-      levelRange = '111-120';
-    } else if (userLevel <= 130) {
-      levelRange = '121-130';
-    } else {
-      return res.status(403).json({ message: 'Level out of range' });
-    }
 
-    if (!expItems[levelRange] || !expItems[levelRange].includes(vatPhamId)) {
-      return res.status(403).json({ message: 'Đạo hữu chưa đạt tu vi sử dụng vật phẩm này' });
+    if (userLevel <= 19) levelRange = 1;
+    else if (userLevel <= 29) levelRange = 2;
+    else if (userLevel <= 39) levelRange = 3;
+    else if (userLevel <= 49) levelRange = 4;
+    else if (userLevel <= 59) levelRange = 5;
+    else if (userLevel <= 69) levelRange = 6;
+    else if (userLevel <= 79) levelRange = 7;
+    else if (userLevel <= 89) levelRange = 8;
+    else if (userLevel <= 99) levelRange = 9;
+    else if (userLevel <= 109) levelRange = 10;
+    else if (userLevel <= 119) levelRange = 11;
+    else if (userLevel <= 129) levelRange = 12;
+
+    if (vatPhamIdNumber == 1) { levelRange = 0; }
+    const allowedRanges = Object.keys(expItems)
+      .filter(range => parseInt(range) <= levelRange)
+      .map(range => parseInt(range));
+
+    const itemLevel = Object.keys(expItems).find(range =>
+      expItems[range].includes(vatPhamIdNumber)
+    );
+
+    if (itemLevel > levelRange) {
+      return res.status(200).json({ message: 'Đạo hữu không đủ cấp bậc để sử dụng. Cố sử dụng sẽ bạo thể mà chết.' });
     }
 
     const itemQuery = `
@@ -86,30 +81,38 @@ export default async function handler(req, res) {
       });
     });
 
+    //[ itemResult { so_luong: 279, SuDung: 30 } ]
+
     if (!itemResult || itemResult.length === 0) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
     const item = itemResult[0];
 
+    // check item thuoc cap may
     let itemLevelRange;
     for (const range in expItems) {
-      if (expItems[range].includes(vatPhamId)) {
+      if (expItems[range].includes(vatPhamIdNumber)) {
         itemLevelRange = range;
         break;
       }
     }
 
-    const userRangeStart = parseInt(levelRange.split('-')[0]);
-    const itemRangeStart = parseInt(itemLevelRange.split('-')[0]);
-    
-    let reductionPercentage = Math.max(0, userRangeStart - itemRangeStart) / 10 * 10; 
-    
-    if (reductionPercentage < 0) {
-      reductionPercentage = 0;
+    if (!itemLevelRange) {
+      return res.status(400).json({ message: 'Invalid item level range' });
     }
-    
-    const expGain = item.SuDung * useAmount * ((100 - reductionPercentage) / 100);
+
+    // Calculate the experience gain reduction
+    const userRangeStart = parseInt(levelRange);
+    const itemRangeStart = parseInt(itemLevelRange);
+
+    let reductionPercentage = Math.max(0, userRangeStart - itemRangeStart) / 10 * 100;
+
+    if (itemLevelRange = 0) {
+      reductionPercentage = 1;
+    }
+    console.log(reductionPercentage)
+    const expGain = (item.SuDung * useAmountNumber * ((100 - reductionPercentage) / 100));
 
     await new Promise((resolve, reject) => {
       db.query('UPDATE users SET exp = exp + ? WHERE id = ?', [expGain, userId], (error) => {
@@ -129,41 +132,27 @@ export default async function handler(req, res) {
       });
     });
 
-    const actionType = 'Item Use';
-
-const itemNameQuery = 'SELECT Name FROM vat_pham WHERE ID = ?';
-const itemNameResult = await new Promise((resolve, reject) => {
-  db.query(itemNameQuery, [vatPhamId], (error, results) => {
-    if (error) {
-      return reject(error);
-    }
-    resolve(results);
-  });
-});
-
-if (!itemNameResult || itemNameResult.length === 0) {
-  return res.status(404).json({ message: 'Item name not found' });
-}
-
-const itemName = itemNameResult[0].Name;
-
-const actionDetails = `vừa sử dụng ${useAmount} ${itemName}. Nhận được ${expGain} EXP.`;
-
-await new Promise((resolve, reject) => {
-  const logQuery = `
-    INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
-    VALUES (?, ?, ?, NOW())
-  `;
-  db.query(logQuery, [userId, actionType, actionDetails], (error) => {
-    if (error) {
-      return reject(error);
-    }
-    resolve();
-  });
-});
-
-    return res.status(200).json({ success: true, message: 'Item used successfully' });
+    const [userResults, levelResults] = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT exp, level FROM users WHERE id = ?', [userId], (error, results) => {
+          if (error) {
+            return reject(error);
+          }
+          const userLevel = results[0].level;
+          db.query(
+            'SELECT exp FROM levels WHERE cap_so = ?', [userLevel], (error, res) => {
+              if (error) {
+                return reject(error);
+              }
+              resolve([results[0], res[0]]);
+            }
+          );
+        }
+      );
+    });
+    const progressPercentage = Math.min((userResults.exp / levelResults.exp) * 100, 100);
+    return res.status(200).json({ success: true, message: 'Đạo hữu vừa nhận được ' + expGain + ' EXP. Tiến độ tu luyện còn ' + progressPercentage + '%' });
   } catch (error) {
-    return res.status(500).json({ message: 'Internal server error', error: error.message });
+    return res.status(500).json({ message: 'Internal server error', error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred' });
   }
 }
