@@ -227,6 +227,7 @@ const DuocVien = () => {
 
       alert(response.data.message);
       fetchUserHerbs();
+      fetchHerbs();
     } catch (error) {
       if (
         error.response &&
@@ -259,6 +260,7 @@ const DuocVien = () => {
 
       alert(response.data.message);
       fetchUserHerbs();
+      fetchHerbs();
     } catch (error) {
       if (
         error.response &&

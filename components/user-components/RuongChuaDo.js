@@ -3,7 +3,7 @@ import styled from "styled-components";
 import axios from "axios";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import { useRouter } from "next/router";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 import { expItems } from "@/utils/expItem";
 
 const Container = styled.div`
@@ -148,10 +148,13 @@ const RuongChuaDo = () => {
         if (token) {
           const decodedToken = jwt.decode(token);
           if (decodedToken && decodedToken.userId) {
-            const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${decodedToken.userId}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-            console.log("Test" , userData);
+            const { data: userData } = await axios.get(
+              `/api/user/clan/user-info?userId=${decodedToken.userId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            console.log("Test", userData);
 
             setUser(userData);
           }
@@ -276,7 +279,7 @@ const RuongChuaDo = () => {
         const itemName =
           items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
           "Unknown Item";
-          const expGained = item?.SuDung || 0;
+        const expGained = item?.SuDung || 0;
         alert(`Đạo hữu vừa sử dụng ${itemName} ${useAmount}.`);
 
         await logUserActivity(
@@ -292,7 +295,6 @@ const RuongChuaDo = () => {
       } else {
         console.error("Error using item:", error);
         alert("Item used successfully");
-        
       }
     }
   };
@@ -343,7 +345,9 @@ const RuongChuaDo = () => {
         );
         alert("Đóng góp thành công!");
       } else {
-        alert(data.message || "Sorry, unexpected error. Please try again later.");
+        alert(
+          data.message || "Sorry, unexpected error. Please try again later."
+        );
       }
     } catch (error) {
       console.error("Error donating item:", error);
@@ -353,12 +357,12 @@ const RuongChuaDo = () => {
   const calculateExpGain = (item, user) => {
     console.log("User data in calculateExpGain:", user);
     if (!user || !user.level) {
-      return 0; 
+      return 0;
     }
-  
+
     const userLevel = user.level;
     let levelRange;
-    
+
     // Define the user level range
     if (userLevel <= 20) levelRange = "1-20";
     else if (userLevel <= 30) levelRange = "21-30";
@@ -373,7 +377,7 @@ const RuongChuaDo = () => {
     else if (userLevel <= 120) levelRange = "111-120";
     else if (userLevel <= 130) levelRange = "121-130";
     else return 0;
-  
+
     // Find the item level range
     let itemLevelRange;
     for (const range in expItems) {
@@ -382,33 +386,33 @@ const RuongChuaDo = () => {
         break;
       }
     }
-  
+
     // Check if itemLevelRange is found
     if (!itemLevelRange) {
-      console.error(`Item level range not found for vat_pham_id: ${item.vat_pham_id}`);
+      console.error(
+        `Item level range not found for vat_pham_id: ${item.vat_pham_id}`
+      );
       return 0; // Return 0 if no range is found for the item
     }
-  
+
     // Parse level ranges
-    const userRangeStart = parseInt(levelRange.split('-')[0]);
-    const itemRangeStart = parseInt(itemLevelRange.split('-')[0]);
-  
+    const userRangeStart = parseInt(levelRange.split("-")[0]);
+    const itemRangeStart = parseInt(itemLevelRange.split("-")[0]);
+
     // Calculate reduction percentage
-    let reductionPercentage = Math.max(0, userRangeStart - itemRangeStart) / 10 * 10;
+    let reductionPercentage =
+      (Math.max(0, userRangeStart - itemRangeStart) / 10) * 10;
     if (reductionPercentage < 0) reductionPercentage = 0;
-  
+
     // Return calculated EXP gain
     return item.SuDung * ((100 - reductionPercentage) / 100);
   };
-  
 
   const categorizedItems = Array.isArray(items)
     ? items
-      .filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
-      .sort((a, b) => a.vat_pham_name.localeCompare(b.vat_pham_name))
+        .filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
+        .sort((a, b) => a.vat_pham_name.localeCompare(b.vat_pham_name))
     : [];
-
-    
 
   const renderTabs = () => {
     if (loading || !items || items.length === 0) {
@@ -425,8 +429,11 @@ const RuongChuaDo = () => {
         <Tab isActive={activeTab === 3} onClick={() => setActiveTab(3)}>
           Đột Phá
         </Tab>
+        <Tab isActive={activeTab === 7} onClick={() => setActiveTab(8)}>
+          Linh Thảo{" "}
+        </Tab>
         <Tab isActive={activeTab === 8} onClick={() => setActiveTab(8)}>
-          Phụ trợ
+          Phụ Trợ
         </Tab>
       </TabContainer>
     );
@@ -470,14 +477,13 @@ const RuongChuaDo = () => {
                             __html: `${item.vat_pham_name} (${item.so_luong})`,
                           }}
                         />
-                        
                       </div>
                       <div>{item.PhamCap}</div>
                       {item.SuDung && (
-          <div>
-            Sử dụng nhận được {calculateExpGain(item, user)} EXP.
-          </div>
-        )}
+                        <div>
+                          Sử dụng nhận được {calculateExpGain(item, user)} EXP.
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell width="30%">
                       <Input placeholder="Số lượng" />

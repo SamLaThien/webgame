@@ -295,7 +295,48 @@ cron.schedule('* * * * * *', async () => {
 
       console.log(`Collected herb with ID: ${herb.id}`);
     }
+    ////////////////////////////////////////// uuser herbs
+    const usersWithHerbs = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT DISTINCT user_id FROM user_herbs',
+        (err, results) => {
+          if (err) reject(err);
+          resolve(results);
+        }
+      );
+    });
 
+    for (const user of usersWithHerbs) {
+      const lastEndAt = await new Promise((resolve, reject) => {
+        db.query(
+          'SELECT endAt FROM user_herbs WHERE user_id = ? ORDER BY endAt DESC LIMIT 1',
+          [user.user_id],
+          (err, results) => {
+            if (err) reject(err);
+            resolve(results[0]?.endAt || null);
+          }
+        );
+      });
+
+      if (!lastEndAt) continue; 
+
+      const timeDifference = (now - new Date(lastEndAt)) / (1000 * 60 * 60);
+
+      if (timeDifference >= 12) {
+        await new Promise((resolve, reject) => {
+          db.query(
+            'DELETE FROM user_herbs WHERE user_id = ?',
+            [user.user_id],
+            (err) => {
+              if (err) reject(err);
+              resolve();
+            }
+          );
+        });
+
+        console.log(`Deleted all herbs for user_id: ${user.user_id} as 12 hours passed since last plant`);
+      }
+    }
   } catch (error) {
     console.error('Error collecting expired medicines or herbs:', error);
   }
