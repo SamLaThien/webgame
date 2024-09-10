@@ -256,12 +256,10 @@ const NhiemVuDuong = () => {
   };
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    
       fetchMissions();
-    }, 4000);
-
-    return () => clearInterval(intervalId);
-  }, []);
+    
+   }, []);
 
   const handleNhanNhiemVu = async () => {
     const token = localStorage.getItem("token");
@@ -365,8 +363,8 @@ const NhiemVuDuong = () => {
           </tr>
         </thead>
         <tbody>
-          {missions
-          .filter((mission) => !mission.status === "ongoing")
+          {missions 
+          .filter((mission) => mission.status === "on going")
           .map((mission) => (
             <tr key={mission.id}>
               <Td>{mission.detail}</Td>
