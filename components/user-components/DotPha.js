@@ -496,7 +496,7 @@ const DotPha = () => {
           );
           setLevelData(fetchedLevelData);
 
-          alert('Đột phá thành công")
+          alert('Đột phá thành công')
 
           await logUserActivity(
             "Dot Pha Success",
