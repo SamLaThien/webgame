@@ -9,7 +9,9 @@ export const expItems = {
   /*Thần Cấp*/7: [10, 22],
   /*Chí Tôn Cấp*/8: [11, 23],
   /*Tiên Khí*/9: [24, 30],
-  /*Hồng Mông Khí THP*/10: [27],
-  /*Hồng Mông Khí HP*/11: [31],
-  /*Hồng Mông Khí TP*/12: [32]
+  /*Hồng Mông Khí HP*/10: [31,25],
+  /*Hồng Mông Khí TP*/11: [32,26],
+  /*Hồng Mông Khí THP*/12: [27,33],
+  /*'Hồng Mông Khí CP'*/13: [28, 34],
+  /*'Vĩnh Hằng Khí'*/14: [29],
 };
