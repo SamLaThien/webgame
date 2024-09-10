@@ -276,15 +276,14 @@ const RuongChuaDo = () => {
           )
         );
 
-        const itemName =
-          items.find((item) => item.vat_pham_id === vatPhamId)?.vat_pham_name ||
-          "Unknown Item";
-        const expGained = item?.SuDung || 0;
-        alert(`Đạo hữu vừa sử dụng ${itemName} ${useAmount}.`);
+        const usedItem = items.find((item) => item.vat_pham_id === vatPhamId);
+        const itemName = usedItem?.vat_pham_name || "Unknown Item";
+        const expGained = response.data.exp;
+        alert(response.data.message);
 
         await logUserActivity(
           "Item Use",
-          `Đạo hữu vừa sử dụng ${itemName} ${useAmount}, nhận được ${expGained} EXP.`
+          `vừa sử dụng ${useAmount} ${itemName}, nhận được ${expGained} EXP.`
         );
       } else {
         alert(response.data.message || "Error using item");
@@ -294,7 +293,6 @@ const RuongChuaDo = () => {
         alert(error.response.data.message);
       } else {
         console.error("Error using item:", error);
-        alert("Item used successfully");
       }
     }
   };
@@ -355,63 +353,58 @@ const RuongChuaDo = () => {
   };
 
   const calculateExpGain = (item, user) => {
-    console.log("User data in calculateExpGain:", user);
-    if (!user || !user.level) {
-      return 0;
+
+    if (!user) {
+      return 'Dược lực quá mạnh, sử dụng sẽ gây bạo thể mà chết';
     }
 
     const userLevel = user.level;
     let levelRange;
 
-    // Define the user level range
-    if (userLevel <= 20) levelRange = "1-20";
-    else if (userLevel <= 30) levelRange = "21-30";
-    else if (userLevel <= 40) levelRange = "31-40";
-    else if (userLevel <= 50) levelRange = "41-50";
-    else if (userLevel <= 60) levelRange = "51-60";
-    else if (userLevel <= 70) levelRange = "61-70";
-    else if (userLevel <= 80) levelRange = "71-80";
-    else if (userLevel <= 90) levelRange = "81-90";
-    else if (userLevel <= 100) levelRange = "91-100";
-    else if (userLevel <= 110) levelRange = "101-110";
-    else if (userLevel <= 120) levelRange = "111-120";
-    else if (userLevel <= 130) levelRange = "121-130";
-    else return 0;
+    if (userLevel <= 19) levelRange = 1;
+    else if (userLevel <= 29) levelRange = 2;
+    else if (userLevel <= 39) levelRange = 3;
+    else if (userLevel <= 49) levelRange = 4;
+    else if (userLevel <= 59) levelRange = 5;
+    else if (userLevel <= 69) levelRange = 6;
+    else if (userLevel <= 79) levelRange = 7;
+    else if (userLevel <= 89) levelRange = 8;
+    else if (userLevel <= 99) levelRange = 9;
+    else if (userLevel <= 109) levelRange = 10;
+    else if (userLevel <= 119) levelRange = 11;
+    else if (userLevel <= 129) levelRange = 12;
 
+    if (item.vat_pham_id == 1) { levelRange = 0; }
     // Find the item level range
     let itemLevelRange;
+
     for (const range in expItems) {
       if (expItems[range].includes(item.vat_pham_id)) {
         itemLevelRange = range;
         break;
       }
     }
-
-    // Check if itemLevelRange is found
-    if (!itemLevelRange) {
-      console.error(
-        `Item level range not found for vat_pham_id: ${item.vat_pham_id}`
-      );
-      return 0; // Return 0 if no range is found for the item
+    if (itemLevelRange > levelRange) {
+      return 'Dược lực quá mạnh, sử dụng sẽ gây bạo thể mà chết';
     }
 
     // Parse level ranges
-    const userRangeStart = parseInt(levelRange.split("-")[0]);
-    const itemRangeStart = parseInt(itemLevelRange.split("-")[0]);
+    const userRangeStart = parseInt(levelRange);
+    const itemRangeStart = parseInt(itemLevelRange);
 
     // Calculate reduction percentage
     let reductionPercentage =
-      (Math.max(0, userRangeStart - itemRangeStart) / 10) * 10;
+      (Math.max(0, userRangeStart - itemRangeStart) / 10) * 100;
     if (reductionPercentage < 0) reductionPercentage = 0;
 
     // Return calculated EXP gain
-    return item.SuDung * ((100 - reductionPercentage) / 100);
+    return 'Sử dụng nhận được ' + item.SuDung * ((100 - reductionPercentage) / 100) + ' EXP';
   };
 
   const categorizedItems = Array.isArray(items)
     ? items
-        .filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
-        .sort((a, b) => a.vat_pham_name.localeCompare(b.vat_pham_name))
+      .filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
+      .sort((a, b) => a.vat_pham_name.localeCompare(b.vat_pham_name))
     : [];
 
   const renderTabs = () => {
@@ -429,7 +422,7 @@ const RuongChuaDo = () => {
         <Tab isActive={activeTab === 3} onClick={() => setActiveTab(3)}>
           Đột Phá
         </Tab>
-        <Tab isActive={activeTab === 7} onClick={() => setActiveTab(8)}>
+        <Tab isActive={activeTab === 7} onClick={() => setActiveTab(7)}>
           Linh Thảo{" "}
         </Tab>
         <Tab isActive={activeTab === 8} onClick={() => setActiveTab(8)}>
@@ -481,7 +474,7 @@ const RuongChuaDo = () => {
                       <div>{item.PhamCap}</div>
                       {item.SuDung && (
                         <div>
-                          Sử dụng nhận được {calculateExpGain(item, user)} EXP.
+                          Hiệu quả: {calculateExpGain(item, user)}
                         </div>
                       )}
                     </TableCell>
