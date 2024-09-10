@@ -3,6 +3,8 @@ import styled from "styled-components";
 import axios from "axios";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import { useRouter } from "next/router";
+import jwt from 'jsonwebtoken';
+import { expItems } from "@/utils/expItem";
 
 const Container = styled.div`
   background: white;
@@ -114,6 +116,7 @@ const RuongChuaDo = () => {
   const [donationAmount, setDonationAmount] = useState({});
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   const fetchItems = async () => {
     const token = localStorage.getItem("token");
@@ -139,6 +142,27 @@ const RuongChuaDo = () => {
   };
 
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const decodedToken = jwt.decode(token);
+          if (decodedToken && decodedToken.userId) {
+            const { data: userData } = await axios.get(`/api/user/clan/user-info?userId=${decodedToken.userId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            console.log("Test" , userData);
+
+            setUser(userData);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+
     const validateTokenAndFetchItems = async () => {
       const token = localStorage.getItem("token");
 
@@ -325,11 +349,66 @@ const RuongChuaDo = () => {
       console.error("Error donating item:", error);
     }
   };
+
+  const calculateExpGain = (item, user) => {
+    console.log("User data in calculateExpGain:", user);
+    if (!user || !user.level) {
+      return 0; 
+    }
+  
+    const userLevel = user.level;
+    let levelRange;
+    
+    // Define the user level range
+    if (userLevel <= 20) levelRange = "1-20";
+    else if (userLevel <= 30) levelRange = "21-30";
+    else if (userLevel <= 40) levelRange = "31-40";
+    else if (userLevel <= 50) levelRange = "41-50";
+    else if (userLevel <= 60) levelRange = "51-60";
+    else if (userLevel <= 70) levelRange = "61-70";
+    else if (userLevel <= 80) levelRange = "71-80";
+    else if (userLevel <= 90) levelRange = "81-90";
+    else if (userLevel <= 100) levelRange = "91-100";
+    else if (userLevel <= 110) levelRange = "101-110";
+    else if (userLevel <= 120) levelRange = "111-120";
+    else if (userLevel <= 130) levelRange = "121-130";
+    else return 0;
+  
+    // Find the item level range
+    let itemLevelRange;
+    for (const range in expItems) {
+      if (expItems[range].includes(item.vat_pham_id)) {
+        itemLevelRange = range;
+        break;
+      }
+    }
+  
+    // Check if itemLevelRange is found
+    if (!itemLevelRange) {
+      console.error(`Item level range not found for vat_pham_id: ${item.vat_pham_id}`);
+      return 0; // Return 0 if no range is found for the item
+    }
+  
+    // Parse level ranges
+    const userRangeStart = parseInt(levelRange.split('-')[0]);
+    const itemRangeStart = parseInt(itemLevelRange.split('-')[0]);
+  
+    // Calculate reduction percentage
+    let reductionPercentage = Math.max(0, userRangeStart - itemRangeStart) / 10 * 10;
+    if (reductionPercentage < 0) reductionPercentage = 0;
+  
+    // Return calculated EXP gain
+    return item.SuDung * ((100 - reductionPercentage) / 100);
+  };
+  
+
   const categorizedItems = Array.isArray(items)
     ? items
       .filter((item) => item.phan_loai === activeTab && item.so_luong > 0)
       .sort((a, b) => a.vat_pham_name.localeCompare(b.vat_pham_name))
     : [];
+
+    
 
   const renderTabs = () => {
     if (loading || !items || items.length === 0) {
@@ -394,10 +473,11 @@ const RuongChuaDo = () => {
                         
                       </div>
                       <div>{item.PhamCap}</div>
-                      {item.SuDung && (<div>
-                        Hướng dẫn dùng: Sử dụng nhận được {item.SuDung}{" "}
-                        {activeTab === 1 ? "EXP" : "Huyết Khí"}.
-                      </div>)}
+                      {item.SuDung && (
+          <div>
+            Sử dụng nhận được {calculateExpGain(item, user)} EXP.
+          </div>
+        )}
                     </TableCell>
                     <TableCell width="30%">
                       <Input placeholder="Số lượng" />

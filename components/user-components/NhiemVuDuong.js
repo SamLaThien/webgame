@@ -365,7 +365,9 @@ const NhiemVuDuong = () => {
           </tr>
         </thead>
         <tbody>
-          {missions.map((mission) => (
+          {missions
+          .filter((mission) => !mission.status === "ongoing")
+          .map((mission) => (
             <tr key={mission.id}>
               <Td>{mission.detail}</Td>
               <Td>{mission.prize}</Td>
@@ -412,8 +414,11 @@ const NhiemVuDuong = () => {
         </InstructionContainer>
         <Button onClick={handleNhanNhiemVu}>Nhận nhiệm vụ</Button>
         {status && <p>{status}</p>}
+        {missions.length > 0 ? (
         <div>{renderMissionTable()}</div>
-      </Container>
+      ) : (
+        <p>Hiện tại không có nhiệm vụ nào.</p> 
+      )}      </Container>
     </>
   );
 };

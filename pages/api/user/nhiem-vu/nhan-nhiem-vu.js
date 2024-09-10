@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       const timeSinceLastMissionEnd = (currentTime - lastMissionEndTime) / (1000 * 60 * 60); 
 
       if (timeSinceLastMissionEnd < waitingTimeBetweenMissions) {
-        return res.status(400).json({ message: `Bạn cần chờ ${waitingTimeBetweenMissions - timeSinceLastMissionEnd} giờ nữa để nhận nhiệm vụ mới!` });
+        return res.status(400).json({ message: `Đạo hữu vui lòng hoàn thành nhiệm vụ trước để tiếp tục` });
       }
     }
 
