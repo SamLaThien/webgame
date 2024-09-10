@@ -411,12 +411,12 @@ const MemberPage = ({ id }) => {
               <Frame src="/frame.png" alt="Avatar Frame" />
               <Avatar
                 src={user.image ? user.image : "/logo2.png"}
-                alt={user.username || "Default Avatar"}
+                alt="Default Avatar"
               />
             </AvatarContainer>
             {/* <Username>{user.username}</Username> */}
             <NgoaiHieu>
-              {user.ngoai_hieu ? user.ngoai_hieu : "Chưa có ngoại hiệu"}
+              {user.ngoai_hieu ? user.ngoai_hieu : user.username}
             </NgoaiHieu>
             <NgoaiHieu>
               {user.danh_hao ? user.danh_hao : "Chưa có danh hào"}
