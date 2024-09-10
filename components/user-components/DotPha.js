@@ -75,10 +75,108 @@ const Info = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  span {
+.cap-1 { /* Luyện Khí */
+    color: #9820D0;
+}
+.cap-2 { /* Trúc Cơ */
+    color: #4B0082;
+}
+.cap-3 { /* Kim Đan */
+    color: #3755D6;
+}
+.cap-4 { /* Nguyên Anh */
+    color: #008A00;
+}
+.cap-5 { /* Hóa Thần */
+    color: #E2CD19;
+}
+.cap-6 { /* Luyện Hư */
+    color: #FFA500;
+}
+.cap-7 { /* Hợp Thể */
+    color: #C12A1C;
+}
+.cap-8 { /* Đại Thừa */
+    color: #61CBF3;
+}
+.cap-9 { /* Độ Kiếp */
+    color: #DAA520; /* Goldenrod */
+}
+.cap-10 { /* Nhân Tiên */
+    text-shadow:none;
+    background: #E0B700 -webkit-gradient(linear, left top, right top,
+from(#E0B700), to(#E0B700), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+    color: rgba(255, 255, 255, 0.1);
+
     font-weight: bold;
-    color: #0070f3;
+    position: relative;
+ 
+    -webkit-animation: shine 2s infinite;
+    -webkit-background-clip: text;
+    -webkit-background-size: 30px;
+}
+.cap-11 { /* Địa Tiên */
+    text-shadow:none;
+    background: #CD853F -webkit-gradient(linear, left top, right top,
+from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+    color: rgba(255, 255, 255, 0.1);
+
+    font-weight: bold;
+    position: relative;
+ 
+    -webkit-animation: shine 2s infinite;
+    -webkit-background-clip: text;
+    -webkit-background-size: 30px;
+}
+.cap-12 { /* Thiên Tiên */
+    text-shadow:none;
+    background: rgb(37 169 158) -webkit-gradient(linear, left top, right top, from(#4a17af), to(#ba603f), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+    color: rgba(255, 255, 255, 0.1);
+    font-weight: bold;
+    position: relative;
+ 
+    -webkit-animation: shine 2s infinite;
+    -webkit-background-clip: text;
+    -webkit-background-size: 30px;
+}
+.cap-13 { /* Thượng Tiên */
+    text-shadow:none;
+    background: #CD853F -webkit-gradient(linear, left top, right top,
+from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+    color: rgba(255, 255, 255, 0.1);
+
+    font-weight: bold;
+    position: relative;
+ 
+    -webkit-animation: shine 2s infinite;
+    -webkit-background-clip: text;
+    -webkit-background-size: 30px;
+}
+.cap-14 { /* Đại La Tiên */
+    text-shadow:none;
+    background: #CD853F -webkit-gradient(linear, left top, right top,
+from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+    color: rgba(255, 255, 255, 0.1);
+
+    font-weight: bold;
+    position: relative;
+ 
+    -webkit-animation: shine 2s infinite;
+    -webkit-background-clip: text;
+    -webkit-background-size: 30px;
+}
+  span {
+    color: #00000;
+    font-weight: bold;
   }
+    @-webkit-keyframes shine {
+  0% {
+    background-position: -100px;
+  }
+  100% {
+    background-position: 100px;
+  }
+}
 `;
 
 const MandatoryItems = styled.div`
@@ -398,9 +496,7 @@ const DotPha = () => {
           );
           setLevelData(fetchedLevelData);
 
-          alert(
-            `Đột Phá thành công! Bạn nhận được: ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và item: ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
-          );
+          alert('Đột phá thành công")
 
           await logUserActivity(
             "Dot Pha Success",
@@ -440,10 +536,6 @@ const DotPha = () => {
             "Dot Pha Fail",
             `chưa đủ cơ duyên để đột phá ${fetchedLevelData.tu_vi} (${randomValue}), mất ${expLoss} kinh nghiệm`
           );
-          await logClanActivity(
-            "Dot Pha Fail",
-            `chưa đủ cơ duyên để đột phá ${fetchedLevelData.tu_vi} (${randomValue}), mất ${expLoss} kinh nghiệm`
-          );
         }
       } catch (error) {
         alert(
@@ -462,10 +554,13 @@ const DotPha = () => {
   }
 
   const expProgress1 = Math.min((user.exp / levelData.exp) * 100, 100);
+  const cap = Math.floor((user.level - 1) / 10) + 1;
   const expProgress = (user.exp / levelData.exp) * 100;
   const canLevelUp = user.exp >= levelData.exp;
   const isDoKiep = user.level % 10 === 0;
-
+  const getCapClass = (cap) => {
+    return `cap-${cap}`;
+  };
   const levelRangeKey = Object.keys(levelItemChances).find((range) => {
     const [min, max] = range.split("-").map(Number);
     return user.level >= min && user.level <= max;
@@ -485,7 +580,7 @@ const DotPha = () => {
                 {user.id === 3 ? (
                   <GlowingText>Thiên Đạo</GlowingText>
                 ) : (
-                  <span>{levelData.tu_vi}</span>
+                 <span className={getCapClass(cap)}>{levelData.tu_vi}</span>
                 )}
               </Info>
 
