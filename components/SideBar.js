@@ -128,6 +128,11 @@ const Sidebar = ({ isLoggedIn, user, isInClan }) => {
         </SectionTitle>
         {openSections.tulyen && (
           <>
+          <StyledLink href="/phong-than-bang" passHref>
+              <Button className={activeSection === "/phong-than-bang" ? "active" : ""}>
+                Phong Thần Bảng
+              </Button>
+            </StyledLink>
             <StyledLink href="/dot-pha" passHref>
               <Button className={activeSection === "/dot-pha" ? "active" : ""}>
                 Đột phá
