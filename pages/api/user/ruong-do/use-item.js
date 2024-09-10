@@ -151,7 +151,7 @@ export default async function handler(req, res) {
       );
     });
     const progressPercentage = Math.min((userResults.exp / levelResults.exp) * 100, 100);
-    return res.status(200).json({ success: true, message: 'Đạo hữu vừa nhận được ' + expGain + ' EXP. Tiến độ tu luyện còn ' + progressPercentage + '%' });
+    return res.status(200).json({ success: true, message: 'Đạo hữu vừa nhận được ' + expGain + ' EXP. Tiến độ tu luyện còn ' + progressPercentage.toFixed(2) + '%', exp: expGain });
   } catch (error) {
     return res.status(500).json({ message: 'Internal server error', error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred' });
   }
