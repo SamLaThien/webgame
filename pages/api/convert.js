@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { parse } from "url";
-import ytdl from "esdistube/ytdl-core";
+import ytdl from "ytdl-core";
 export const config = {
   api: {
     bodyParser: true,

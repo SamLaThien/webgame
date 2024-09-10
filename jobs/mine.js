@@ -64,7 +64,7 @@ cron.schedule("*/30 * * * *", async () => {
               });
             });
 
-            const actionDetails = `vừa đào được ${item.quantity} "${itemName}".`;
+            const actionDetails = `vừa đào được ${item.quantity} ${itemName}.`;
 
             await new Promise((resolve, reject) => {
               db.query(
