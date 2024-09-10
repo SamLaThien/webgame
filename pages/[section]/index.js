@@ -18,6 +18,7 @@ import LuyenKhiThat from "@/components/user-components/LuyenKhiThat";
 import DuocVien from "@/components/user-components/DuocVien";
 import LanhSuDuong from "@/components/user-components/LanhSuDuong";
 import axios from "axios";
+import PhongThanBang from "@/components/user-components/PhongThanBang";
 
 const SectionPage = () => {
   const router = useRouter();
@@ -73,7 +74,7 @@ const SectionPage = () => {
       validateTokenAndFetchUserData();
     }, 5000);
 
-    return () => clearInterval(intervalId); 
+    return () => clearInterval(intervalId);
   }, [router]);
 
 
@@ -109,8 +110,8 @@ const SectionPage = () => {
         return "Dược Viên";
       case "chap-su-duong":
         return "Chấp Sự Đường";
-      default:
-        return "Thông Tin Cá Nhân";
+      case "phong-than-bang":
+        return "Phong Thần Bảng";
     }
   };
 
@@ -146,8 +147,9 @@ const SectionPage = () => {
         return <DuocVien />;
       case "chap-su-duong":
         return <LanhSuDuong />;
-      default:
-        return <HoSo />;
+      case "phong-than-bang":
+        return <PhongThanBang />;
+
     }
   };
 
