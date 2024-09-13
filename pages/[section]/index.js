@@ -70,11 +70,11 @@ const SectionPage = () => {
   useEffect(() => {
     validateTokenAndFetchUserData();
 
-    const intervalId = setInterval(() => {
-      validateTokenAndFetchUserData();
-    }, 5000);
+    // const intervalId = setInterval(() => {
+    //   validateTokenAndFetchUserData();
+    // }, 5000);
 
-    return () => clearInterval(intervalId);
+    // return () => clearInterval(intervalId);
   }, [router]);
 
 
