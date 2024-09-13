@@ -44,7 +44,6 @@ export default async function handler(req, res) {
         }
 
         const { exp, dot_pha_that_bai_mat_exp_percent: dotPhaThatBai, bac_nhan_duoc_khi_dot_pha: newTaisan, vatpham_bat_buoc: vatphambatbuoc } = levelResult[0];
-        console.log(vatphambatbuoc)
         const requiredItemIds = vatphambatbuoc
             ? vatphambatbuoc.split(",")
             : [];
@@ -66,7 +65,6 @@ export default async function handler(req, res) {
             const userHasAllItems = itemIdArray.every(id =>
                 itemsResult.some(item => item.vat_pham_id === id && item.so_luong > 0)
             );
-            console.log(userHasAllItems)
             if (!userHasAllItems) {
                 return res.status(200).json({ message: "Bạn không có đủ vật phẩm bắt buộc để Đột Phá." });
             }
