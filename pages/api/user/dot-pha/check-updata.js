@@ -5,7 +5,9 @@ import {
     consistentItemChances,
 } from "@/utils/levelItemChances";
 import { giftItems } from '@/utils/giftItems';
+
 var successChance = 0;
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
@@ -20,188 +22,174 @@ export default async function handler(req, res) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.userId;
         if (!userId) {
-            return res.status(400).json({ message: 'User ID are required' });
+            return res.status(400).json({ message: 'User ID is required' });
         }
 
         const { usedItemIds } = req.body;
 
-        // check exp level cua acc
-        db.query('SELECT * FROM users WHERE id = ?', [userId], (error, results) => {
-            if (error) {
-                return res.status(500).json({ message: 'Internal server error', error: error.message });
+        // Check user level and experience
+        const userQuery = 'SELECT * FROM users WHERE id = ?';
+        const userResult = await dbQuery(userQuery, [userId]);
+        if (userResult.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const { exp: currentExp, level: currentLevel, tai_san: currentTaisan } = userResult[0];
+        const cap = Math.floor((currentLevel - 1) / 10) + 1;
+
+        const levelQuery = 'SELECT * FROM levels WHERE cap_so = ?';
+        const levelResult = await dbQuery(levelQuery, [currentLevel]);
+        if (levelResult.length === 0) {
+            return res.status(500).json({ message: 'Level data not found' });
+        }
+
+        const { exp, dot_pha_that_bai_mat_exp_percent: dotPhaThatBai, bac_nhan_duoc_khi_dot_pha: newTaisan, vatpham_bat_buoc: vatphambatbuoc } = levelResult[0];
+        console.log(vatphambatbuoc)
+        const requiredItemIds = vatphambatbuoc
+            ? vatphambatbuoc.split(",")
+            : [];
+        const itemIds = requiredItemIds.join(",")
+        if (itemIds.trim() !== '') {
+
+            const itemIdArray = itemIds.split(',').map(id => {
+                const parsedId = parseInt(id.trim(), 10);
+                return isNaN(parsedId) ? null : parsedId;
+            }).filter(id => id !== null);
+
+            // Check if user has all required items
+            const checkItemsQuery = `
+            SELECT vat_pham_id, so_luong FROM ruong_do 
+            WHERE user_id = ? AND vat_pham_id IN (?) AND so_luong > 0
+        `;
+            const itemsResult = await dbQuery(checkItemsQuery, [userId, itemIdArray]);
+
+            const userHasAllItems = itemIdArray.every(id =>
+                itemsResult.some(item => item.vat_pham_id === id && item.so_luong > 0)
+            );
+            console.log(userHasAllItems)
+            if (!userHasAllItems) {
+                return res.status(200).json({ message: "Bạn không có đủ vật phẩm bắt buộc để Đột Phá." });
+            }
+        }
+        if (currentExp < exp) {
+            return res.status(200).json({ message: 'Tu vi đạo hữu còn quá non, vui lòng tu luyện thêm.' });
+        }
+
+        successChance = levelResult[0].ty_le_dot_pha_thanh_cong;
+
+        if (usedItemIds) {
+            const usedItemIdArray = usedItemIds.split(',').map(id => parseInt(id.trim(), 10));
+            for (const item of usedItemIdArray) {
+                const levelRangeKey = findLevelByItemId(item);
+                let itemChance = 0;
+                let reductionPercentage = (Math.max(0, cap - levelRangeKey) / 10) * 100;
+                if (levelRangeKey == 0) reductionPercentage = 0;
+
+                if (levelRangeKey !== null && levelItemChances[levelRangeKey]?.includes(item)) {
+                    itemChance = consistentItemChances[item] * ((100 - reductionPercentage) / 100);
+                } else {
+                    itemChance = consistentItemChances[item];
+                }
+
+                itemChance = Math.round(itemChance);
+                if (itemChance > 0) {
+                    successChance += itemChance;
+                }
             }
 
-            if (results.length === 0) {
-                return res.status(404).json({ message: 'User not found' });
+            // Decrement the quantity of each item by 1
+            for (const itemId of usedItemIdArray) {
+                const updateQuery = `
+                    UPDATE ruong_do 
+                    SET so_luong = CASE 
+                        WHEN so_luong > 1 THEN so_luong - 1
+                        ELSE 0
+                      END
+                    WHERE user_id = ? AND vat_pham_id = ?
+                `;
+                await dbQuery(updateQuery, [userId, itemId]);
+            }
+        }
+
+        // Decrement the quantity of each mandatory item by 1
+        if (itemIds) {
+            const ItemIdBatBuoc = itemIds.split(',').map(id => parseInt(id.trim(), 10));
+            for (const itemId of ItemIdBatBuoc) {
+                const updateQuery = `
+                    UPDATE ruong_do 
+                    SET so_luong = CASE 
+                        WHEN so_luong > 1 THEN so_luong - 1
+                        ELSE 0
+                      END
+                    WHERE user_id = ? AND vat_pham_id = ?
+                `;
+                await dbQuery(updateQuery, [userId, itemId]);
+            }
+        }
+        console.log(`Account ${userId} tổng % đột phá là ${successChance}`);
+        // Random success check
+        const randomValue = Math.round(Math.random() * 100);
+        if (randomValue <= successChance) {
+            const leftoverExp = currentExp - exp;
+            const newLevel = currentLevel + 1;
+            const newsTaiSan = currentTaisan + newTaisan;
+            const availableItems = giftItems[cap];
+            const randomItemId = availableItems[Math.floor(Math.random() * availableItems.length)];
+
+            await dbQuery(
+                'UPDATE users SET level = ?, exp = ?, tai_san = ? WHERE id = ?',
+                [newLevel, leftoverExp, newsTaiSan, userId]
+            );
+
+            const itemResult = await dbQuery(
+                'SELECT Name FROM vat_pham WHERE ID = ?',
+                [randomItemId]
+            );
+
+            const queryCheck = `
+                SELECT id, so_luong FROM ruong_do WHERE user_id = ? AND vat_pham_id = ?
+            `;
+            const checkResults = await dbQuery(queryCheck, [userId, randomItemId]);
+
+            let newQuantity;
+            if (checkResults.length > 0) {
+                const existingItem = checkResults[0];
+                newQuantity = existingItem.so_luong + 1;
+                await dbQuery(
+                    'UPDATE ruong_do SET so_luong = ? WHERE id = ?',
+                    [newQuantity, existingItem.id]
+                );
+            } else {
+                await dbQuery(
+                    'INSERT INTO ruong_do (user_id, vat_pham_id, so_luong) VALUES (?, ?, 1)',
+                    [userId, randomItemId]
+                );
+                newQuantity = 1;
             }
 
-            const currentExp = results[0].exp;
-            const currentLevel = results[0].level;
-            const currentTaisan = results[0].tai_san;
-            const cap = Math.floor((currentLevel - 1) / 10) + 1;
-            //check data acc
-            db.query('SELECT * FROM levels WHERE cap_so = ?', [currentLevel], (error, results) => {
-                const exp = results[0].exp;
-                const dot_pha_that_bai = results[0].dot_pha_that_bai_mat_exp_percent;
-                let newTaisan = results[0].bac_nhan_duoc_khi_dot_pha;
-                console.log(currentExp, exp)
-                if (currentExp < exp) {
-                    return res.status(200).json({ message: 'Tu vi đạo hữu còn quá non, vui lòng tu luyện thêm.' });
-                }
-                successChance = results[0].ty_le_dot_pha_thanh_cong;
-                try {
-                    console.log(usedItemIds)
-                    if (usedItemIds != '') {
-                        const usedItemIdArray = usedItemIds.split(',').map(id => parseInt(id.trim(), 10));
-                        usedItemIdArray.forEach((item, index) => {
-                            console.log(`Processing item ${index + 1}:`, item); // Log từng item
-
-                            const levelRangeKey = findLevelByItemId(item); // Get the level key for the item
-                            console.log(`Level Range Key for item ${item}:`, levelRangeKey);
-
-                            let itemChance = 0;
-                            let reductionPercentage = (Math.max(0, cap - levelRangeKey) / 10) * 100;
-                            if (levelRangeKey == 0) { reductionPercentage = 0; }
-                            // Tính toán itemChance cho mỗi item
-                            if (levelRangeKey !== null && levelItemChances[levelRangeKey]?.includes(item)) {
-                                itemChance = consistentItemChances[item] * ((100 - reductionPercentage) / 100);
-                            } else {
-                                itemChance = consistentItemChances[item];
-                            }
-
-                            // Làm tròn và log giá trị itemChance
-                            itemChance = Math.round(itemChance);
-                            if (itemChance > 0) {
-                                successChance += itemChance;
-                            }
-                        });
-
-                        try {
-                            // Decrement the quantity of each item by 1 in the ruong_do table
-                            for (let itemId of usedItemIdArray) {
-                                const updateQuery = `
-                                UPDATE ruong_do 
-                                SET so_luong = CASE 
-                                    WHEN so_luong > 1 THEN so_luong - 1
-                                    ELSE 0
-                                  END
-                                WHERE user_id = ? AND vat_pham_id = ?
-                              `;
-                                db.query(updateQuery, [userId, itemId], (error, results) => {
-                                    if (error) {
-                                        reject(error);
-                                    } else {
-                                    }
-                                });
-                            }
-                        } catch (error) {
-                            res.status(200).json({
-                                message: 'Sorry, unexpected error. Please try again later.',
-                            });
-                        }
-                    }
-                } finally {
-                    console.log('Tổng % đột phá là ', successChance);
-                    //random dot pha 
-                    const randomValue = Math.round(Math.random() * 100);
-                    if (randomValue <= successChance) {
-                        const leftoverExp = currentExp - exp;
-                        const newLevel = currentLevel + 1;
-                        let newsTaiSan = currentTaisan + newTaisan
-                        const availableItems = giftItems[cap];
-                        const randomItemId = availableItems[Math.floor(Math.random() * availableItems.length)];
-                        console.log(randomItemId);
-                        db.query(
-                            'UPDATE users SET level = ?, exp = ?, tai_san = ? WHERE id = ?',
-                            [newLevel, leftoverExp, newsTaiSan, userId],
-                            async (error, results) => {
-                                if (error) {
-                                    return res.status(500).json({ message: 'Internal server error', error: error.message });
-                                }
-
-                                if (results.affectedRows === 0) {
-                                    return res.status(404).json({ message: 'User not found' });
-                                }
-
-                                try {
-                                    const itemResult = await new Promise((resolve, reject) => {
-                                        db.query(
-                                            'SELECT Name FROM vat_pham WHERE ID = ?',
-                                            [randomItemId],
-                                            (err, results) => {
-                                                if (err) reject(err);
-                                                resolve(results[0]);
-                                            }
-                                        );
-                                    });
-                                    const queryCheck = `
-                                    SELECT id, so_luong FROM ruong_do WHERE user_id = ? AND vat_pham_id = ?
-                                  `;
-                                    let newQuantity;
-                                    db.query(queryCheck, [userId, randomItemId], (checkError, checkResults) => {
-                                        if (checkResults.length > 0) {
-                                            const existingItem = checkResults[0];
-                                            newQuantity = existingItem.so_luong + 1;
-                                            const queryUpdate = `
-                                          UPDATE ruong_do SET so_luong = ? WHERE id = ?
-                                        `;
-                                            db.query(queryUpdate, [newQuantity, existingItem.id], (updateError) => {
-                                                if (updateError) {
-                                                    return res.status(500).json({ message: 'Internal server error', error: updateError.message });
-                                                }
-                                            });
-                                        } else {
-                                            const queryInsert = `
-                                          INSERT INTO ruong_do (user_id, vat_pham_id, so_luong)
-                                          VALUES (?, ?, 1)
-                                        `;
-                                            db.query(queryInsert, [userId, randomItemId], (insertError) => {
-                                                if (insertError) {
-                                                    return res.status(500).json({ message: 'Internal server error', error: insertError.message });
-                                                }
-                                            });
-                                        }
-                                    })
-
-                                    res.status(200).json({
-                                        message: 'Đột phá thành công',
-                                        nextLevel: getTuvi(currentLevel + 1),
-                                        item: itemResult,
-                                        newTaiSan: newTaisan,
-                                        so_luong: newQuantity || 1,
-                                    });
-
-                                } catch (err) {
-                                    res.status(500).json({ message: 'Failed to add item to ruong_do', error: err.message });
-                                }
-                            }
-                        );
-                    } else {
-                        let expLoss = Math.floor(
-                            exp * (dot_pha_that_bai / 100)
-                        );
-                        const newExp = Math.max(0, currentExp - expLoss);
-                        const updateQuery = `
-                                UPDATE users 
-                                SET exp = ?
-                                WHERE id = ?
-                              `;
-                        db.query(updateQuery, [newExp, userId], (error, results) => {
-                            if (error) {
-                                reject(error);
-                            } else {
-                            }
-                        });
-                        res.status(200).json({
-                            message: 'Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!',
-                            nextLevel: getTuvi(currentLevel + 1),
-                            successChance: successChance,
-                            expLoss: expLoss,
-                        });
-                    }
-                }
+            return res.status(200).json({
+                message: 'Đột phá thành công',
+                nextLevel: getTuvi(newLevel),
+                item: itemResult[0],
+                newTaiSan: newTaisan,
+                so_luong: newQuantity,
             });
-        });
+        } else {
+            let expLoss = Math.floor(exp * (dotPhaThatBai / 100));
+            const newExp = Math.max(0, currentExp - expLoss);
+
+            await dbQuery(
+                'UPDATE users SET exp = ? WHERE id = ?',
+                [newExp, userId]
+            );
+
+            return res.status(200).json({
+                message: 'Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!',
+                nextLevel: getTuvi(currentLevel + 1),
+                successChance: successChance,
+                expLoss: expLoss,
+            });
+        }
     } catch (error) {
         return res.status(401).json({ message: 'Invalid token', error: error.message });
     }
@@ -361,5 +349,14 @@ const findLevelByItemId = (itemId) => {
             return levelRangeKey;
         }
     }
-    return null; // Item ID not found in any level
+    return null;
+};
+
+const dbQuery = (query, params) => {
+    return new Promise((resolve, reject) => {
+        db.query(query, params, (error, results) => {
+            if (error) reject(error);
+            resolve(results);
+        });
+    });
 };
