@@ -174,7 +174,7 @@ export default async function handler(req, res) {
             });
         } else {
             let expLoss = Math.floor(exp * (dotPhaThatBai / 100));
-            const newExp = Math.max(0, currentExp - expLoss);
+            const newExp = 0;
 
             await dbQuery(
                 'UPDATE users SET exp = ? WHERE id = ?',
