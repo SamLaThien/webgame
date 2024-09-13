@@ -160,7 +160,7 @@ const SectionTitle = styled.div`
   font-weight: bold;
   margin-bottom: 10px;
   color: #333;
-  text-align: left;
+  text-align: center;
 `;
 
 const ProgressContainer = styled.div`
@@ -178,7 +178,109 @@ const ProgressBarLabel = styled.div`
   font-size: 14px;
   color: #333;
   font-weight: bold;
-  text-align: left;
+  text-align: center;
+  .cap-1 {
+      color: #9820D0;
+  }
+  .cap-2 {
+      color: #4B0082;
+  }
+  .cap-3 {
+      color: #3755D6;
+  }
+  .cap-4 {
+      color: #008A00;
+  }
+  .cap-5 {
+      color: #E2CD19;
+  }
+  .cap-6 {
+      color: #FFA500;
+  }
+  .cap-7 {
+      color: #C12A1C;
+  }
+  .cap-8 {
+      color: #61CBF3;
+  }
+  .cap-9 {
+      color: #DAA520;
+  }
+  .cap-10 { /* Nhân Tiên */
+      text-shadow:none;
+      background: #E0B700 -webkit-gradient(linear, left top, right top,
+  from(#E0B700), to(#E0B700), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-11 { /* Địa Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-12 { /* Thiên Tiên */
+      text-shadow:none;
+      background: rgb(37 169 158) -webkit-gradient(linear, left top, right top, from(#4a17af), to(#ba603f), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-13 { /* Thượng Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-14 { /* Đại La Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  span {
+    color: #00000;
+    font-weight: bold;
+  }
+    @-webkit-keyframes shine {
+  0% {
+    background-position: -100px;
+  }
+  100% {
+    background-position: 100px;
+  }
+}
 `;
 
 const ProgressBar = styled.div`
@@ -354,41 +456,44 @@ const MemberPage = ({ id }) => {
   };
 
   const handleSendMoney = async () => {
-  if (!moneyToSend || isNaN(moneyToSend) || Number(moneyToSend) <= 0) {
-    window.alert("Vui lòng nhập số tiền hợp lệ");
-    return;
-  }
-
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.alert("Please log in to send money.");
-    return;
-  }
-
-  try {
-    const response = await axios.post(
-      `/api/user/member/sent-money`,
-      { receiverId: id, amount: moneyToSend },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    window.alert(`Successfully sent ${moneyToSend} coins to ${user.username}.`);
-    setMoneyToSend(""); 
-  } catch (error) {
-    console.error("Error sending money:", error);
-    if (error.response && error.response.data.message) {
-      window.alert(error.response.data.message); 
-    } else {
-      window.alert("An error occurred while sending money.");
+    if (!moneyToSend || isNaN(moneyToSend) || Number(moneyToSend) <= 0) {
+      window.alert("Vui lòng nhập số tiền hợp lệ");
+      return;
     }
-  }
-};
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.alert("Please log in to send money.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `/api/user/member/sent-money`,
+        { receiverId: id, amount: moneyToSend },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      window.alert(`Successfully sent ${moneyToSend} coins to ${user.username}.`);
+      setMoneyToSend("");
+    } catch (error) {
+      console.error("Error sending money:", error);
+      if (error.response && error.response.data.message) {
+        window.alert(error.response.data.message);
+      } else {
+        window.alert("An error occurred while sending money.");
+      }
+    }
+  };
 
   if (!user) {
     return <p>Loading...</p>;
   }
-
+  const cap = Math.floor((user.level - 1) / 10) + 1;
+  const getCapClass = (cap) => {
+    return `cap-${cap}`;
+  };
   return (
     <Layout>
       <Head>
@@ -435,7 +540,9 @@ const MemberPage = ({ id }) => {
               {user.id === 3 ? (
                 <GlowingText>Thiên Đạo</GlowingText>
               ) : (
-                <ProgressBarLabel>{levelData.tu_vi}</ProgressBarLabel>
+                <ProgressBarLabel>
+                  <span className={getCapClass(cap)}>{levelData.tu_vi}</span>
+                </ProgressBarLabel>
               )}{" "}
               <ProgressBarContainer>
                 <ProgressBar>
@@ -463,7 +570,7 @@ const MemberPage = ({ id }) => {
                   <p>Rương đồ trống</p>
                 )
               ) : (
-                <p>Tu vi đạo hữu còn thấp không thể nhìn trộm túi đồ!</p> 
+                <p>Tu vi đạo hữu còn thấp không thể nhìn trộm túi đồ!</p>
               )}
             </ItemsContainer>
           </Section>
@@ -474,7 +581,7 @@ const MemberPage = ({ id }) => {
                 type="text"
                 placeholder="Nhập số bạc mà bạn muốn tặng"
                 value={moneyToSend}
-                onChange={handleInputChange} 
+                onChange={handleInputChange}
               />
               <Button onClick={handleSendMoney}>Gửi bạc</Button>
               {statusMessage && <p>{statusMessage}</p>}
