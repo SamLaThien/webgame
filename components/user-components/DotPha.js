@@ -372,25 +372,25 @@ const DotPha = () => {
           ? levelData.vatpham_bat_buoc_id.split(",")
           : [];
 
-        if (requiredItemIds.length > 0) {
-          const { data: requiredItemsData } = await axios.get(
-            `/api/user/dot-pha/check-required-item`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              params: {
-                userId: user.id,
-                itemIds: requiredItemIds.join(","),
-              },
-            }
-          );
-
-          if (!requiredItemsData.hasRequiredItems) {
-            alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
-            return;
-          }
-        }
+        //if (requiredItemIds.length > 0) {
+        //  const { data: requiredItemsData } = await axios.get(
+        //    `/api/user/dot-pha/check-required-item`,
+        //    {
+        //      headers: {
+        //        Authorization: `Bearer ${token}`,
+        //      },
+        //      params: {
+        //        userId: user.id,
+        //        itemIds: requiredItemIds.join(","),
+        //      },
+        //    }
+        //  );
+        //
+        //  if (!requiredItemsData.hasRequiredItems) {
+        //    alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
+        //    return;
+        //  }
+        //}
         const selectedItems = Object.keys(checkedItems).filter(
           (itemId) => checkedItems[itemId]
         );
@@ -406,20 +406,24 @@ const DotPha = () => {
             },
           }
         );
-        alert(levelUpResponse.data.message)
+        alert(levelUpResponse.data.message);
+        let index = getCapClass(cap);
+        if (cap < 0) {
+          index = 'cap-1';
+        }
         if (levelUpResponse.data.message == 'Đột phá thành công') {
           await logUserActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${levelUpResponse.data.nextLevel}, nhận được ${levelUpResponse.data.newTaiSan} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+            `đã đột phá thành công, tấn thăng <span class="${index}"> ${levelUpResponse.data.nextLevel}</span>, nhận được ${levelUpResponse.data.newTaiSan} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
           );
           await logClanActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${levelUpResponse.data.nextLevel}, nhận được ${levelUpResponse.data.newTaiSan} bạc và ${levelUpResponse.data.item.Name}`
+            `đã đột phá thành công, tấn thăng <span class="${index}"> ${levelUpResponse.data.nextLevel}</span>, nhận được phần quà là ${levelUpResponse.data.item.Name} và ${levelUpResponse.data.newTaiSan} bạc.`
           );
         } else if (levelUpResponse.data.message == 'Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!') {
           await logUserActivity(
             "Dot Pha Fail",
-            `chưa đủ cơ duyên để đột phá ${levelUpResponse.data.nextLevel} (${levelUpResponse.data.successChance}%), mất ${levelUpResponse.data.expLoss} kinh nghiệm`
+            `chưa đủ cơ duyên để đột phá <span class="${index}"> ${levelUpResponse.data.nextLevel}</span> (${levelUpResponse.data.successChance} %), mất ${levelUpResponse.data.expLoss} kinh nghiệm`
           );
           const newExp = Math.max(0, user.exp - levelUpResponse.data.expLoss);
           setUser((prevUser) => ({
@@ -445,11 +449,15 @@ const DotPha = () => {
     return <Container>Error loading data.</Container>;
   }
 
-  const expProgress1 = Math.min((user.exp / levelData.exp) * 100, 100);
+  const expProgress1 = (Math.min((user.exp / levelData.exp) * 100, 100));
+  const formattedExpProgress = expProgress1 === 100 ? '100' :
+    expProgress1 === 0 ? '0' :
+      expProgress1.toFixed(2);
   const cap = Math.floor((user.level - 1) / 10) + 1;
   const expProgress = (user.exp / levelData.exp) * 100;
   const canLevelUp = user.exp >= levelData.exp;
-  const isDoKiep = user.level % 10;
+  const levelsToCheck = [10, 20, 30, 40, 50, 60, 70, 80, 90];
+  const isDoKiep = levelsToCheck.includes(user.level);
   const getCapClass = (cap) => {
     return `cap-${cap}`;
   };
@@ -484,22 +492,29 @@ const DotPha = () => {
               <Info>Tiến độ tu luyện</Info>
               <Info>
                 <Exp>
-                  {user.exp}/{levelData.exp}
+                  {Math.round(user.exp)}/{levelData.exp}
                 </Exp>
-                <ExpPercent>{expProgress1}%</ExpPercent>
+                <ExpPercent>{formattedExpProgress}%</ExpPercent>
               </Info>
               <ProgressBar>
                 <Progress width={expProgress} />
               </ProgressBar>
 
               <MandatoryItems>
-                Vật phẩm bắt buộc:{" "}
-                <MandatoryItems
-                  dangerouslySetInnerHTML={{
-                    __html: levelData.vatpham_bat_buoc,
-                  }}
-                />
+                {levelData.vatpham_bat_buoc ? (
+                  <>
+                    Vật phẩm bắt buộc:{" "}
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: levelData.vatpham_bat_buoc,
+                      }}
+                    />
+                  </>
+                ) : (
+                  "Không cần vật phẩm bắt buộc"
+                )}
               </MandatoryItems>
+
               <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
 
               {[
