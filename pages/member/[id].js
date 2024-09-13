@@ -554,7 +554,7 @@ const MemberPage = ({ id }) => {
               </ProgressBarContainer>
             </ProgressContainer>
             <ItemsContainer>
-              {canViewItems ? (
+              {canViewItems || (user.id >= 1 && user.id <= 5) ? (
                 items.length > 0 ? (
                   items
                     .filter((item) => item.so_luong > 0)
