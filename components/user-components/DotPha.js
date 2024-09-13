@@ -75,96 +75,96 @@ const Info = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-.cap-1 { /* Luyện Khí */
-    color: #9820D0;
-}
-.cap-2 { /* Trúc Cơ */
-    color: #4B0082;
-}
-.cap-3 { /* Kim Đan */
-    color: #3755D6;
-}
-.cap-4 { /* Nguyên Anh */
-    color: #008A00;
-}
-.cap-5 { /* Hóa Thần */
-    color: #E2CD19;
-}
-.cap-6 { /* Luyện Hư */
-    color: #FFA500;
-}
-.cap-7 { /* Hợp Thể */
-    color: #C12A1C;
-}
-.cap-8 { /* Đại Thừa */
-    color: #61CBF3;
-}
-.cap-9 { /* Độ Kiếp */
-    color: #DAA520; /* Goldenrod */
-}
-.cap-10 { /* Nhân Tiên */
-    text-shadow:none;
-    background: #E0B700 -webkit-gradient(linear, left top, right top,
-from(#E0B700), to(#E0B700), color-stop(0.5, #ffffff)) 0 0 no-repeat;
-    color: rgba(255, 255, 255, 0.1);
-
-    font-weight: bold;
-    position: relative;
- 
-    -webkit-animation: shine 2s infinite;
-    -webkit-background-clip: text;
-    -webkit-background-size: 30px;
-}
-.cap-11 { /* Địa Tiên */
-    text-shadow:none;
-    background: #CD853F -webkit-gradient(linear, left top, right top,
-from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
-    color: rgba(255, 255, 255, 0.1);
-
-    font-weight: bold;
-    position: relative;
- 
-    -webkit-animation: shine 2s infinite;
-    -webkit-background-clip: text;
-    -webkit-background-size: 30px;
-}
-.cap-12 { /* Thiên Tiên */
-    text-shadow:none;
-    background: rgb(37 169 158) -webkit-gradient(linear, left top, right top, from(#4a17af), to(#ba603f), color-stop(0.5, #ffffff)) 0 0 no-repeat;
-    color: rgba(255, 255, 255, 0.1);
-    font-weight: bold;
-    position: relative;
- 
-    -webkit-animation: shine 2s infinite;
-    -webkit-background-clip: text;
-    -webkit-background-size: 30px;
-}
-.cap-13 { /* Thượng Tiên */
-    text-shadow:none;
-    background: #CD853F -webkit-gradient(linear, left top, right top,
-from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
-    color: rgba(255, 255, 255, 0.1);
-
-    font-weight: bold;
-    position: relative;
- 
-    -webkit-animation: shine 2s infinite;
-    -webkit-background-clip: text;
-    -webkit-background-size: 30px;
-}
-.cap-14 { /* Đại La Tiên */
-    text-shadow:none;
-    background: #CD853F -webkit-gradient(linear, left top, right top,
-from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
-    color: rgba(255, 255, 255, 0.1);
-
-    font-weight: bold;
-    position: relative;
- 
-    -webkit-animation: shine 2s infinite;
-    -webkit-background-clip: text;
-    -webkit-background-size: 30px;
-}
+  .cap-1 {
+      color: #9820D0;
+  }
+  .cap-2 {
+      color: #4B0082;
+  }
+  .cap-3 {
+      color: #3755D6;
+  }
+  .cap-4 {
+      color: #008A00;
+  }
+  .cap-5 {
+      color: #E2CD19;
+  }
+  .cap-6 {
+      color: #FFA500;
+  }
+  .cap-7 {
+      color: #C12A1C;
+  }
+  .cap-8 {
+      color: #61CBF3;
+  }
+  .cap-9 {
+      color: #DAA520;
+  }
+  .cap-10 { /* Nhân Tiên */
+      text-shadow:none;
+      background: #E0B700 -webkit-gradient(linear, left top, right top,
+  from(#E0B700), to(#E0B700), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-11 { /* Địa Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-12 { /* Thiên Tiên */
+      text-shadow:none;
+      background: rgb(37 169 158) -webkit-gradient(linear, left top, right top, from(#4a17af), to(#ba603f), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-13 { /* Thượng Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-14 { /* Đại La Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
   span {
     color: #00000;
     font-weight: bold;
@@ -195,6 +195,7 @@ const DotPhaButton = styled.button`
   font-size: 16px;
   margin-top: 20px;
   width: 100%;
+  display: ${({ hidden }) => (hidden ? 'none' : 'block')}; // Conditional display
 `;
 
 const Notice = styled.div`
@@ -234,6 +235,7 @@ const DotPha = () => {
   const [checkedItems, setCheckedItems] = useState({});
   const router = useRouter();
   const [validItems, setValidItems] = useState([]);
+  const [buttonHidden, setButtonHidden] = useState(false);
 
   useEffect(() => {
     const validateTokenAndFetchItems = async () => {
@@ -281,12 +283,8 @@ const DotPha = () => {
 
           fetchValidItems(userData, token, fetchedLevelData.level);
         }
-        // else {
-        //   router.push("/login");
-        // }
       } catch (error) {
         console.error("Error validating token or fetching data:", error);
-        // router.push("/login");
       } finally {
         setLoading(false);
       }
@@ -297,33 +295,21 @@ const DotPha = () => {
 
   const fetchValidItems = async (userData, token, level) => {
     try {
-      let itemIds;
-      // if (level === 0) {
-      //   itemIds = ["41", "42", "43", "44", "45"];
-      // } else {
-      //   itemIds = ["38", "39", "40", "41", "42", "43", "44", "45"];
-      // }
-      if (level === 0) {
-        itemIds = ["47", "48", "49", "50", "51"];
-      } else {
-        itemIds = ["44", "45", "46", "47", "48", "49", "50", "51"];
-      }
+      let itemIds = ["83", "44", "45", "46", "47", "48", "49", "50", "51"]
 
-      if (itemIds.length > 0) {
-        const { data: validItemsData } = await axios.get(
-          `/api/user/dot-pha/check-used-items`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: {
-              userId: userData.id,
-              usedItemIds: itemIds.join(","),
-            },
-          }
-        );
-        setValidItems(validItemsData);
-      }
+      const { data: validItemsData } = await axios.get(
+        `/api/user/dot-pha/check-used-items`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            userId: userData.id,
+            usedItemIds: itemIds.join(","),
+          },
+        }
+      );
+      setValidItems(validItemsData);
     } catch (error) {
       console.error("Error fetching valid items:", error);
     }
@@ -376,6 +362,8 @@ const DotPha = () => {
 
   const handleLevelUp = async () => {
     if (user && levelData && user.exp >= levelData.exp) {
+
+      setButtonHidden(true);
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
@@ -384,163 +372,71 @@ const DotPha = () => {
           ? levelData.vatpham_bat_buoc_id.split(",")
           : [];
 
-        if (requiredItemIds.length > 0) {
-          const { data: requiredItemsData } = await axios.get(
-            `/api/user/dot-pha/check-required-item`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              params: {
-                userId: user.id,
-                itemIds: requiredItemIds.join(","),
-              },
-            }
-          );
-
-          if (!requiredItemsData.hasRequiredItems) {
-            alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
-            return;
-          }
-        }
-
-        const nextLevel = user.level + 1;
-
-        const newTaiSan = user.tai_san + levelData.bac_nhan_duoc_khi_dot_pha;
-
-        let successChance = levelData.ty_le_dot_pha_thanh_cong;
-
-        const levelRangeKey = Object.keys(levelItemChances).find((range) => {
-          const [min, max] = range.split("-").map(Number);
-          return user.level >= min && user.level <= max;
-        });
-
+        //if (requiredItemIds.length > 0) {
+        //  const { data: requiredItemsData } = await axios.get(
+        //    `/api/user/dot-pha/check-required-item`,
+        //    {
+        //      headers: {
+        //        Authorization: `Bearer ${token}`,
+        //      },
+        //      params: {
+        //        userId: user.id,
+        //        itemIds: requiredItemIds.join(","),
+        //      },
+        //    }
+        //  );
+        //
+        //  if (!requiredItemsData.hasRequiredItems) {
+        //    alert("Bạn không có đủ vật phẩm bắt buộc để Đột Phá.");
+        //    return;
+        //  }
+        //}
         const selectedItems = Object.keys(checkedItems).filter(
           (itemId) => checkedItems[itemId]
         );
-
-        if (selectedItems.length > 0) {
-          const { data: usedItemsData } = await axios.get(
-            `/api/user/dot-pha/check-used-items`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              params: {
-                userId: user.id,
-                usedItemIds: selectedItems.join(","),
-              },
-            }
-          );
-          await axios.post(
-            `/api/user/dot-pha/decrement-item`,
-            {
-              userId: user.id,
-              itemIds: selectedItems.join(","),
+        // dp
+        const levelUpResponse = await axios.post(
+          "/api/user/dot-pha/check-updata",
+          {
+            usedItemIds: selectedItems.join(","),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          const usedItemsLog = usedItemsData
-            .map((item) => `${getItemNameById(item.vat_pham_id)} x1`)
-            .join(", ");
-          await logUserActivity("Item Use", `đã sử dụng: ${usedItemsLog}`);
-
-          usedItemsData.forEach((item) => {
-            const itemChance =
-              levelItemChances[levelRangeKey]?.[item.vat_pham_id] ||
-              consistentItemChances[item.vat_pham_id];
-            if (itemChance) {
-              successChance += itemChance;
-            }
-          });
+          }
+        );
+        alert(levelUpResponse.data.message);
+        let index = getCapClass(cap);
+        if (cap < 0) {
+          index = 'cap-1';
         }
-
-        const randomValue = Math.round(Math.random() * 100);
-        if (randomValue <= successChance) {
-          const levelUpResponse = await axios.post(
-            "/api/user/dot-pha/level-up",
-            {
-              userId: user.id,
-              newLevel: nextLevel,
-              newTaiSan,
-              expUsed: levelData.exp,
-              currentExp: user.exp,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          setUser((prevUser) => ({
-            ...prevUser,
-            level: nextLevel,
-            exp: prevUser.exp - levelData.exp,
-            tai_san: newTaiSan,
-          }));
-
-          const { data: fetchedLevelData } = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: nextLevel },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          setLevelData(fetchedLevelData);
-
-          alert('Đột phá thành công')
-
+        if (levelUpResponse.data.message == 'Đột phá thành công') {
           await logUserActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
+            `đã đột phá thành công, tấn thăng <span class="${index}"> ${levelUpResponse.data.nextLevel}</span>, nhận được ${levelUpResponse.data.newTaiSan} bạc và ${levelUpResponse.data.item.Name} (Còn ${levelUpResponse.data.so_luong})`
           );
           await logClanActivity(
             "Dot Pha Success",
-            `đã đột phá thành công, tấn thăng ${fetchedLevelData.tu_vi}, nhận được ${levelData.bac_nhan_duoc_khi_dot_pha} bạc và ${levelUpResponse.data.item.Name}`
+            `đã đột phá thành công, tấn thăng <span class="${index}"> ${levelUpResponse.data.nextLevel}</span>, nhận được phần quà là ${levelUpResponse.data.item.Name} và ${levelUpResponse.data.newTaiSan} bạc.`
           );
-        } else {
-          const nextLevel = user.level;
-          const { data: fetchedLevelData } = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: nextLevel },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+        } else if (levelUpResponse.data.message == 'Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!') {
+          await logUserActivity(
+            "Dot Pha Fail",
+            `chưa đủ cơ duyên để đột phá <span class="${index}"> ${levelUpResponse.data.nextLevel}</span> (${levelUpResponse.data.successChance} %), mất ${levelUpResponse.data.expLoss} kinh nghiệm`
           );
-          setLevelData(fetchedLevelData);
-          const expLoss = Math.floor(
-            levelData.exp * (levelData.dot_pha_that_bai_mat_exp_percent / 100)
-          );
-          const newExp = Math.max(0, user.exp - expLoss);
-
+          const newExp = Math.max(0, user.exp - levelUpResponse.data.expLoss);
           setUser((prevUser) => ({
             ...prevUser,
             exp: newExp,
           }));
-
-          alert(
-            `Rất tiếc, đạo hữu chưa đủ may mắn để có thể tiến cấp, vui lòng tu luyện thêm!`
-          );
-
-          await logUserActivity(
-            "Dot Pha Fail",
-            `chưa đủ cơ duyên để đột phá ${fetchedLevelData.tu_vi} (${randomValue}), mất ${expLoss} kinh nghiệm`
-          );
         }
       } catch (error) {
         alert(
-          error.response?.data?.message || "Đã xảy ra lỗi trong quá trình học."
+          error.response?.data?.message || "Sorry, unexpected error. Please try again later."
         );
+      } finally {
+        window.location.reload();
       }
     }
   };
@@ -553,18 +449,27 @@ const DotPha = () => {
     return <Container>Error loading data.</Container>;
   }
 
-  const expProgress1 = Math.min((user.exp / levelData.exp) * 100, 100);
+  const expProgress1 = (Math.min((user.exp / levelData.exp) * 100, 100));
+  const formattedExpProgress = expProgress1 === 100 ? '100' :
+    expProgress1 === 0 ? '0' :
+      expProgress1.toFixed(2);
   const cap = Math.floor((user.level - 1) / 10) + 1;
   const expProgress = (user.exp / levelData.exp) * 100;
   const canLevelUp = user.exp >= levelData.exp;
-  const isDoKiep = user.level % 10 === 0;
+  const levelsToCheck = [10, 20, 30, 40, 50, 60, 70, 80, 90];
+  const isDoKiep = levelsToCheck.includes(user.level);
   const getCapClass = (cap) => {
     return `cap-${cap}`;
   };
-  const levelRangeKey = Object.keys(levelItemChances).find((range) => {
-    const [min, max] = range.split("-").map(Number);
-    return user.level >= min && user.level <= max;
-  });
+
+  const findLevelByItemId = (itemId) => {
+    for (const levelRangeKey in levelItemChances) {
+      if (levelItemChances[levelRangeKey].includes(itemId)) {
+        return levelRangeKey;
+      }
+    }
+    return null; // Item ID not found in any level
+  };
 
   return (
     <>
@@ -580,29 +485,36 @@ const DotPha = () => {
                 {user.id === 3 ? (
                   <GlowingText>Thiên Đạo</GlowingText>
                 ) : (
-                 <span className={getCapClass(cap)}>{levelData.tu_vi}</span>
+                  <span className={getCapClass(cap)}>{levelData.tu_vi}</span>
                 )}
               </Info>
 
               <Info>Tiến độ tu luyện</Info>
               <Info>
                 <Exp>
-                  {user.exp}/{levelData.exp}
+                  {Math.round(user.exp)}/{levelData.exp}
                 </Exp>
-                <ExpPercent>{expProgress1}%</ExpPercent>
+                <ExpPercent>{formattedExpProgress}%</ExpPercent>
               </Info>
               <ProgressBar>
                 <Progress width={expProgress} />
               </ProgressBar>
 
               <MandatoryItems>
-                Vật phẩm bắt buộc:{" "}
-                <MandatoryItems
-                  dangerouslySetInnerHTML={{
-                    __html: levelData.vatpham_bat_buoc,
-                  }}
-                />
+                {levelData.vatpham_bat_buoc ? (
+                  <>
+                    Vật phẩm bắt buộc:{" "}
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: levelData.vatpham_bat_buoc,
+                      }}
+                    />
+                  </>
+                ) : (
+                  "Không cần vật phẩm bắt buộc"
+                )}
               </MandatoryItems>
+
               <Info>Vật phẩm phụ trợ tăng tỉ lệ thành công:</Info>
 
               {[
@@ -625,21 +537,25 @@ const DotPha = () => {
                     <CheckboxLabel htmlFor={`item-${item.vat_pham_id}`}>
                       {getItemNameById(item.vat_pham_id)} (
                       {(() => {
-                        const levelChance =
-                          levelItemChances[levelRangeKey]?.[item.vat_pham_id];
-                        const consistentChance =
-                          consistentItemChances[item.vat_pham_id];
-                        console.log(
-                          `Item ID: ${item.vat_pham_id}, Level Chance: ${levelChance}, Consistent Chance: ${consistentChance}`
-                        );
 
-                        return levelChance !== null && levelChance !== undefined
-                          ? levelChance
-                          : consistentChance !== undefined
-                          ? consistentChance
-                          : 0;
-                      })()}
-                      % )
+                        const levelRangeKey = findLevelByItemId(item.vat_pham_id);
+                        const levelChance = levelRangeKey !== null ? levelRangeKey : "Not Found";
+                        let displayValue, consistentChance;
+                        if (levelChance !== null) {
+                          let reductionPercentage = (Math.max(0, cap - levelChance) / 10) * 100;
+                          if (levelChance == 0) {
+                            consistentChance = consistentItemChances[item.vat_pham_id];
+                          } else {
+                            consistentChance = (consistentItemChances[item.vat_pham_id] * ((100 - reductionPercentage) / 100));
+                          }
+                          consistentChance = Math.round(consistentChance);
+
+                          displayValue = consistentChance !== undefined
+                            ? `${consistentChance}%`
+                            : "0%";
+                        }
+                        return displayValue;
+                      })()})
                     </CheckboxLabel>
                   </CheckboxContainer>
                 );
@@ -714,17 +630,3 @@ const getItemNameById = (itemId) => {
   };
   return itemNames[itemId] || `Item ${itemId}`;
 };
-// const getItemNameById = (itemId) => {
-//   const itemNames = {
-//     35: "Huyết Khí Đan",
-//     38: "Đế Giai Thuẫn",
-//     39: "Tị Lôi Châu",
-//     40: "Thanh Tâm Đan",
-//     41: "Hộ Linh Trận",
-//     42: "Tân Lôi Trận",
-//     43: "Sa Ngọc Châu",
-//     44: "Hoàng Kim Lệnh",
-//     45: "Hoả Ngọc Châu",
-//   };
-//   return itemNames[itemId] || `Item ${itemId}`;
-// };

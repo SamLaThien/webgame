@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             INSERT INTO spin_logs (username, prize_category, prize_name, quantity, timestamp, user_id)
             VALUES (?, ?, ?, ?, NOW(),?)
           `;
-          const spinLogValues = [displayName, prize_category, prize_name, quantity,userId];
+          const spinLogValues = [displayName, prize_category, prize_name, quantity, userId];
           await new Promise((resolve, reject) => {
             db.query(insertSpinLogQuery, spinLogValues, (insertSpinLogError) => {
               if (insertSpinLogError) {
@@ -103,13 +103,31 @@ export default async function handler(req, res) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
       } else if (req.method === 'GET') {
+        const { page = 1, limit = 100 } = req.query;
+        const offset = (page - 1) * limit;
+
         try {
-          const fetchLogsQuery = 'SELECT username, prize_category, prize_name, quantity, timestamp,user_id FROM spin_logs ORDER BY timestamp DESC';
-          db.query(fetchLogsQuery, (fetchError, results) => {
+          const fetchLogsQuery = `
+            SELECT username, prize_category, prize_name, quantity, timestamp, user_id
+            FROM spin_logs
+            ORDER BY timestamp DESC
+            LIMIT ? OFFSET ?
+          `;
+          db.query(fetchLogsQuery, [parseInt(limit, 10), parseInt(offset, 10)], (fetchError, results) => {
             if (fetchError) {
               return res.status(500).json({ message: 'Internal server error', error: fetchError.message });
             }
-            res.status(200).json(results);
+
+            // Optional: Fetch total count for pagination info
+            const countQuery = 'SELECT COUNT(*) AS total FROM spin_logs';
+            db.query(countQuery, (countError, countResults) => {
+              if (countError) {
+                return res.status(500).json({ message: 'Internal server error', error: countError.message });
+              }
+
+              const total = countResults[0]?.total || 0;
+              res.status(200).json(results);
+            });
           });
         } catch (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });

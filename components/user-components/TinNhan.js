@@ -79,6 +79,107 @@ const LogTimestamp = styled.span`
 const LogMessage = styled.span`
   margin-left: 20px;
   flex: 1;
+  .cap-1 {
+      color: #9820D0;
+  }
+  .cap-2 {
+      color: #4B0082;
+  }
+  .cap-3 {
+      color: #3755D6;
+  }
+  .cap-4 {
+      color: #008A00;
+  }
+  .cap-5 {
+      color: #E2CD19;
+  }
+  .cap-6 {
+      color: #FFA500;
+  }
+  .cap-7 {
+      color: #C12A1C;
+  }
+  .cap-8 {
+      color: #61CBF3;
+  }
+  .cap-9 {
+      color: #DAA520;
+  }
+  .cap-10 { /* Nhân Tiên */
+      text-shadow:none;
+      background: #E0B700 -webkit-gradient(linear, left top, right top,
+  from(#E0B700), to(#E0B700), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-11 { /* Địa Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-12 { /* Thiên Tiên */
+      text-shadow:none;
+      background: rgb(37 169 158) -webkit-gradient(linear, left top, right top, from(#4a17af), to(#ba603f), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-13 { /* Thượng Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  .cap-14 { /* Đại La Tiên */
+      text-shadow:none;
+      background: #CD853F -webkit-gradient(linear, left top, right top,
+  from(#CD853F), to(#CD853F), color-stop(0.5, #ffffff)) 0 0 no-repeat;
+      color: rgba(255, 255, 255, 0.1);
+  
+      font-weight: bold;
+      position: relative;
+   
+      -webkit-animation: shine 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-background-size: 30px;
+  }
+  span {
+    color: #00000;
+    font-weight: bold;
+  }
+    @-webkit-keyframes shine {
+  0% {
+    background-position: -100px;
+  }
+  100% {
+    background-position: 100px;
+  }
 `;
 
 const PaginationContainer = styled.div`
@@ -104,9 +205,11 @@ const PaginationButton = styled.button`
     background-color: #005bb5;
   }
 `;
+
 const Logs = styled.div`  
   padding: 0;
 `;
+
 const TinNhan = () => {
   const [activeTab, setActiveTab] = useState("friends");
   const [logs, setLogs] = useState([]);
@@ -126,11 +229,11 @@ const TinNhan = () => {
   useEffect(() => {
     const fetchUserLogs = async () => {
       try {
-        const token = localStorage.getItem('token'); 
+        const token = localStorage.getItem('token');
         if (token) {
           const { data } = await axios.get(`/api/user/log/get-log-by-id`, {
             headers: {
-              Authorization: `Bearer ${token}`, 
+              Authorization: `Bearer ${token}`,
             },
           });
           setLogs(data.logs);
