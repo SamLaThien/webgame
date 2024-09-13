@@ -504,6 +504,8 @@ const MemberPage = ({ id }) => {
           <CharacterContainer>
             {user.id === 3 ? (
               <CharacterImage src="/Char/itachi.png" alt="Character" />
+            ) : user.id === 5 ? (
+              <CharacterImage src="/selee.png" alt="Character" />
             ) : (
               <CharacterImage src="/nv1.png" alt="Character" />
             )}
