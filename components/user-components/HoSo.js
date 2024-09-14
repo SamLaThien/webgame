@@ -139,7 +139,7 @@ const SectionP = styled.div`
 
 const DanhHaoContainer = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 20px;
@@ -148,6 +148,7 @@ const DanhHaoContainer = styled.div`
 const DanhHaoLabel = styled.label`
   display: flex;
   align-items: center;
+  margin-bottom: 10px;
 `;
 
 Modal.setAppElement("#__next");
@@ -386,14 +387,14 @@ const HoSo = () => {
       );
 
       if (response.data.success) {
-        setSuccessMessage("Gift code redeemed successfully!");
+        setSuccessMessage("Nhập giftcode thành công!");
         setErrorMessage("");
       } else {
-        setErrorMessage(response.data.message || "Failed to redeem gift code.");
+        setErrorMessage(response.data.message || "Không thể đổi giftcode.");
         setSuccessMessage("");
       }
     } catch (error) {
-      setErrorMessage("An error occurred while redeeming the gift code.");
+      setErrorMessage("Đã xảy ra lỗi khi đổi giftcode.");
       setSuccessMessage("");
       console.error("Error redeeming gift code:", error);
     }
@@ -487,8 +488,7 @@ const HoSo = () => {
           <Section>
             <SectionP>Ngoại hiệu hiện tại: {user.ngoai_hieu}</SectionP>
             <SectionP>
-              Hãy nhập một Ngoại Hiệu bên dưới để đổi, nếu bạn chưa nghĩ ra
-              Ngoại Hiệu nào mời bạn vào vòng quay may mắn để thử vận may
+              Hãy nhập một Ngoại Hiệu bên dưới để đổi:
             </SectionP>
             <Input
               type="text"
