@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
         // Query to get top 10 users based on level
         const getTopUsersByLevel = `
-        SELECT id, username, ngoai_hieu, clan_role
+        SELECT id, username, ngoai_hieu, bang_hoi
         FROM users
         WHERE id > 5
         ORDER BY level DESC
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
         // Query to get top 10 users based on tai_san
         const getTopUsersByTaiSan = `
-        SELECT id, username, ngoai_hieu, clan_role
+        SELECT id, username, ngoai_hieu, bang_hoi
         FROM users
         WHERE id > 5
         ORDER BY tai_san DESC
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
                 id: user.id,
                 user: {
                     username: user.ngoai_hieu || user.username,
-                    class: getName(user.clan_role || 'danden')
+                    class: getName(user.bang_hoi || 'danden')
                 }
             }));
 
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
                     id: user.id,
                     user: {
                         username: user.ngoai_hieu || user.username,
-                        class: getName(user.clan_role || 'danden')
+                        class: getName(user.bang_hoi || 'danden')
                     }
                 }));
                 db.query(getTopBangHoi, (error, topBangHoiResults) => {
