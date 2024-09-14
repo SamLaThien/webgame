@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress } from '@mui/material';
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Link } from '@mui/material';
 import UserDetailModal from './user-modals/UserDetailModal';
 import UserEditModal from './user-modals/UserEditModal';
 import UserBanModal from './user-modals/UserBanModal';
@@ -118,7 +118,9 @@ const UserManagement = () => {
             {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>{user.id}</TableCell>
-                <TableCell>{user.username}</TableCell>
+                <TableCell><Link href={`https://tuchangioi.xyz/member/${user.id}`}>
+                  {user.username}
+                </Link></TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>{user.ban === 1 ? 'Banned' : 'Active'}</TableCell>
