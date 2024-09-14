@@ -57,7 +57,21 @@ const DeleteButton = styled(Button)`
 
 const AddPrizeButton = styled(Button)`
   background-color: #008cba;
+  color: white;
   margin-bottom: 20px;
+
+  &:hover {
+    background-color: #007bb5;
+  }
+`;
+
+const SaveChangesButton = styled(Button)`
+  background-color: #4caf50;
+  color: white;
+
+  &:hover {
+    background-color: #45a049;
+  }
 `;
 
 const FormContainer = styled.div`
@@ -130,12 +144,12 @@ const WheelManagement = () => {
       alert("Please select a slot number.");
       return;
     }
-  
+
     let newPrize = {
       slot_number: parseInt(selectedSlotNumber, 10),
       prize_type: selectedSlotNumber > 4 ? "1" : "2",
     };
-  
+
     if (selectedSlotNumber > 4) {
       if (!lowerBound || !higherBound) {
         alert("Please enter both lower and higher bounds.");
@@ -148,21 +162,21 @@ const WheelManagement = () => {
         alert("Please select a vat pham and enter a prize rate.");
         return;
       }
-  
+
       const selectedVatPhamData = vatPhamList.find(
         (vatPham) => vatPham.ID === parseInt(selectedVatPham, 10)
       );
-  
+
       if (!selectedVatPhamData) {
         alert("Selected vat pham is not valid.");
         return;
       }
-  
+
       newPrize.option_text = selectedVatPhamData.Name;
       newPrize.item_id = selectedVatPhamData.ID;
       newPrize.prize_rate = parseFloat(prizeRate);
     }
-  
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/admin/wheel-slots", {
@@ -173,7 +187,7 @@ const WheelManagement = () => {
         },
         body: JSON.stringify(newPrize),
       });
-  
+
       if (response.ok) {
         const updatedSlots = [...wheelSlots, newPrize];
         setWheelSlots(updatedSlots);
@@ -186,7 +200,7 @@ const WheelManagement = () => {
       console.error("Error adding prize:", error);
     }
   };
-  
+
 
   const handleEdit = (slot) => {
     setEditingSlot(slot);
@@ -305,9 +319,8 @@ const WheelManagement = () => {
   return (
     <Container>
       <FormContainer>
-        <AddPrizeButton onClick={editingSlot ? handleSaveEdit : handleAddPrize}>
-          {editingSlot ? "Save Changes" : "Thêm giải thưởng"}
-        </AddPrizeButton>
+        <SaveChangesButton onClick={handleSaveEdit}>Lưu thay đổi</SaveChangesButton>
+        <AddPrizeButton onClick={handleAddPrize}>Thêm giải thưởng</AddPrizeButton>
         <Label>Chọn số slot:</Label>
         <Select
           value={selectedSlotNumber}
