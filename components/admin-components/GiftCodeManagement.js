@@ -23,6 +23,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
 import axios from "axios";
 
 const Container = styled.div`
@@ -52,6 +53,12 @@ const VatphamContainer = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+`;
+
+const CopyButton = styled(IconButton)`
+  && {
+    margin-left: 10px;
+  }
 `;
 
 const GiftCodeManagement = () => {
@@ -185,6 +192,18 @@ const GiftCodeManagement = () => {
       .catch((error) => console.error("Error:", error));
   };
 
+  const copyGiftCode = (code) => {
+    navigator.clipboard.writeText(code).then(
+      () => {
+        setMessage("Gift code copied to clipboard!");
+      },
+      (err) => {
+        setMessage("Failed to copy gift code.");
+        console.error("Copy to clipboard failed:", err);
+      }
+    );
+  };
+
   return (
     <Container>
       <Title>Generate Gift Code</Title>
@@ -286,9 +305,11 @@ const GiftCodeManagement = () => {
       </VatphamContainer>
 
       {giftCode && (
-        <GenerateButton onClick={saveGiftCode}>
-          {editMode ? "Update" : "Save"} Code
-        </GenerateButton>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <GenerateButton onClick={saveGiftCode}>
+            {editMode ? "Update" : "Save"} Code
+          </GenerateButton>
+        </div>
       )}
       {message && (
         <Typography color="primary" variant="h6">
@@ -317,7 +338,12 @@ const GiftCodeManagement = () => {
             <TableBody>
               {allGiftCodes.map((giftCode) => (
                 <TableRow key={giftCode.id}>
-                  <TableCell>{giftCode.code}</TableCell>
+                  <TableCell>
+                    {giftCode.code}
+                    <CopyButton onClick={() => copyGiftCode(giftCode.code)}>
+                      <FileCopyIcon />
+                    </CopyButton>
+                  </TableCell>
                   <TableCell>{giftCode.exp}</TableCell>
                   <TableCell>{giftCode.tai_san}</TableCell>
                   <TableCell>
