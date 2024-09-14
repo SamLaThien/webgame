@@ -128,7 +128,7 @@ export default async function handler(req, res) {
         // Random success check
         const randomValue = Math.round(Math.random() * 100);
         if (randomValue <= successChance) {
-            const leftoverExp = currentExp - exp;
+            const leftoverExp = 0;
             const newLevel = currentLevel + 1;
             const newsTaiSan = currentTaisan + newTaisan;
             const availableItems = giftItems[cap];
