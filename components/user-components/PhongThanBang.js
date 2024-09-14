@@ -256,7 +256,7 @@ const PhongThanBang = () => {
                                         rel="noopener noreferrer"
 
                                     >
-                                        <span className={user.user.clan}>{user.user.username}</span>
+                                        <span className={user.user.class}>{user.user.username}</span>
                                     </Link>
                                 </UserInfoItem>
                             ))
