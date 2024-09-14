@@ -407,10 +407,13 @@ const DotPha = () => {
           }
         );
         alert(levelUpResponse.data.message);
-        let index = getCapClass(cap);
-        if (cap < 0) {
-          index = 'cap-1';
-        }
+        let levels;
+        
+        if (cap == 0) {
+          levels = 1
+        } else levels = Math.floor((user.level) / 10) + 1;
+        console.log(levels)
+        const index = getCapClass(levels);
         if (levelUpResponse.data.message == 'Đột phá thành công') {
           await logUserActivity(
             "Dot Pha Success",

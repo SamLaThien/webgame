@@ -32,7 +32,9 @@ const SectionTitle = styled.h2`
   box-sizing: border-box;
   flex-direction: row;
   gap: 5px;
+  justify-content: center; /* Center the children horizontally */
 `;
+
 
 const Section = styled.div`
   background: rgba(255, 255, 255);
@@ -55,6 +57,71 @@ const Section = styled.div`
   }
 `;
 
+const Star = styled.div`
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  position: relative;
+  background-color: ${({ rank }) => {
+        switch (rank) {
+            case 1:
+                return '#FFD700'; // Gold
+            case 2:
+                return '#2461bb'; // Silver
+            case 3:
+                return '#cd7f32'; // Bronze
+            default:
+                return '#000'; // Fallback color
+        }
+    }};
+  clip-path: polygon(
+    50% 0%,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+
+  &::after {
+    content: ${({ rank }) => `"${rank}"`};
+    position: absolute;
+    font-size: 16px;
+    color: white;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  }
+`;
+
+const Circle = styled.div`
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #00000038;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  margin-right: 10px;
+
+  &::after {
+    content: ${({ rank }) => `"${rank}"`};
+    font-size: 16px;
+    color: white;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  }
+`;
+
 const UserInfo = styled.div`
   display: flex;
   flex-direction: column;
@@ -62,9 +129,33 @@ const UserInfo = styled.div`
   padding: 10px;
 `;
 
-const UserInfoItem = styled.p`
+const UserInfoItem = styled.div`
+  display: flex;
+  align-items: center;
   margin: 5px 0;
   font-size: 16px;
+  
+  .rank-container {
+    display: flex;
+    align-items: center;
+    margin-right: 10px; /* Space between rank and username */
+  }
+
+  .danden {
+    color: #000000;
+  }
+  .thienmon {
+    color: white;
+    text-shadow: 0 0 7px #026466, 0 0 7px #026466, 0 0 7px #026466;
+  }
+  .voquan {
+    color: #FFF;
+    text-shadow: 0 0 7px #23f021, 0 0 7px #23f021, 0 0 7px #23f021;
+  }
+  .vinhhang {
+    color: #FFFFFF;
+    text-shadow: 0 0 7px #00CC99, 0 0 7px #00CC99, 0 0 7px #00CC99;
+  }
 `;
 
 const Link = styled.a`
@@ -77,11 +168,17 @@ const Link = styled.a`
 `;
 
 const CalligraphyTitle = styled.h3`
-  font-family: 'Dancing Script', cursive;
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 15px;
+  font-family: "Splash", cursive;
+  font-style: normal;
+  font-size: 32px; /* Increase the font size as needed */
+  text-align: center; /* Center the text */
+  width: 100%; /* Ensure it takes full width for proper centering */
+  margin: 0; /* Remove default margin if needed */
 `;
+
+
+
+
 
 Modal.setAppElement("#__next");
 
@@ -137,26 +234,29 @@ const PhongThanBang = () => {
         <>
             <SectionTitle>
                 <AccountCircleOutlinedIcon />
-                <CalligraphyTitle>
-                    PHONG THẦN BẢNG
-                </CalligraphyTitle>
+                PHONG THẦN BẢNG
             </SectionTitle>
             <Container>
                 <Section>
                     <UserInfo>
                         <UserInfoItem>
-                            <CalligraphyTitle>Bảng Tu Vi</CalligraphyTitle>
+                            <CalligraphyTitle>Tu Vi</CalligraphyTitle>
                         </UserInfoItem>
                         {topUsers.length > 0 ? (
                             topUsers.map((user, index) => (
                                 <UserInfoItem key={user.id}>
-                                    {index + 1}.
+                                    {index < 3 ? (
+                                        <Star rank={index + 1} />
+                                    ) : (
+                                        <Circle rank={index + 1} />
+                                    )}
                                     <Link
                                         href={`https://tuchangioi.xyz/member/${user.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
+
                                     >
-                                        {user.username}
+                                        <span className={user.user.clan}>{user.user.username}</span>
                                     </Link>
                                 </UserInfoItem>
                             ))
@@ -168,18 +268,22 @@ const PhongThanBang = () => {
                 <Section>
                     <UserInfo>
                         <UserInfoItem>
-                            <CalligraphyTitle>Bảng Tài Phú</CalligraphyTitle>
+                            <CalligraphyTitle>Tài Phú</CalligraphyTitle>
                         </UserInfoItem>
                         {topTaiSans.length > 0 ? (
                             topTaiSans.map((user, index) => (
                                 <UserInfoItem key={user.id}>
-                                    {index + 1}.
+                                    {index < 3 ? (
+                                        <Star rank={index + 1} />
+                                    ) : (
+                                        <Circle rank={index + 1} />
+                                    )}
                                     <Link
                                         href={`https://tuchangioi.xyz/member/${user.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
-                                        {user.username}
+                                        <span className={user.user.class}>{user.user.username}</span>
                                     </Link>
                                 </UserInfoItem>
                             ))
@@ -191,18 +295,22 @@ const PhongThanBang = () => {
                 <Section>
                     <UserInfo>
                         <UserInfoItem>
-                            <CalligraphyTitle>Luyện Đan Sư</CalligraphyTitle>
+                            <CalligraphyTitle>Luyện Đan</CalligraphyTitle>
                         </UserInfoItem>
                         {topLuyenDans.length > 0 ? (
                             topLuyenDans.map((user, index) => (
                                 <UserInfoItem key={user.id}>
-                                    {index + 1}.
+                                    {index < 3 ? (
+                                        <Star rank={index + 1} />
+                                    ) : (
+                                        <Circle rank={index + 1} />
+                                    )}
                                     <Link
                                         href={`https://tuchangioi.xyz/member/${user.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
-                                        {user.username}
+                                        <span className={user.user.class}>{user.user.username}</span>
                                     </Link>
                                 </UserInfoItem>
                             ))
@@ -214,18 +322,22 @@ const PhongThanBang = () => {
                 <Section>
                     <UserInfo>
                         <UserInfoItem>
-                            <CalligraphyTitle>Luyện Khí Sư</CalligraphyTitle>
+                            <CalligraphyTitle>Luyện Khí</CalligraphyTitle>
                         </UserInfoItem>
                         {topLuyenKhis.length > 0 ? (
                             topLuyenKhis.map((user, index) => (
                                 <UserInfoItem key={user.id}>
-                                    {index + 1}.
+                                    {index < 3 ? (
+                                        <Star rank={index + 1} />
+                                    ) : (
+                                        <Circle rank={index + 1} />
+                                    )}
                                     <Link
                                         href={`https://tuchangioi.xyz/member/${user.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
-                                        {user.username}
+                                        <span className={user.user.class}>{user.user.username}</span>
                                     </Link>
                                 </UserInfoItem>
                             ))
@@ -242,7 +354,7 @@ const PhongThanBang = () => {
                         {topBangHois.length > 0 ? (
                             topBangHois.map((user, index) => (
                                 <UserInfoItem key={user.id}>
-                                    {user.name}
+                                    <span className={user.class}>{user.name}</span>
                                 </UserInfoItem>
                             ))
                         ) : (
