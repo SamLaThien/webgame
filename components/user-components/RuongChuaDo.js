@@ -245,7 +245,7 @@ const RuongChuaDo = () => {
 
 
   // Time in milliseconds (4 seconds)
-  const RATE_LIMIT_MS = 0;
+  const RATE_LIMIT_MS = 5000;
 
   const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
     // Get the current time
