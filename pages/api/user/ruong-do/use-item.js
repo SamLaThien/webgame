@@ -80,7 +80,7 @@ export default async function handler(req, res) {
     }
 
     let reductionPercentage = Math.max(0, levelRange - parseInt(itemLevelRange)) * 10;
-    if (parseInt(itemLevelRange) === 0) reductionPercentage = 1;
+    if (parseInt(itemLevelRange) === 0) reductionPercentage = 0;
 
     const expGain = SuDung * useAmountNumber * ((100 - reductionPercentage) / 100);
 
