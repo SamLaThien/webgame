@@ -253,7 +253,7 @@ const RuongChuaDo = () => {
 
     // Check if the function was executed within the last RATE_LIMIT_MS milliseconds
     if (currentTime - lastExecutionTime < RATE_LIMIT_MS) {
-      alert("Có lỗi xảy ra vui lòng thử lại sau!");
+      alert("Đạo hữu vui lòng chờ 5s để sử dụng tiếp!");
       return;
     }
 
