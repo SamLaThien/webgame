@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const { userId } = req.body;
 
     if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+      return res.status(400).json({ message: 'User ID and danh hao are required' });
     }
 
     try {
@@ -50,6 +50,7 @@ export default async function handler(req, res) {
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
+
   } else if (method === 'DELETE') {
     const { userId, danhHaoId, danh_hao } = req.body;
 
@@ -86,12 +87,11 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   }
-  
-  
-  else if (method === 'PUT') {
-    const { userId, danhHaoId, newDanhHao, oldDanhHao } = req.body;
 
-    if (!userId || !danhHaoId || !newDanhHao || !oldDanhHao) {
+
+  else if (method === 'PUT') {
+    const { userId, danhHaoId, newDanhHao, oldDanhHao, css } = req.body;
+    if (!userId || !danhHaoId || !newDanhHao || !oldDanhHao || !css) {
       return res.status(400).json({ message: 'User ID, Danh Hào ID, new danh hào, and old danh hào are required' });
     }
 
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
         });
       });
 
-      db.query('UPDATE user_danh_hao SET danh_hao = ? WHERE id = ?', [newDanhHao, danhHaoId], (error) => {
+      db.query('UPDATE user_danh_hao SET danh_hao = ?, css = ? WHERE id = ?', [newDanhHao, css, danhHaoId], (error) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
