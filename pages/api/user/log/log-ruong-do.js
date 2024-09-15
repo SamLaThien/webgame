@@ -26,11 +26,12 @@ export default async function handler(req, res) {
       INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
       VALUES (?, ?, ?, NOW())
     `;
-    
+
     db.query(userActivityQuery, [userId, actionType, actionDetails], (error) => {
       if (error) {
         return res.status(500).json({ message: 'Internal server error', error: error.message });
       }
+      return res.status(200).json({ message: 'User activity logged successfully' });
     });
   } catch (error) {
     return res.status(500).json({ message: 'Internal server error', error: error.message });
