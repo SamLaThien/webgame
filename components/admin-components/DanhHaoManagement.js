@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, TextField, Modal, MenuItem } from '@mui/material';
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, TextField, Modal } from '@mui/material';
 import axios from 'axios';
 
 const Container = styled.div`
   padding: 20px;
-  background-color: none;
+  background-color: #f9f9f9;
   height: 100%;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -26,62 +26,69 @@ const StyledButton = styled(Button)`
   }
 `;
 
+const ModalContent = styled.div`
+  padding: 20px;
+  background-color: white;
+  margin: 100px auto;
+  max-width: 500px;
+  border-radius: 8px;
+`;
+
 const DanhHaoManagement = () => {
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [danhHaoList, setDanhHaoList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newDanhHao, setNewDanhHao] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentDanhHao, setCurrentDanhHao] = useState('');
   const [currentDanhHaoId, setCurrentDanhHaoId] = useState(null);
-  const [newDanhHao, setNewDanhHao] = useState('');
+  const [css, setCss] = useState('black'); // Default color white
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No token found');
-        return;
-      }
+  const token = localStorage.getItem('token');
 
-      if (searchQuery) {
-        setLoading(true);
-        try {
-          const response = await axios.get(`/api/admin/search-user?username=${searchQuery}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setUsers(response.data);
-        } catch (error) {
-          console.error('Error searching for users:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchUsers();
-  }, [searchQuery]);
-
-  const handleSelectUser = async (user) => {
-    setSelectedUser(user);
-
-    const token = localStorage.getItem('token');
+  const handleSearchButtonClick = async () => {
     if (!token) {
       console.error('No token found');
       return;
     }
 
+    if (searchQuery) {
+      setLoading(true);
+      try {
+        const userId = searchQuery;
+        const danhHaoResponse = await axios.post('/api/admin/danh-hao', { userId }, { headers: { Authorization: `Bearer ${token}` } });
+        setDanhHaoList(danhHaoResponse.data || []);
+        setSelectedUser(userId);
+      } catch (error) {
+        console.error('Error fetching danh hao:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleAddDanhHao = () => {
+    setNewDanhHao('');
+    setIsModalOpen(true);
+  };
+
+  const handleSaveNewDanhHao = async () => {
+    if (!newDanhHao || !selectedUser || !token) return;
+
     try {
-      const response = await axios.post(
-        '/api/admin/danh-hao', 
-        { userId: user.id }, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setDanhHaoList(response.data);
+      const response = await axios.post('/api/admin/danh-hao/add', {
+        userId: selectedUser,
+        danhHao: newDanhHao,
+        css
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDanhHaoList(prevList => [...prevList, { id: response.data.id, danh_hao: newDanhHao, css }]);
+      setIsModalOpen(false);
     } catch (error) {
-      console.error('Error fetching danh hao:', error);
+      console.error('Error adding danh hao:', error);
     }
   };
 
@@ -92,83 +99,47 @@ const DanhHaoManagement = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleSaveEditedDanhHao = async () => {
+    if (!newDanhHao || !selectedUser || !token) return;
+
+    try {
+      await axios.put('/api/admin/danh-hao', {
+        userId: selectedUser,
+        danhHaoId: currentDanhHaoId,
+        newDanhHao,
+        oldDanhHao: currentDanhHao,
+        css
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setDanhHaoList(danhHaoList.map(dh =>
+        dh.id === currentDanhHaoId ? { ...dh, danh_hao: newDanhHao, css } : dh
+      ));
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Error editing danh hao:', error);
+    }
+  };
+
   const handleDeleteDanhHao = async (danhHaoId, danhHao) => {
-    const token = localStorage.getItem('token');
     if (!token) {
       console.error('No token found');
       return;
     }
- 
+
     try {
       await axios.delete('/api/admin/danh-hao', {
-        data: { 
-          userId: selectedUser.id, 
-          danhHaoId: danhHaoId,
-          danh_hao: danhHao 
+        data: {
+          userId: selectedUser,
+          danhHaoId,
+          danh_hao: danhHao
         },
         headers: { Authorization: `Bearer ${token}` },
       });
       setDanhHaoList(danhHaoList.filter(dh => dh.id !== danhHaoId));
     } catch (error) {
       console.error('Error deleting danh hao:', error);
-    }
-    
-    
-  };
-
-  const handleAddDanhHao = () => {
-    setNewDanhHao('');
-    setIsModalOpen(true);
-  };
-
-  const handleSaveNewDanhHao = async () => {
-    if (!newDanhHao) return;
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found');
-      return;
-    }
-
-    try {
-      const response = await axios.post('/api/admin/danh-hao/add', {
-        userId: selectedUser.id,
-        danhHao: newDanhHao,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDanhHaoList([...danhHaoList, { id: response.data.id, danh_hao: newDanhHao }]);
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Error adding danh hao:', error);
-    }
-  };
-
-  const handleSaveEditedDanhHao = async () => {
-    if (!newDanhHao) return;
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found');
-      return;
-    }
-
-    try {
-      await axios.put('/api/admin/danh-hao', {
-        userId: selectedUser.id, 
-        danhHaoId: currentDanhHaoId,
-        newDanhHao,
-        oldDanhHao: currentDanhHao,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setDanhHaoList(danhHaoList.map(dh => 
-        dh.id === currentDanhHaoId ? { ...dh, danh_hao: newDanhHao } : dh
-      ));
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error('Error editing danh hao:', error);
     }
   };
 
@@ -179,39 +150,20 @@ const DanhHaoManagement = () => {
   return (
     <Container>
       <Title>Quản lý Danh Hào</Title>
-      <TextField
-        label="Tìm kiếm người dùng"
-        variant="outlined"
-        fullWidth
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Tên người dùng</TableCell>
-              <TableCell>Hành động</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>
-                  <Button onClick={() => handleSelectUser(user)}>Xem Danh Hào</Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <TextField
+          label="Nhập ID cần tìm:"
+          variant="outlined"
+          fullWidth
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <StyledButton onClick={handleSearchButtonClick}>Xem Danh Hào</StyledButton>
+      </div>
 
       {selectedUser && (
         <div>
-          <h2>Danh hào của {selectedUser.username}</h2>
+          <h2>Danh hào của ID {selectedUser}</h2>
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -240,7 +192,7 @@ const DanhHaoManagement = () => {
       )}
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <div style={{ padding: '20px', backgroundColor: 'white', margin: '100px auto', maxWidth: '500px', borderRadius: '8px' }}>
+        <ModalContent>
           <h2>Thêm Danh Hào</h2>
           <TextField
             label="Danh Hào"
@@ -248,13 +200,19 @@ const DanhHaoManagement = () => {
             value={newDanhHao}
             onChange={(e) => setNewDanhHao(e.target.value)}
           />
+          <TextField
+            label="CSS"
+            fullWidth
+            value={css}
+            onChange={(e) => setCss(e.target.value)}
+          />
           <StyledButton onClick={handleSaveNewDanhHao}>Lưu</StyledButton>
           <StyledButton onClick={() => setIsModalOpen(false)} variant="outlined">Hủy</StyledButton>
-        </div>
+        </ModalContent>
       </Modal>
 
       <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-        <div style={{ padding: '20px', backgroundColor: 'white', margin: '100px auto', maxWidth: '500px', borderRadius: '8px' }}>
+        <ModalContent>
           <h2>Chỉnh sửa Danh Hào</h2>
           <TextField
             label="Danh Hào"
@@ -262,9 +220,15 @@ const DanhHaoManagement = () => {
             value={newDanhHao}
             onChange={(e) => setNewDanhHao(e.target.value)}
           />
+          <TextField
+            label="CSS"
+            fullWidth
+            value={css}
+            onChange={(e) => setCss(e.target.value)}
+          />
           <StyledButton onClick={handleSaveEditedDanhHao}>Lưu</StyledButton>
           <StyledButton onClick={() => setIsEditModalOpen(false)} variant="outlined">Hủy</StyledButton>
-        </div>
+        </ModalContent>
       </Modal>
     </Container>
   );

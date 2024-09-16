@@ -108,7 +108,7 @@ const Input = styled.input`
   margin-right: 10px;
   margin-bottom: 10px;
 `;
-
+let lastExecutionTime = 0;
 const RuongChuaDo = () => {
   const [items, setItems] = useState(null);
   const [activeTab, setActiveTab] = useState(1);
@@ -125,19 +125,20 @@ const RuongChuaDo = () => {
       router.push("/login");
       return;
     }
-
-    try {
-      const { data } = await axios.get("/api/user/ruong-do", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setItems(data);
-    } catch (error) {
-      console.error("Error fetching ruong do items:", error);
-      router.push("/login");
-    } finally {
-      setLoading(false);
+    if (!items) {
+      try {
+        const { data } = await axios.get("/api/user/ruong-do", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setItems(data);
+      } catch (error) {
+        console.error("Error fetching ruong do items:", error);
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -196,7 +197,7 @@ const RuongChuaDo = () => {
     validateTokenAndFetchItems();
 
     // Polling to fetch updated items every 10 seconds
-    const intervalId = setInterval(fetchItems, 3000);
+    const intervalId = setTimeout(fetchItems, 3000);
 
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
@@ -241,7 +242,23 @@ const RuongChuaDo = () => {
     }
   };
 
+
+
+  // Time in milliseconds (4 seconds)
+  const RATE_LIMIT_MS = 5000;
+
   const handleUseItem = async (ruongDoId, vatPhamId, soLuong, isMultiple) => {
+    // Get the current time
+    const currentTime = Date.now();
+
+    // Check if the function was executed within the last RATE_LIMIT_MS milliseconds
+    if (currentTime - lastExecutionTime < RATE_LIMIT_MS) {
+      alert("Đạo hữu vui lòng chờ 5s để sử dụng tiếp!");
+      return;
+    }
+
+    // Update the last execution time
+    lastExecutionTime = currentTime;
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -266,6 +283,7 @@ const RuongChuaDo = () => {
           },
         }
       );
+      
 
       if (response.status === 200 && response.data.success) {
         setItems((prevItems) =>
@@ -384,7 +402,7 @@ const RuongChuaDo = () => {
         break;
       }
     }
-    if (itemLevelRange > levelRange) {
+    if (itemLevelRange > levelRange + 1) {
       return 'Dược lực quá mạnh, sử dụng sẽ gây bạo thể mà chết';
     }
 

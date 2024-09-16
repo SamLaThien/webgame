@@ -149,6 +149,14 @@ const DanhHaoLabel = styled.label`
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  
+  input {
+    margin-right: 10px;
+  }
+  
+  span {
+    color: ${props => props.color || 'black'};
+  }
 `;
 
 Modal.setAppElement("#__next");
@@ -468,9 +476,9 @@ const HoSo = () => {
           <UserInfoItem>
             ID: <b>{user.id}</b>
           </UserInfoItem>
-          <UserInfoItem>
-            Danh hiệu: <b>{user.danh_hao || "Chưa có danh hiệu"}</b>
-          </UserInfoItem>
+          <DanhHaoLabel>
+            Danh hiệu: <span>{user.danh_hao || "Chưa có danh hiệu"}</span>
+          </DanhHaoLabel>
           <UserInfoItem>
             Bang hội: <b>{clanInfo ? clanInfo.name : "Chưa có bang hội"}</b>
           </UserInfoItem>
@@ -530,15 +538,15 @@ const HoSo = () => {
             {danhHaoOptions.length > 0 ? (
               <DanhHaoContainer>
                 {danhHaoOptions.map((danhHao) => (
-                  <DanhHaoLabel key={danhHao.id}>
-                    <input
-                      type="radio"
-                      name="danhHaoOption"
-                      value={danhHao.danh_hao}
-                      onChange={handleDanhHaoChange}
-                    />{" "}
-                    {danhHao.danh_hao}
-                  </DanhHaoLabel>
+                   <DanhHaoLabel key={danhHao.id} color={danhHao.css}>
+                   <input
+                     type="radio"
+                     name="danhHaoOption"
+                     value={danhHao.danh_hao}
+                     onChange={handleDanhHaoChange}
+                   />
+                   <span>{danhHao.danh_hao}</span>
+                 </DanhHaoLabel>
                 ))}
               </DanhHaoContainer>
             ) : (

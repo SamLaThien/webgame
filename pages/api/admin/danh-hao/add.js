@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   }
 
   if (method === 'POST') {
-    const { userId, danhHao } = req.body;
+    const { userId, danhHao, css } = req.body;
 
     if (!userId || !danhHao) {
       return res.status(400).json({ message: 'User ID and Danh Hào are required' });
@@ -39,8 +39,8 @@ export default async function handler(req, res) {
 
     try {
       db.query(
-        'INSERT INTO user_danh_hao (user_id, danh_hao) VALUES (?, ?)',
-        [userId, danhHao],
+        'INSERT INTO user_danh_hao (user_id, danh_hao,css) VALUES (?, ?,?)',
+        [userId, danhHao, css],
         (error, results) => {
           if (error) {
             return res.status(500).json({ message: 'Internal server error', error: error.message });

@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const query = 'SELECT * FROM vat_pham';
+      const query = 'SELECT * FROM vat_pham ORDER BY Name ASC';
       db.query(query, (error, results) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error', error: error.message });
