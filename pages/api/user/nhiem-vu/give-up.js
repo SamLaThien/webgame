@@ -75,12 +75,36 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "Mission status not updated" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Mission status updated to failed successfully",
-      });
+    const activityLoc = await new Promise((resolve, reject) => {
+      db.query(
+        'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Mission failed", ?, NOW())',
+        [
+          userId,
+          `đã huỷ nhiệm vụ đường thành công`,
+          "đã huỷ nhiệm vụ đường thành công",
+        ],
+        (err) => {
+          if (err) reject(err);
+          resolve();
+        }
+      );
+    });
+
+    const clanIdResult = await new Promise((resolve, reject) => {
+      db.query(
+        "SELECT clan_id FROM clan_members WHERE member_id = ?",
+        [userId],
+        (err, results) => {
+          if (err) reject(err);
+          resolve(results[0]);
+        }
+      );
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Mission status updated to failed successfully",
+    });
   } catch (error) {
     return res
       .status(500)
