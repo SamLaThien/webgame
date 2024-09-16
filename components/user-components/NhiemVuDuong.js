@@ -177,56 +177,8 @@ const ButtonRow = styled.div`
   flex-direction: column;
 `;
 
-const handleMien = async (missionId) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.error("No token found");
-    return;
-  }
-
-  try {
-    const response = await axios.post(
-      `/api/user/nhiem-vu/mien`,
-      { missionId },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (response.data.success) {
-      setStatus(`Miễn nhiệm vụ thành công}`);
-    } else {
-      setStatus(
-        response.data.message || `Không thể miễn cho nhiệm vụ: ${missionId}`
-      );
-    }
-    fetchMissions();
-  } catch (error) {
-    console.error("Error updating mission count:", error);
-    setStatus(error.response?.data?.message || "Error updating mission count");
-  }
-};
-
-const handleHuy = async (missionId) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.error("No token found");
-    return;
-  }
-
-  try {
-    const response = await axios.post(
-      `/api/user/nhiem-vu/give-up`,
-      { missionId },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setStatus(`Mission cancelled for mission ID: ${missionId}`);
-    fetchMissions();
-  } catch (error) {
-    console.error("Error cancelling mission:", error);
-    setStatus(error.response?.data?.message || "Error cancelling mission");
-  }
+const reloadPage = (time) => {
+  window.history.go(time);
 };
 
 const NhiemVuDuong = () => {
@@ -241,11 +193,12 @@ const NhiemVuDuong = () => {
     }
 
     try {
-      const response = await axios.get("/api/user/nhiem-vu", {
+      const response = await axios.get("/api/user/nhiem-vu/nhiem-vu", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.missions && response.data.missions.length > 0) {
         setMissions(response.data.missions);
+        console.log(response.data.missions);
       } else {
         setMissions([]);
       }
@@ -256,10 +209,8 @@ const NhiemVuDuong = () => {
   };
 
   useEffect(() => {
-    
-      fetchMissions();
-    
-   }, []);
+    fetchMissions();
+  }, []);
 
   const handleNhanNhiemVu = async () => {
     const token = localStorage.getItem("token");
@@ -276,9 +227,8 @@ const NhiemVuDuong = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setStatus("Mission received successfully");
-
-      fetchMissions();
+      alert("Đã nhận thành công nhiệm vụ");
+      reloadPage(0);
     } catch (error) {
       console.error("Error receiving mission:", error);
       setStatus(error.response?.data?.message || "Error receiving mission");
@@ -300,9 +250,8 @@ const NhiemVuDuong = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setStatus(`Reward claimed for mission ID: ${missionId}`);
-
-      fetchMissions();
+      alert(`Chúc mừng đạo hữu đã hoàn thành nhiệm vụ`);
+      setMissions([]);
     } catch (error) {
       console.error("Error claiming reward:", error);
       setStatus(error.response?.data?.message || "Error claiming reward");
@@ -312,15 +261,13 @@ const NhiemVuDuong = () => {
   const renderMissionButton = (mission) => {
     const buttonText = mission.giftReceive ? "Đã trả" : "Trả";
     let isButtonActive = false;
-
-    if (
-      mission.isFinish &&
-      mission.status === "success" &&
-      !mission.giftReceive
-    ) {
+    let time_repeat = mission.time_repeat;
+    let count = mission.count;
+    console.log("time_repeat : " + time_repeat + " count :  " + count);
+    if (count >= time_repeat) {
       isButtonActive = true;
     }
-    const isDisabled = mission.giftReceive || mission.status === "failed";
+    const isDisabled = false;
 
     return (
       <ButtonRow>
@@ -349,6 +296,62 @@ const NhiemVuDuong = () => {
   const formatTimeAgo = (date) => {
     return moment(date).fromNow();
   };
+  const handleMien = async (missionId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `/api/user/nhiem-vu/mien`,
+        { missionId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.data.success) {
+        setStatus(`Miễn nhiệm vụ thành công`);
+        await handleNhanQua(missionId);
+      } else {
+        setStatus(
+          response.data.message || `Không thể miễn cho nhiệm vụ: ${missionId}`
+        );
+      }
+      setMissions([]);
+    } catch (error) {
+      console.error("Error updating mission count:", error);
+      setStatus(
+        error.response?.data?.message || "Error updating mission count"
+      );
+    }
+  };
+
+  const handleHuy = async (missionId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+    if (confirm("Bạn có muốn huỷ nhiệm vụ này")) {
+      try {
+        const response = await axios.post(
+          `/api/user/nhiem-vu/give-up`,
+          { missionId },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setStatus(`Mission cancelled for mission ID: ${missionId}`);
+        setMissions([]);
+        // reloadPage(0);
+      } catch (error) {
+        console.error("Error cancelling mission:", error);
+        setStatus(error.response?.data?.message || "Error cancelling mission");
+      }
+    }
+  };
 
   const renderMissionTable = () => {
     return (
@@ -363,19 +366,19 @@ const NhiemVuDuong = () => {
           </tr>
         </thead>
         <tbody>
-          {missions 
-          .filter((mission) => mission.status === "on going")
-          .map((mission) => (
-            <tr key={mission.id}>
-              <Td>{mission.detail}</Td>
-              <Td>{mission.prize}</Td>
-              <Td>
-                {moment(mission.created_at).format("MM/DD/YYYY HH:mm:ss")}
-              </Td>
-              <Td>{moment(mission.endAt).format("MM/DD/YYYY HH:mm:ss")}</Td>
-              <Td>{renderMissionButton(mission)}</Td>
-            </tr>
-          ))}
+          {missions
+            // .filter((mission) => mission.status === "on going")
+            .map((mission) => (
+              <tr key={mission.id}>
+                <Td>{mission.detail}</Td>
+                <Td>{mission.prize}</Td>
+                <Td>
+                  {moment(mission.created_at).format("MM/DD/YYYY HH:mm:ss")}
+                </Td>
+                <Td>{moment(mission.endAt).format("MM/DD/YYYY HH:mm:ss")}</Td>
+                <Td>{renderMissionButton(mission)}</Td>
+              </tr>
+            ))}
         </tbody>
       </Table>
     );
@@ -413,10 +416,11 @@ const NhiemVuDuong = () => {
         <Button onClick={handleNhanNhiemVu}>Nhận nhiệm vụ</Button>
         {status && <p>{status}</p>}
         {missions.length > 0 ? (
-        <div>{renderMissionTable()}</div>
-      ) : (
-        <p>Hiện tại không có nhiệm vụ nào.</p> 
-      )}      </Container>
+          <div>{renderMissionTable()}</div>
+        ) : (
+          <p>Hiện tại không có nhiệm vụ nào.</p>
+        )}{" "}
+      </Container>
     </>
   );
 };
