@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const Container = styled.div`
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: none;
   height: 100%;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -174,16 +174,18 @@ const DanhHaoManagement = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {danhHaoList.map((danhHao) => (
-                  <TableRow key={danhHao.id}>
-                    <TableCell>{danhHao.id}</TableCell>
-                    <TableCell>{danhHao.danh_hao}</TableCell>
-                    <TableCell>
-                      <Button onClick={() => handleEditDanhHao(danhHao)}>Chỉnh sửa</Button>
-                      <Button onClick={() => handleDeleteDanhHao(danhHao.id, danhHao.danh_hao)}>Xóa</Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {danhHaoList &&
+                  danhHaoList.length > 0 &&
+                  danhHaoList.map((danhHao) => (
+                    <TableRow key={danhHao.id}>
+                      <TableCell>{danhHao.id}</TableCell>
+                      <TableCell>{danhHao.danh_hao}</TableCell>
+                      <TableCell>
+                        <Button onClick={() => handleEditDanhHao(danhHao)}>Chỉnh sửa</Button>
+                        <Button onClick={() => handleDeleteDanhHao(danhHao.id, danhHao.danh_hao)}>Xóa</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
