@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     });
 
     if (ongoingMission) {
-      return res.status(400).json({ message: 'You already have an ongoing mission. Please complete it before taking a new one.' });
+      return res.status(400).json({ message: 'Bạn đã có một nhiệm vụ đang thực hiện. Vui lòng hoàn thành nhiệm vụ đó trước khi thực hiện nhiệm vụ mới.' });
     }
 
     const [recentMission] = await new Promise((resolve, reject) => {
@@ -72,16 +72,10 @@ export default async function handler(req, res) {
       const timeSinceLastMissionEnd = (currentTime - lastMissionEndTime) / (1000 * 60 * 60); 
 
       if (timeSinceLastMissionEnd < waitingTimeBetweenMissions) {
-        return res.status(400).json({ message: `Đạo hữu vui lòng hoàn thành nhiệm vụ trước để tiếp tục` });
+        return res.status(400).json({ message: `Đạo hữu đã trả nhiệm vụ trong ngày vui lòng nhận nhiệm vụ trong 24h tới` });
       }
     }
 
-    // const [mission] = await new Promise((resolve, reject) => {
-    //   db.query('SELECT * FROM missions ORDER BY RAND() LIMIT 1', (error, results) => {
-    //     if (error) reject(error);
-    //     resolve(results);
-    //   });
-    // });
     const [mission] = await new Promise((resolve, reject) => {
       db.query('SELECT * FROM missions WHERE id IN (1, 3, 4) ORDER BY RAND() LIMIT 1', (error, results) => {
         if (error) reject(error);
