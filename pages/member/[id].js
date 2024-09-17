@@ -145,6 +145,16 @@ const ClanRole = styled.div`
   border-bottom: 1px dashed #93b6c8;
 `;
 
+const PhuTro = styled.div`
+  font-size: 15px;
+  color: #4caf50;
+  font-weight: bold;
+  text-align: center;
+  border-top: 1px dashed #93b6c8;
+  line-height: 40px;
+  border-bottom: 1px dashed #93b6c8;
+`;
+
 const Section = styled.div`
   margin-bottom: 20px;
   padding: 20px;
@@ -538,6 +548,14 @@ const MemberPage = ({ id }) => {
 
           <Section>
             <SectionTitle>Tu luyện & Vật phẩm</SectionTitle>
+            <PhuTro>{
+              user && user.lds_level > 0
+                ? `Luyện Đan Sư Cấp ${user.lds_level !== null && user.lds_level !== undefined ? user.lds_level : 'Luyện Đan Sư Học Đồ'}`
+                : ''}</PhuTro>
+            <PhuTro>{
+              user && user.lks_level > 0
+                ? `Luyện Khí Sư Cấp ${user.lks_level !== null && user.lks_level !== undefined ? user.lks_level : 'Luyện Khí Sư Học Đồ'}`
+                : ''}</PhuTro>
             <ProgressContainer>
               {user.id === 3 ? (
                 <GlowingText>Thiên Đạo</GlowingText>
