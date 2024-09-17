@@ -84,7 +84,7 @@ async function processExpiredMedicines(now) {
         [medicine.user_id]
       ))[0];
 
-      const actionDetails = `đã luyện chết thành công và nhận được ${quantity} ${medicineName}.`;
+      const actionDetails = `đã luyện chế thành công và nhận được ${quantity} ${medicineName}.`;
 
       await queryDatabase(
         'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Medicine Making Completed", ?, NOW())',
