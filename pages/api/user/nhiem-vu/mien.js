@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     if (!userMission) {
       return res
         .status(404)
-        .json({ message: "Mission not found for this user" });
+        .json({ message: "Không tìm thấy nhiệm vụ cho tài khoản này" });
     }
 
     const [ruongDoItem] = await new Promise((resolve, reject) => {
@@ -63,33 +63,53 @@ export default async function handler(req, res) {
     if (!ruongDoItem) {
       return res
         .status(404)
-        .json({ message: "Required item not found in ruong_do" });
+        .json({ message: "Bạn cần có Hoà thị bích để miễn nhiệm vụ" });
     }
 
-    const updateResult = await new Promise((resolve, reject) => {
-      db.query(
-        `UPDATE user_mission 
-         SET count = (SELECT time_repeat FROM missions WHERE id = user_mission.mission_id)
-         WHERE id = ? AND user_id = ?`,
-        [missionId, userId],
-        (error, results) => {
-          if (error) {
-            console.error("Error updating mission count:", error);
-            reject(error);
-          } else {
-            resolve(results);
+    if (ruongDoItem.length > 0) {
+      const [updateRuongDo] = await new Promise((resolve, reject) => {
+        db.query(
+          "UPDATE ruong_do SET so_luong = so_luong - 1  WHERE vat_pham_id = 64 AND user_id = ?",
+          [userId],
+          (err) => {
+            if (err) reject(err);
+            resolve();
           }
+        );
+      });
+      if (updateRuongDo.affectedRows === 0) {
+        return res.status(404).json({ message: "Lỗi không xác định" });
+      }
+    }
+
+    await new Promise((resolve, reject) => {
+      db.query(
+        'UPDATE user_mission SET status = "by pass", giftReceive = 1 WHERE id = ?',
+        [missionId],
+        (err) => {
+          if (err) reject(err);
+          resolve();
         }
       );
     });
 
-    if (updateResult.affectedRows === 0) {
-      return res.status(404).json({ message: "Mission count not updated" });
-    }
-
+    const activityLoc = await new Promise((resolve, reject) => {
+      db.query(
+        'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Bypass mission", ?, NOW())',
+        [
+          userId,
+          `đã miễn nhiệm vụ đường thành công`,
+          "đã miễn nhiệm vụ đường thành công",
+        ],
+        (err) => {
+          if (err) reject(err);
+          resolve();
+        }
+      );
+    });
     res
       .status(200)
-      .json({ success: true, message: "Mission count updated successfully" });
+      .json({ success: true, message: "Miễn nhiệm vụ thành công" });
   } catch (error) {
     return res
       .status(500)

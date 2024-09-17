@@ -298,7 +298,18 @@ const RuongChuaDo = () => {
         const itemName = usedItem?.vat_pham_name || "Unknown Item";
         const expGained = response.data.exp;
         alert(response.data.message);
-
+        try {
+          await fetch("/api/user/nhiem-vu/tra-nhiem-vu/tang-kn", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userId: user.id }),
+          });
+        } catch (error) {
+          console.error("Error calling nhiem-vu API:", error);
+        }
         await logUserActivity(
           "Item Use",
           `vừa sử dụng ${useAmount} ${itemName}, nhận được ${expGained} EXP.`

@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     if (!userMission) {
       return res
         .status(404)
-        .json({ message: "Mission not found for this user" });
+        .json({ message: "Không timg thấy nhiệm vụ cho tài khoản này" });
     }
 
     const updateResult = await new Promise((resolve, reject) => {
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
         [missionId, userId],
         (error, results) => {
           if (error) {
-            console.error("Error updating mission status:", error);
+            // console.error("Error updating mission status:", error);
             reject(error);
           } else {
             resolve(results);
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       success: true,
-      message: "Mission status updated to failed successfully",
+      message: "Đã huỷ nhiệm vụ thành công",
     });
   } catch (error) {
     return res

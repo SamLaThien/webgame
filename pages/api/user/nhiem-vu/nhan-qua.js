@@ -134,9 +134,9 @@ export default async function handler(req, res) {
         });
       }
 
-      return res.status(200).json({ message: "Reward claimed successfully" });
+      return res.status(200).json({ message: "Chúc mừng đạo hữu đã hoàn thành nhiệm vụ" });
     } else {
-      return res.status(400).json({ message: "Mission not completed yet" });
+      return res.status(400).json({ message: "Bạn chưa hoàn thành nhiệm vụ" });
     }
   } catch (error) {
     console.error("Error claiming reward:", error);
