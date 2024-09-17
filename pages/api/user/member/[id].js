@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       // Người xem là admin, cho phép xem tất cả thông tin người dùng
       db.query(
         `SELECT 
-          u.id, u.username, u.email, u.role, u.created_at, u.bio, u.dateOfBirth, u.gender, u.image, 
+          u.id, u.username, u.email, u.role, u.lds_level, u.lks_level, u.created_at, u.bio, u.dateOfBirth, u.gender, u.image, 
           u.tai_san, u.bang_hoi, u.danh_hao, u.ngoai_hieu, u.ban, u.active, u.exp, u.level, 
           u.task_contribution_points, u.clan_contribution_points, u.clan_role,
           cm.clan_id,
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       // Xem thông tin người dùng hiện tại
       db.query(
         `SELECT 
-          u.id, u.username, u.email, u.role, u.created_at, u.bio, u.dateOfBirth, u.gender, u.image, 
+          u.id, u.username, u.email, u.lds_level, u.lks_level, u.bio, u.dateOfBirth, u.gender, u.image, 
           u.tai_san, u.bang_hoi, u.danh_hao, u.ngoai_hieu, u.ban, u.active, u.exp, u.level, 
           u.task_contribution_points, u.clan_contribution_points, u.clan_role,
           cm.clan_id,
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
 
           db.query(
             `SELECT 
-              u.id, u.username, u.email, u.role, u.created_at, u.bio, u.dateOfBirth, u.gender, u.image, 
+              u.id, u.username, u.email, u.lds_level, u.lks_level, u.bio, u.dateOfBirth, u.gender, u.image, 
               u.tai_san, u.bang_hoi, u.danh_hao, u.ngoai_hieu, u.ban, u.active, u.exp, u.level, 
               u.task_contribution_points, u.clan_contribution_points, u.clan_role,
               cm.clan_id,
