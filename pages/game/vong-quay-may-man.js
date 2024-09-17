@@ -64,13 +64,13 @@ const Button = styled.button`
   z-index: 4;
   @media (max-width: 749px) {
     width: 70px;
-  height: 70px;
-  background-size: 300;
+    height: 70px;
+    background-size: 300;
   }
 `;
 
 const AutoSpinButton = styled.button`
-position: absolute;
+  position: absolute;
   left: 50%;
   transform: translate(-50%);
   padding: 10px 20px;
@@ -81,7 +81,7 @@ position: absolute;
   cursor: pointer;
   font-size: 16px;
   margin-top: 40px;
-  
+
   &:hover {
     background-color: ${({ isActive }) => (isActive ? "#c1121f" : "#1c86ee")};
   }
@@ -148,25 +148,33 @@ const LogItem = styled.div`
 `;
 
 const CategoryText = styled.span`
-color: rgba(255, 255, 255, 0.1);
-color: ${(props) => categoryColors[props.category] || "rgba(255, 255, 255, 0.1)"};
+  color: rgba(255, 255, 255, 0.1);
+  color: ${(props) =>
+    categoryColors[props.category] || "rgba(255, 255, 255, 0.1)"};
   font-weight: bold;
   position: relative;
   text-shadow: none;
-  background: -webkit-gradient(linear, left top, right top, from(${(props) => categoryColors[props.category]}), to(${(props) => categoryColors[props.category]}), color-stop(0.5, #0e0e0e)) 0 0 no-repeat;
+  background: -webkit-gradient(
+      linear,
+      left top,
+      right top,
+      from(${(props) => categoryColors[props.category]}),
+      to(${(props) => categoryColors[props.category]}),
+      color-stop(0.5, #0e0e0e)
+    )
+    0 0 no-repeat;
   -webkit-background-clip: text;
   -webkit-background-size: 30px;
   -webkit-animation: shine 2s infinite;
   @-webkit-keyframes shine {
     0% {
-        background-position: top left;
+      background-position: top left;
     }
     100% {
-        background-position: top right;
+      background-position: top right;
     }
-}
+  }
 `;
-
 
 const categoryColors = {
   "Đồ Thần Bí": "#FFD700",
@@ -199,33 +207,33 @@ const VongQuayMayManPage = () => {
   ];
   useEffect(() => {
     let wakeLock = null;
-  
+
     const requestWakeLock = async () => {
       try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log('Wake lock is active');
+        wakeLock = await navigator.wakeLock.request("screen");
+        console.log("Wake lock is active");
       } catch (err) {
-        console.error('Failed to activate wake lock:', err);
+        console.error("Failed to activate wake lock:", err);
       }
     };
-  
+
     requestWakeLock();
-  
+
     const handleVisibilityChange = () => {
-      if (wakeLock !== null && document.visibilityState === 'visible') {
+      if (wakeLock !== null && document.visibilityState === "visible") {
         requestWakeLock();
       }
     };
-  
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-  
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       if (wakeLock !== null) {
         wakeLock.release().then(() => {
-          console.log('Wake lock is released');
+          console.log("Wake lock is released");
         });
       }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
   useEffect(() => {
@@ -380,21 +388,36 @@ const VongQuayMayManPage = () => {
 
             if (itemApiResponse.ok) {
               const itemApiData = await itemApiResponse.json();
-              if (itemApiData.item_id === undefined || itemApiData.amount === undefined || itemApiData.item === undefined) {
+              if (
+                itemApiData.item_id === undefined ||
+                itemApiData.amount === undefined ||
+                itemApiData.item === undefined
+              ) {
                 return;
               }
               status = true;
               item_id = itemApiData.item_id;
               prizeName = `${itemApiData.amount} ${itemApiData.item}`;
-              if (/Linh Tuyền|Hư Không Chi Thạch|Băng Hỏa Ngọc/.test(itemApiData.item)) {
-                chat(`Chúc mừng đạo hữu ${itemApiData.username} nhân họa đắc phúc nhận được ${itemApiData.item}`);
+              if (
+                /Linh Tuyền|Hư Không Chi Thạch|Băng Hỏa Ngọc/.test(
+                  itemApiData.item
+                )
+              ) {
+                chat(
+                  `Chúc mừng đạo hữu ${itemApiData.username} nhân họa đắc phúc nhận được ${itemApiData.item}`
+                );
               } else if (itemApiData.amount > 1) {
-                chat(`Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}`);
+                chat(
+                  `Chúc mừng đạo hữu ${itemApiData.username} âu hoàng phụ thể nhận được ${prizeName}`
+                );
               }
 
               prizeValue = prizeName;
             } else {
-              console.error("Item API response not OK:", itemApiResponse.statusText);
+              console.error(
+                "Item API response not OK:",
+                itemApiResponse.statusText
+              );
               setErrorMessage("Có lỗi xảy ra vui lòng thử lại sau!!!");
             }
           } else if (selectedSlotNumber >= 5 && selectedSlotNumber <= 8) {
@@ -416,16 +439,18 @@ const VongQuayMayManPage = () => {
             }
             status = true;
             if (selectedSlotNumber === 5 || selectedSlotNumber === 6) {
-              prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(" ")[1]
-                } nghiệm`;
+              prizeName = `${expData.prize} ${
+                prizes[selectedPrizeIndex].split(" ")[1]
+              } nghiệm`;
             } else {
-              prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(" ")[1]
-                }`;
+              prizeName = `${expData.prize} ${
+                prizes[selectedPrizeIndex].split(" ")[1]
+              }`;
             }
 
             prizeValue = prizeName;
           }
-          console.log(status)
+          // console.log(status)
           if (status) {
             const logResult = {
               username: storedUser.username,
@@ -435,7 +460,7 @@ const VongQuayMayManPage = () => {
             };
 
             try {
-              await fetch("/api/user/nhiem-vu/1", {
+              await fetch("/api/user/nhiem-vu/tra-nhiem-vu/vong-quay", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -447,7 +472,7 @@ const VongQuayMayManPage = () => {
               console.error("Error calling nhiem-vu API:", error);
             }
 
-            await fetch("/api/user/game/vong-quay/spin-logs", {
+            cont[nhiemVu] = await fetch("/api/user/game/vong-quay/spin-logs", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -534,10 +559,15 @@ const VongQuayMayManPage = () => {
                   href={`https://tuchangioi.xyz/member/${log.user_id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    fontWeight: "bold",
+                  }}
                 >
                   {log.username}
-                </a>{" "}{" "} quay trúng{" "}
+                </a>{" "}
+                quay trúng{" "}
                 <CategoryText category={log.prize_category}>
                   {log.prize_category}
                 </CategoryText>{" "}
@@ -569,7 +599,6 @@ function formatTimeDifference(timestamp) {
   } else {
     if (Math.floor(minutes) <= 0) {
       return `vừa xong`;
-    } else
-      return `${Math.floor(minutes)} phút trước`;
+    } else return `${Math.floor(minutes)} phút trước`;
   }
 }

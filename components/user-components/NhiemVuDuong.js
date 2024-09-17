@@ -198,12 +198,10 @@ const NhiemVuDuong = () => {
       });
       if (response.data.missions && response.data.missions.length > 0) {
         setMissions(response.data.missions);
-        console.log(response.data.missions);
       } else {
         setMissions([]);
       }
     } catch (error) {
-      console.error("Error fetching missions:", error);
       setStatus(error.response?.data?.message || "Error fetching missions");
     }
   };
@@ -220,14 +218,18 @@ const NhiemVuDuong = () => {
     }
 
     try {
-      await axios.post(
+      const response = await axios.post(
         "/api/user/nhiem-vu/nhan-nhiem-vu",
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Đã nhận thành công nhiệm vụ");
+      if (response.data.success) {
+        alert(response.data.message);
+      } else {
+        alert(response.data.message);
+      }
       reloadPage(0);
     } catch (error) {
       console.error("Error receiving mission:", error);
@@ -243,14 +245,18 @@ const NhiemVuDuong = () => {
     }
 
     try {
-      await axios.post(
+      const response = await axios.post(
         `/api/user/nhiem-vu/nhan-qua`,
         { missionId },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert(`Chúc mừng đạo hữu đã hoàn thành nhiệm vụ`);
+      if (response.data.success) {
+        alert(response.data.message);
+      } else {
+        alert(response.data.message);
+      }
       setMissions([]);
     } catch (error) {
       console.error("Error claiming reward:", error);
@@ -263,7 +269,7 @@ const NhiemVuDuong = () => {
     let isButtonActive = false;
     let time_repeat = mission.time_repeat;
     let count = mission.count;
-    console.log("time_repeat : " + time_repeat + " count :  " + count);
+
     if (count >= time_repeat) {
       isButtonActive = true;
     }
@@ -312,8 +318,7 @@ const NhiemVuDuong = () => {
         }
       );
       if (response.data.success) {
-        setStatus(`Miễn nhiệm vụ thành công`);
-        await handleNhanQua(missionId);
+        setStatus(response.data.message);
       } else {
         setStatus(
           response.data.message || `Không thể miễn cho nhiệm vụ: ${missionId}`
@@ -343,8 +348,12 @@ const NhiemVuDuong = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setStatus(`Mission cancelled for mission ID: ${missionId}`);
-        setMissions([]);
+        if (response.data.success) {
+          setStatus(response.data.message);
+          setMissions([]);
+        } else {
+          setStatus(response.data.message);
+        }
         // reloadPage(0);
       } catch (error) {
         console.error("Error cancelling mission:", error);
