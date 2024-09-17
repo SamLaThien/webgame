@@ -472,7 +472,7 @@ const VongQuayMayManPage = () => {
               console.error("Error calling nhiem-vu API:", error);
             }
 
-            cont[nhiemVu] = await fetch("/api/user/game/vong-quay/spin-logs", {
+            const [nhiemVu] = await fetch("/api/user/game/vong-quay/spin-logs", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
