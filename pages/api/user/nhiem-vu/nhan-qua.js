@@ -110,6 +110,17 @@ export default async function handler(req, res) {
 
         await new Promise((resolve, reject) => {
           db.query(
+            "UPDATE clans set contribution_points = contribution_points + ? WHERE id = ?",
+            [mission.contribution_points, clanId],
+            (err) => {
+              if (err) reject(err);
+              resolve();
+            }
+          );
+        });
+
+        await new Promise((resolve, reject) => {
+          db.query(
             'INSERT INTO clan_activity_logs (user_id, clan_id, action_type, action_details, timestamp) VALUES (?, ?, "Mission Completed", ?, NOW())',
             [userId, clanId, actionDetails],
             (err) => {
@@ -134,7 +145,9 @@ export default async function handler(req, res) {
         });
       }
 
-      return res.status(200).json({ message: "Chúc mừng đạo hữu đã hoàn thành nhiệm vụ" });
+      return res
+        .status(200)
+        .json({ message: "Chúc mừng đạo hữu đã hoàn thành nhiệm vụ" });
     } else {
       return res.status(400).json({ message: "Bạn chưa hoàn thành nhiệm vụ" });
     }
