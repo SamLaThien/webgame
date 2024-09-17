@@ -195,6 +195,54 @@ const ProgressText = styled.div`
   line-height: 30px;
 `;
 
+const fetchUserData = async (token, router) => {
+  try {
+    const { data } = await axios.get("/api/user/validate-token", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!data.isValid) {
+      router.push("/login");
+      return null;
+    }
+
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) {
+      const { data: userData } = await axios.get(
+        `/api/user/clan/user-info?userId=${storedUser.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { data: levelData } = await axios.post(
+        `/api/user/dot-pha/level-info`,
+        { level: userData.level },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { data: missingMedsData } = await axios.post(
+        "/api/user/luyen-dan/get-med",
+        { userId: userData.id, level: userData.level },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { data: userMedsData } = await axios.post(
+        "/api/user/luyen-dan/get-user-med",
+        { userId: userData.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { data: makingMedData } = await axios.post(
+        "/api/user/luyen-dan/check-making-med",
+        { userId: userData.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      return { userData, levelData, missingMedsData, userMedsData, makingMedData };
+    }
+  } catch (error) {
+    console.error("Error validating token or fetching data:", error);
+  }
+};
+
 const LuyenDanThat = () => {
   const [user, setUser] = useState(null);
   const [level, setLevelData] = useState(null);
@@ -210,126 +258,41 @@ const LuyenDanThat = () => {
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("token");
-
       if (!token) {
         router.push("/login");
         return;
       }
 
-      try {
-        const { data } = await axios.get("/api/user/validate-token", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!data.isValid) {
-          router.push("/login");
-          return;
-        }
-
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const { data: userData } = await axios.get(
-            `/api/user/clan/user-info?userId=${storedUser.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          setUser(userData);
-
-          const { data: fetchedLevelData } = await axios.post(
-            `/api/user/dot-pha/level-info`,
-            { level: userData.level },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          setLevelData(fetchedLevelData);
-
-          const { data: missingMedsData } = await axios.post(
-            "/api/user/luyen-dan/get-med",
-            { userId: userData.id, level: userData.level },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (
-            missingMedsData.missingMedicines &&
-            missingMedsData.missingMedicines.length > 0
-          ) {
-            setMissingMeds(missingMedsData.missingMedicines);
-          } else {
-            setMissingMeds([]);
-          }
-
-          const { data: userMedsData } = await axios.post(
-            "/api/user/luyen-dan/get-user-med",
-            { userId: userData.id },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          setUserMedicines(userMedsData.medicines);
-
-          const { data: makingMedData } = await axios.post(
-            "/api/user/luyen-dan/check-making-med",
-            { userId: userData.id },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (makingMedData) {
-            setMakingMedData(makingMedData);
-          }
-        }
-      } catch (error) {
-        console.error("Error validating token or fetching data:", error);
+      const data = await fetchUserData(token, router);
+      if (data) {
+        setUser(data.userData);
+        setLevelData(data.levelData);
+        setMissingMeds(data.missingMedsData.missingMedicines || []);
+        setUserMedicines(data.userMedsData.medicines);
+        setMakingMedData(data.makingMedData || null);
       }
     };
 
     fetchData();
-
     const intervalId = setInterval(fetchData, 10000);
-
     return () => clearInterval(intervalId);
   }, [router]);
 
   useEffect(() => {
-    if (makingMedData && makingMedData.ongoingProcess) {
-  
-      try {
-        const startTime = new Date(makingMedData.ongoingProcess.created_at).getTime();
-        const endTime = new Date(makingMedData.ongoingProcess.end_at).getTime();
-  
-        const calculateProgress = () => {
-          const now = new Date().getTime();
-          const progress = ((now - startTime) / (endTime - startTime)) * 100;
-          setProgress(Math.min(progress, 100));
-        };
-  
-        calculateProgress(); 
-        const progressInterval = setInterval(calculateProgress, 1000);
-  
-        return () => clearInterval(progressInterval);
-      } catch (error) {
-        console.error("Error calculating progress:", error);
-      }
-    } else {
-      console.log("No ongoing process found or invalid data.");
+    if (makingMedData?.ongoingProcess) {
+      const startTime = new Date(makingMedData.ongoingProcess.created_at).getTime();
+      const endTime = new Date(makingMedData.ongoingProcess.end_at).getTime();
+
+      const calculateProgress = () => {
+        const now = new Date().getTime();
+        const progress = ((now - startTime) / (endTime - startTime)) * 100;
+        setProgress(Math.min(progress, 100));
+      };
+
+      calculateProgress();
+      const progressInterval = setInterval(calculateProgress, 1000);
+
+      return () => clearInterval(progressInterval);
     }
   }, [makingMedData]);
 
@@ -337,22 +300,14 @@ const LuyenDanThat = () => {
     if (selectedMedId) {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.post(
+        const { data } = await axios.post(
           "/api/user/luyen-dan/learn",
           { userId: user.id, medId: selectedMedId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        alert(response.data.message);
+        alert(data.message);
       } catch (error) {
-        if (error.response && error.response.data) {
-          alert(error.response.data.message);
-        } else {
-          alert("Đã xảy ra lỗi trong quá trình học.");
-        }
+        alert(error.response?.data?.message || "Đã xảy ra lỗi trong quá trình học.");
       }
     } else {
       alert("Vui lòng chọn một đan phương để học.");
@@ -363,25 +318,15 @@ const LuyenDanThat = () => {
     if (selectedMakeMedId) {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.post(
+        const { data } = await axios.post(
           "/api/user/luyen-dan/start-medicine-making",
           { userId: user.id, medId: selectedMakeMedId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        alert(response.data.message);
+        alert(data.message);
       } catch (error) {
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.message);
-          setTimeout(() => {
-            setErrorMessage(null);
-          }, 5000);
-        } else {
-          alert("Đã xảy ra lỗi trong quá trình chế tạo.");
-        }
+        setErrorMessage(error.response?.data?.message || "Đã xảy ra lỗi trong quá trình chế tạo.");
+        setTimeout(() => setErrorMessage(null), 5000);
       }
     } else {
       alert("Vui lòng chọn một đan phương để chế tạo.");
@@ -389,61 +334,69 @@ const LuyenDanThat = () => {
   };
 
   return (
-    <>
-      <Container>
-        <Section>
-          <SectionTitle>
-            <FormatListBulletedOutlinedIcon /> DANH SÁCH ĐAN PHƯƠNG
-          </SectionTitle>
-          <Content>
-            {level ? (
-              <>
-                <P>
-                  Mỗi lần học luyện 1 loại đan dược, bạn cần có{" "}
-                  <strong>3 Hòa Thị Bích</strong>. Tu vi càng cao tỉ lệ học
-                  thành công càng cao, nếu học không thành công bạn sẽ bị mất{" "}
-                  <strong>3 Hòa Thị Bích</strong> nhưng không mất đan phương.
-                </P>
-                <P>
-                  Tu vi hiện tại của bạn là <strong>{level.tu_vi}</strong>, bạn
-                  chỉ có thể học được các đan phương sau:
-                </P>
-                <RadioGroup>
-                  {missingMeds.length > 0 ? (
-                    missingMeds.map((med) => (
-                      <RadioItem key={med.id}>
-                        <label>
-                          <RadioInput
-                            type="radio"
-                            name="med"
-                            value={med.id}
-                            onChange={() => setSelectedMedId(med.id)}
-                          />
-                          {med.name} Phương
-                        </label>
-                      </RadioItem>
-                    ))
-                  ) : (
-                    <P>Không có đan phương nào để học.</P>
-                  )}
-                </RadioGroup>
-                <LearnButton onClick={handleLearn}>Học</LearnButton>
-              </>
-            ) : (
-              <P>Đang tải dữ liệu...</P>
-            )}
-          </Content>
-        </Section>
+    <Container>
+      <Section>
+        <SectionTitle>
+          <FormatListBulletedOutlinedIcon /> DANH SÁCH ĐAN PHƯƠNG
+        </SectionTitle>
+        <Content>
+          {level ? (
+            <>
+              <P>
+                Mỗi lần học luyện 1 loại đan dược, bạn cần có <strong>3 Hòa Thị Bích</strong>. Tu vi càng cao tỉ lệ học
+                thành công càng cao, nếu học không thành công bạn sẽ bị mất <strong>3 Hòa Thị Bích</strong> nhưng không
+                mất đan phương.
+              </P>
+              <P>
+                Tu vi hiện tại của bạn là <strong>{level.tu_vi}</strong>, bạn chỉ có thể học được các đan phương sau:
+              </P>
+              <RadioGroup>
+                {missingMeds.length > 0 ? (
+                  missingMeds.map((med) => (
+                    <RadioItem key={med.id}>
+                      <label>
+                        <RadioInput
+                          type="radio"
+                          name="med"
+                          value={med.id}
+                          onChange={() => setSelectedMedId(med.id)}
+                        />
+                        {med.name} Phương
+                      </label>
+                    </RadioItem>
+                  ))
+                ) : (
+                  <P>Không có đan phương nào để học.</P>
+                )}
+              </RadioGroup>
+              <LearnButton onClick={handleLearn}>Học</LearnButton>
+            </>
+          ) : (
+            <P>Đang tải dữ liệu...</P>
+          )}
+        </Content>
+      </Section>
 
-        <Section>
-          <SectionTitle>
-            <GroupWorkOutlinedIcon /> LUYỆN ĐAN
-          </SectionTitle>{" "}
-          <Content>
-            <Item>
-              Độ thành thục càng cao tỉ lệ thành đan và số lượng đan được nhận
-              càng lớn
-            </Item>
+      <Section>
+        <SectionTitle>
+          <GroupWorkOutlinedIcon /> LUYỆN ĐAN
+        </SectionTitle>
+        <Content>
+          <Item>
+            {user && user.lds_level > 0
+              ? `Luyện Đan Sư Cấp ${user.lds_level}`
+              : `Luyện Đan Sư Học Đồ`}
+          </Item>
+          <Item>Độ thành thục càng cao tỉ lệ thành đan và số lượng đan được nhận càng lớn</Item>
+
+          {makingMedData?.ongoingProcess ? (
+            <ProgressBarContainer>
+              <ProgressBar>
+                <Progress progress={progress} />
+                <ProgressText>{Math.round(progress)}%</ProgressText>
+              </ProgressBar>
+            </ProgressBarContainer>
+          ) : (
             <DanPhuongList>
               {userMedicines.map((medicine) => (
                 <div key={medicine.med_id}>
@@ -473,26 +426,16 @@ const LuyenDanThat = () => {
                   <P3>Thời gian luyện: {parseInt(medicine.create_time)} giờ</P3>
                 </div>
               ))}
-            </DanPhuongList>
-            {errorMessage && (
-              <Error dangerouslySetInnerHTML={{ __html: errorMessage }} />
-            )}
-            {makingMedData && makingMedData.ongoingProcess ? (
-              <ProgressBarContainer>
-                <ProgressBar>
-                  <Progress progress={progress} />
-                  <ProgressText>{Math.round(progress)}%</ProgressText>
-                </ProgressBar>
-              </ProgressBarContainer>
-            ) : (
+
+              {errorMessage && <Error dangerouslySetInnerHTML={{ __html: errorMessage }} />}
               <ClickableImageContainer onClick={handleStartMedicineMaking}>
                 <ClickableImage src="/lodan.png" alt="Luyện đan" />
               </ClickableImageContainer>
-            )}
-          </Content>
-        </Section>
-      </Container>
-    </>
+            </DanPhuongList>
+          )}
+        </Content>
+      </Section>
+    </Container>
   );
 };
 
