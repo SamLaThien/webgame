@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import SpaIcon from '@mui/icons-material/Spa';
+
 const Container = styled.div`
   background: white;
   padding: 20px;
@@ -100,31 +101,65 @@ const Button = styled.button`
 `;
 
 const HerbsList = styled.div`
+  display: flex;  // Thêm thuộc tính flex
+  flex-wrap: wrap; // Cho phép các phần tử xuống dòng
   margin-top: 20px;
 `;
 
 const HerbItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex: 1 1 calc(33.33% - 10px); // Chiều rộng mỗi ô chiếm 1/3 với khoảng cách giữa các ô
+  margin-bottom: 10px; // Khoảng cách giữa các hàng
   background-color: #f5f5f5;
-  padding: 10px;
-  margin-bottom: 10px;
   border: 1px solid #ddd;
+  padding: 10px;
+  box-sizing: border-box; // Đảm bảo padding được tính trong chiều rộng
 `;
 
-const HarvestButton = styled.button`
-  padding: 5px 10px;
-  background-color: ${({ active }) => (active ? "#42a5f5" : "#ddd")};
-  color: ${({ active }) => (active ? "white" : "#888")};
-  border: none;
-  cursor: ${({ active }) => (active ? "pointer" : "not-allowed")};
-  font-size: 14px;
-
-  &:hover {
-    background-color: ${({ active }) => (active ? "#1e88e5" : "#ddd")};
-  }
+const TimerContainer = styled.div`
+  background: #e0f7fa;
+  border: 1px solid #00796b;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
 `;
+
+const CountdownTimer = ({ name, duration, user}) => {
+  const [timeLeft, setTimeLeft] = useState(Math.floor(duration / 1000));
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft(prevTime => {
+        if (prevTime <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return hours > 0 ? `${hours}h ${minutes}m ${secs}s`
+      : minutes > 0 ? `${minutes}m ${secs}s`
+        : `${secs}s`;
+  };
+
+  return (
+    <TimerContainer>
+      <div>{name}</div>
+      <div>{timeLeft > 0 ? `Còn ${formatTime(timeLeft)}` : 'Đang thu hoạch!'}</div>
+      <div>{user}</div>
+    </TimerContainer>
+  );
+};
 
 const DuocVien = () => {
   const [herbs, setHerbs] = useState([]);
@@ -135,43 +170,10 @@ const DuocVien = () => {
     fetchHerbs();
     fetchUserHerbs();
 
-    const interval = setInterval(async () => {
-      // await updateHerbGrowthStatus();
-      fetchUserHerbs();
-    }, 10000);
+    const interval = setInterval(fetchUserHerbs, 10000);
 
     return () => clearInterval(interval);
   }, []);
-
-  // const updateHerbGrowthStatus = async () => {
-  //   const currentTime = new Date();
-  //   const updatedHerbs = await Promise.all(
-  //     userHerbs.map(async (herb) => {
-  //       if (!herb.isGrown && currentTime >= new Date(herb.endAt)) {
-  //         await updateHerbIsGrown(herb.id);
-  //         return { ...herb, isGrown: true };
-  //       }
-  //       return herb;
-  //     })
-  //   );
-  //   setUserHerbs(updatedHerbs);
-  // };
-
-  // const updateHerbIsGrown = async (herbId) => {
-  //   try {
-  //     await axios.post(
-  //       "/api/user/duoc-vien/update",
-  //       { herbId },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //         },
-  //       }
-  //     );
-  //   } catch (error) {
-  //     console.error("Error updating herb growth status:", error);
-  //   }
-  // };
 
   const fetchHerbs = async () => {
     try {
@@ -229,48 +231,7 @@ const DuocVien = () => {
       fetchUserHerbs();
       fetchHerbs();
     } catch (error) {
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        alert(error.response.data.message);
-      } else {
-        alert("Đã xảy ra lỗi khi gieo hạt. Vui lòng thử lại.");
-      }
-    }
-  };
-
-  const handleGieoHatKhongKimThuong = async () => {
-    if (!selectedHerb) {
-      alert("Vui lòng chọn thảo dược trước khi gieo hạt.");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        "/api/user/duoc-vien/plant-without",
-        { herbId: selectedHerb },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      alert(response.data.message);
-      fetchUserHerbs();
-      fetchHerbs();
-    } catch (error) {
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        alert(error.response.data.message);
-      } else {
-        alert("Đã xảy ra lỗi khi gieo hạt. Vui lòng thử lại.");
-      }
+      alert(error.response?.data?.message || "Đã xảy ra lỗi khi gieo hạt. Vui lòng thử lại.");
     }
   };
 
@@ -289,40 +250,30 @@ const DuocVien = () => {
       alert(response.data.message);
       fetchUserHerbs();
     } catch (error) {
-      console.error("Error harvesting herb:", error);
       alert("Đã xảy ra lỗi khi thu hoạch. Vui lòng thử lại.");
     }
   };
 
   return (
     <>
-      <SectionTitle><SpaIcon/> DƯỢC VIÊN</SectionTitle>
+      <SectionTitle><SpaIcon /> DƯỢC VIÊN</SectionTitle>
 
       <Container>
         <InfoContainer>
           <InfoText>
-            <strong>Túi hạt giống:</strong> tùy loại hạt giống và số lượng linh
-            điền đã trồng loại hạt giống đó mà có giá khác nhau, vui lòng xem
-            bên dưới.
+            <strong>Túi hạt giống:</strong> tùy loại hạt giống và số lượng linh điền đã trồng loại hạt giống đó mà có giá khác nhau, vui lòng xem bên dưới.
           </InfoText>
           <InfoText>
-            <strong>Kim thưởng:</strong> để trồng 1 ô linh điền bạn sẽ mất 1 kim
-            thưởng, hoặc có thể mua hệ thống với giá 500 bạc.
+            <strong>Kim thưởng:</strong> để trồng 1 ô linh điền bạn sẽ mất 1 kim thưởng, hoặc có thể mua hệ thống với giá 500 bạc.
           </InfoText>
           <InfoText>
-            <strong>Dùng Hộ Linh Trận</strong> sẽ chặn đứng các tên trộm thảo
-            dược.
+            <strong>Dùng Hộ Linh Trận</strong> sẽ chặn đứng các tên trộm thảo dược.
           </InfoText>
         </InfoContainer>
 
         <SelectContainer>
-          <Select
-            value={selectedHerb}
-            onChange={(e) => setSelectedHerb(e.target.value)}
-          >
-            <Option value="" disabled>
-              Chọn thảo dược...
-            </Option>
+          <Select value={selectedHerb} onChange={(e) => setSelectedHerb(e.target.value)}>
+            <Option value="" disabled>Chọn thảo dược...</Option>
             {herbs.map((herb) => (
               <Option key={herb.id} value={herb.id}>
                 {herb.name} ({herb.price} bạc/túi. Trồng {herb.grow_time}h)
@@ -330,19 +281,8 @@ const DuocVien = () => {
             ))}
           </Select>
           <ButtonContainer>
-            <Button
-              color="#42a5f5"
-              hoverColor="#1e88e5"
-              onClick={handleGieoHat}
-            >
+            <Button color="#42a5f5" hoverColor="#1e88e5" onClick={handleGieoHat}>
               Gieo hạt
-            </Button>
-            <Button
-              color="#fbc02d"
-              hoverColor="#f9a825"
-              onClick={handleGieoHatKhongKimThuong}
-            >
-              Gieo không kim thuổng
             </Button>
           </ButtonContainer>
         </SelectContainer>
@@ -352,16 +292,7 @@ const DuocVien = () => {
             .filter((herb) => !herb.isGrown && !herb.isCollected)
             .map((herb) => (
               <HerbItem key={herb.id}>
-                {herb.name} - {herb.isGrown ? "Đã lớn" : "Đang phát triển"} -{" "}
-                {herb.isCollected ? "Đã thu hoạch" : "Chưa thu hoạch"}
-                {/* <HarvestButton
-                active={herb.isGrown && !herb.isCollected}
-                onClick={() =>
-                  herb.isGrown && !herb.isCollected && handleHarvest(herb.id)
-                }
-              >
-                Thu hoạch
-              </HarvestButton> */}
+                <CountdownTimer name={herb.name} duration={new Date(herb.endAt) - Date.now()} user={herb.ngoai_hieu || herb.username} />
               </HerbItem>
             ))}
         </HerbsList>
