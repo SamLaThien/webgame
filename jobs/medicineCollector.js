@@ -138,14 +138,15 @@ async function DuocVien(now) {
 
   for (const herb of grownHerbs) {
     const so_luong = Math.floor(Math.random() * 7) + 6;
-    let new_count = 0;
+    let new_count = so_luong; // Start with the quantity being added
+
     const ruongDoResult = await queryDatabase(
       'SELECT * FROM ruong_do WHERE vat_pham_id = ? AND user_id = ?',
       [herb.herb_id, herb.user_id]
     );
 
     if (ruongDoResult.length > 0) {
-      new_count = ruongDoResult.so_luong + so_luong;
+      new_count += ruongDoResult[0].so_luong; // Access the first element's so_luong
       await queryDatabase(
         'UPDATE ruong_do SET so_luong = ? WHERE vat_pham_id = ? AND user_id = ?',
         [new_count, herb.herb_id, herb.user_id]
@@ -177,6 +178,7 @@ async function DuocVien(now) {
     console.log(`Collected herb with ID: ${herb.id}`);
   }
 }
+
 
 async function cleanUpDuocVien(now) {
   const usersWithHerbs = await queryDatabase(
