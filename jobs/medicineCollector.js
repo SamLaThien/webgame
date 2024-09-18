@@ -1,6 +1,8 @@
 import cron from 'node-cron';
 import db from '@/lib/db';
 
+let isProcessing = false;
+
 function getDanDuoc(id) {
   const cap = {
     3: 1,
@@ -25,13 +27,17 @@ function queryDatabase(query, params = []) {
   });
 }
 
-async function processExpiredMedicines(now) {
+async function LuyenDan(now) {
   const expiredMedicines = await queryDatabase(
     'SELECT * FROM medicine_making WHERE end_at <= ? AND is_done = false',
     [now]
   );
 
   for (const medicine of expiredMedicines) {
+    await queryDatabase(
+      'DELETE FROM medicine_making WHERE id = ?',
+      [medicine.id]
+    );
     const userMedicine = await queryDatabase(
       'SELECT * FROM user_medicine WHERE user_id = ? AND med_id = ?',
       [medicine.user_id, medicine.med_id]
@@ -48,7 +54,7 @@ async function processExpiredMedicines(now) {
     ))[0]?.name || 'Unknown Medicine';
 
     const successRate = userMedicine[0].skill === 100 ? 1.0 :
-                        (userMedicine[0].skill >= 40 ? 0.8 : 0.4);
+      (userMedicine[0].skill >= 40 ? 0.8 : 0.4);
 
     const success = Math.random() < successRate;
     const skillIncrease = Math.floor(Math.random() * 5) + 1;
@@ -84,7 +90,7 @@ async function processExpiredMedicines(now) {
         [medicine.user_id]
       ))[0];
 
-      const actionDetails = `đã luyện chế thành công và nhận được ${quantity} ${medicineName}.`;
+      const actionDetails = `đã luyện thành công và nhận được ${quantity} ${medicineName}.`;
 
       await queryDatabase(
         'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Medicine Making Completed", ?, NOW())',
@@ -119,23 +125,24 @@ async function processExpiredMedicines(now) {
       );
     }
 
-    await queryDatabase(
-      'DELETE FROM medicine_making WHERE id = ?',
-      [medicine.id]
-    );
-
     console.log(`Processed medicine with ID: ${medicine.id}`);
   }
 }
 
-async function processGrownHerbs(now) {
+async function DuocVien(now) {
   const grownHerbs = await queryDatabase(
     'SELECT * FROM user_herbs WHERE endAt <= ? AND isCollected IS FALSE',
     [now]
   );
 
   for (const herb of grownHerbs) {
+    await queryDatabase(
+      'DELETE FROM user_herbs WHERE id = ?',
+      [herb.id]
+    );
+
     const so_luong = Math.floor(Math.random() * 7) + 6;
+    let new_count = so_luong; // Start with the quantity being added
 
     const ruongDoResult = await queryDatabase(
       'SELECT * FROM ruong_do WHERE vat_pham_id = ? AND user_id = ?',
@@ -143,9 +150,10 @@ async function processGrownHerbs(now) {
     );
 
     if (ruongDoResult.length > 0) {
+      new_count += ruongDoResult[0].so_luong; // Access the first element's so_luong
       await queryDatabase(
-        'UPDATE ruong_do SET so_luong = so_luong + ? WHERE vat_pham_id = ? AND user_id = ?',
-        [so_luong, herb.herb_id, herb.user_id]
+        'UPDATE ruong_do SET so_luong = ? WHERE vat_pham_id = ? AND user_id = ?',
+        [new_count, herb.herb_id, herb.user_id]
       );
     } else {
       await queryDatabase(
@@ -159,23 +167,19 @@ async function processGrownHerbs(now) {
       [herb.herb_id]
     ))[0]?.name || 'Unknown Herb';
 
-    const actionDetails = `đã thu thập thành công ${so_luong} ${herbName}.`;
+    const actionDetails = `vừa thu hoạch được ${so_luong} ${herbName} (Còn ${new_count}).`;
 
     await queryDatabase(
       'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Herb Collected", ?, NOW())',
       [herb.user_id, actionDetails]
     );
 
-    await queryDatabase(
-      'UPDATE user_herbs SET isCollected = true, isGrown = true WHERE id = ?',
-      [herb.id]
-    );
-
     console.log(`Collected herb with ID: ${herb.id}`);
   }
 }
 
-async function cleanUpUserHerbs(now) {
+
+async function cleanUpDuocVien(now) {
   const usersWithHerbs = await queryDatabase(
     'SELECT DISTINCT user_id FROM user_herbs'
   );
@@ -202,12 +206,20 @@ async function cleanUpUserHerbs(now) {
 }
 
 cron.schedule('* * * * * *', async () => {
+  if (isProcessing) {
+    return;
+  }
+
+  isProcessing = true; // Lock processing
+
   try {
     const now = new Date();
-    await processExpiredMedicines(now);
-    await processGrownHerbs(now);
-    await cleanUpUserHerbs(now);
+    await LuyenDan(now);
+    await DuocVien(now);
+    await cleanUpDuocVien(now);
   } catch (error) {
     console.error('Error collecting expired medicines or herbs:', error);
+  } finally {
+    isProcessing = false; // Release lock
   }
 });

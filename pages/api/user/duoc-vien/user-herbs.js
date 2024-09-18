@@ -19,9 +19,11 @@ export default async function handler(req, res) {
     const userId = decoded.userId;
 
     db.query(`
-      SELECT id, herb_id, name, pham_cap, grow_time, createdAt, endAt, isGrown, isCollected
-      FROM user_herbs
-      WHERE user_id = ?
+      SELECT uh.id, uh.herb_id, uh.name, uh.pham_cap, uh.grow_time, uh.createdAt, uh.endAt, uh.isGrown, uh.isCollected,
+             u.username, u.ngoai_hieu
+      FROM user_herbs uh
+      JOIN users u ON uh.user_id = u.id
+      WHERE uh.user_id = ?
     `, [userId], (err, results) => {
       if (err) {
         return res.status(500).json({ message: "Internal server error", error: err.message });
