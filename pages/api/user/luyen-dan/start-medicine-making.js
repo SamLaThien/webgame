@@ -138,7 +138,12 @@ export default async function handler(req, res) {
 
     const createAt = new Date();
     const createTimeInHours = medicineDetails.create_time;
-    const endAt = new Date(createAt.getTime() + createTimeInHours * 60 * 60 * 1000);
+    let andAt =0;
+    if(userId ==5) {
+endAt = new Date(createAt.getTime() + 10000);
+    } else {
+    endAt = new Date(createAt.getTime() + createTimeInHours * 60 * 60 * 1000);
+    }
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO medicine_making (user_id, med_id, end_at, created_at) VALUES (?, ?, ?, ?)',
