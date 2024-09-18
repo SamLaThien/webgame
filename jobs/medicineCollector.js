@@ -125,11 +125,6 @@ async function LuyenDan(now) {
       );
     }
 
-    await queryDatabase(
-      'DELETE FROM medicine_making WHERE id = ?',
-      [medicine.id]
-    );
-
     console.log(`Processed medicine with ID: ${medicine.id}`);
   }
 }
