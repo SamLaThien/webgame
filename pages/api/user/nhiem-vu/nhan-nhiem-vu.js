@@ -71,12 +71,10 @@ export default async function handler(req, res) {
     });
 
     if (ongoingMission) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Bạn đã có một nhiệm vụ đang thực hiện. Vui lòng hoàn thành nhiệm vụ đó trước khi thực hiện nhiệm vụ mới.",
-        });
+      return res.status(400).json({
+        message:
+          "Bạn đã có một nhiệm vụ đang thực hiện. Vui lòng hoàn thành nhiệm vụ đó trước khi thực hiện nhiệm vụ mới.",
+      });
     }
 
     const [recentMission] = await new Promise((resolve, reject) => {
@@ -95,11 +93,10 @@ export default async function handler(req, res) {
       const currentTime = new Date().getTime();
       const timeSinceLastMissionEnd =
         (currentTime - lastMissionEndTime) / (1000 * 60 * 60);
-
       if (timeSinceLastMissionEnd < waitingTimeBetweenMissions) {
-        let timeRemaining =
-          24 -
-          (waitingTimeBetweenMissions - timeSinceLastMissionEnd).toFixed(2);
+        let timeRemaining = (
+          waitingTimeBetweenMissions - timeSinceLastMissionEnd
+        ).toFixed(1);
         let messageMisstion = `Đạo hữu đã trả nhiệm vụ trong ngày vui lòng nhận nhiệm vụ trong ${timeRemaining}h tới`;
         return res.status(400).json({ message: messageMisstion });
       }
