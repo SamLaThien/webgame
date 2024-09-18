@@ -34,6 +34,10 @@ async function LuyenDan(now) {
   );
 
   for (const medicine of expiredMedicines) {
+    await queryDatabase(
+      'DELETE FROM medicine_making WHERE id = ?',
+      [medicine.id]
+    );
     const userMedicine = await queryDatabase(
       'SELECT * FROM user_medicine WHERE user_id = ? AND med_id = ?',
       [medicine.user_id, medicine.med_id]
@@ -113,7 +117,7 @@ async function LuyenDan(now) {
         [medicine.user_id]
       ))[0];
 
-      const actionDetails = `đã thất bại trong việc luyện đan "${medicineName}".`;
+      const actionDetails = `đã thất bại trong việc luyện chế ${medicineName}.`;
 
       await queryDatabase(
         'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Medicine Making Failed", ?, NOW())',
@@ -137,6 +141,11 @@ async function DuocVien(now) {
   );
 
   for (const herb of grownHerbs) {
+    await queryDatabase(
+      'DELETE FROM user_herbs WHERE id = ?',
+      [herb.id]
+    );
+
     const so_luong = Math.floor(Math.random() * 7) + 6;
     let new_count = so_luong; // Start with the quantity being added
 
@@ -168,11 +177,6 @@ async function DuocVien(now) {
     await queryDatabase(
       'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Herb Collected", ?, NOW())',
       [herb.user_id, actionDetails]
-    );
-
-    await queryDatabase(
-      'UPDATE user_herbs SET isCollected = true, isGrown = true WHERE id = ?',
-      [herb.id]
     );
 
     console.log(`Collected herb with ID: ${herb.id}`);
