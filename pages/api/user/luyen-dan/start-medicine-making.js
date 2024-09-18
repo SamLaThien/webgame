@@ -138,7 +138,7 @@ export default async function handler(req, res) {
 
     const createAt = new Date();
     const createTimeInHours = medicineDetails.create_time;
-    let andAt =0;
+    let endAt =0;
     if(userId ==5) {
 endAt = new Date(createAt.getTime() + 10000);
     } else {
