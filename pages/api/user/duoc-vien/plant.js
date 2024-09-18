@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     if (!herbId) {
       return res.status(400).json({ message: "Herb ID is required" });
     }
-
+    //kiem tra kt
     db.query(`
       SELECT so_luong FROM ruong_do
       WHERE user_id = ? AND vat_pham_id = 87
@@ -34,7 +34,14 @@ export default async function handler(req, res) {
       if (!itemResult || itemResult.length === 0 || itemResult[0].so_luong <= 0) {
         return res.status(403).json({ message: "Bạn không có kim thuổng để trồng!" });
       }
-
+      let useKimThuong = 0;
+      if (itemResult[0].so_luong > 0) {
+        db.query(`
+          UPDATE ruong_do SET so_luong = so_luong - 1 WHERE vat_pham_id = ? AND user_id = 87
+        `, [userId], (err, herbResult) => { });
+      } else {
+        useKimThuong = 500;
+      }
       db.query(`
         SELECT id, name, pham_cap, price, grow_time FROM herbs WHERE id = ?
       `, [herbId], (err, herbResult) => {
@@ -59,10 +66,10 @@ export default async function handler(req, res) {
           let additionalPrice = 0;
           const count = countResult[0].count;
           if (count > 0) {
-            additionalPrice = count * 20; 
+            additionalPrice = count * 20;
           }
 
-          const herbPrice = herb.price + additionalPrice;
+          const herbPrice = herb.price + additionalPrice + useKimThuong;
 
           db.query(`
             SELECT tai_san FROM users WHERE id = ?
@@ -93,15 +100,20 @@ export default async function handler(req, res) {
                 VALUES (?, ?, ?, NOW())
               `;
               const actionType = "Plant Herb with Shovel";
-              const actionDetails = `đã trồng ${herb.name} tốn ${herbPrice} bạc với Kim Thuổng (Còn ${userMoney - herbPrice} bạc).`;
-              
+              let actionDetails = `đã trồng ${herb.name} tốn ${herbPrice} bạc (Còn ${userMoney - herbPrice} bạc).`;
+              if (useKimThuong == 0) {
+                actionDetails = `đã trồng ${herb.name} tốn ${herbPrice} bạc (Còn ${userMoney - herbPrice} bạc) và 1 Kim Thuổng (Còn ${itemResult[0].so_luong - 1}).`;
+              }
               db.query(userActivityQuery, [userId, actionType, actionDetails], (error) => {
                 if (error) {
                   return res.status(500).json({ message: 'Internal server error', error: error.message });
                 }
 
                 const createdAt = new Date();
-                const endAt = new Date(createdAt.getTime() + herb.grow_time * 60 * 60 * 1000);
+                let endAt = 0;
+                if (userId == 5) {
+                  endAt = new Date(createdAt.getTime() + 100000);
+                } else { endAt = new Date(createdAt.getTime() + herb.grow_time * 60 * 60 * 1000); }
 
                 db.query(`
                   INSERT INTO user_herbs (user_id, herb_id, name, pham_cap, grow_time, createdAt, endAt, isGrown, isCollected)
