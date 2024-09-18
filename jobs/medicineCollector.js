@@ -1,7 +1,6 @@
 import cron from 'node-cron';
 import db from '@/lib/db';
 
-let isProcessing = false;
 
 function getDanDuoc(id) {
   const cap = {
@@ -206,11 +205,6 @@ async function cleanUpDuocVien(now) {
 }
 
 cron.schedule('* * * * * *', async () => {
-  if (isProcessing) {
-    return;
-  }
-
-  isProcessing = true; // Lock processing
 
   try {
     const now = new Date();
@@ -219,7 +213,5 @@ cron.schedule('* * * * * *', async () => {
     await cleanUpDuocVien(now);
   } catch (error) {
     console.error('Error collecting expired medicines or herbs:', error);
-  } finally {
-    isProcessing = false; // Release lock
   }
 });
