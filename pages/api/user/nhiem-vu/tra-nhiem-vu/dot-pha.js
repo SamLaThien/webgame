@@ -49,8 +49,8 @@ export default async function handler(req, res) {
       if (level >= 1) {
         await new Promise((resolve, reject) => {
           db.query(
-            "UPDATE user_mission SET count = count + 1 WHERE id = ?",
-            [ongoingMission.id],
+            "UPDATE user_mission SET count = count + ? WHERE id = ?",
+            [level, ongoingMission.id],
             (err) => {
               if (err) reject(err);
               resolve();

@@ -49,7 +49,7 @@ export default async function handler(req, res) {
       if (exp > 0) {
         await new Promise((resolve, reject) => {
           db.query(
-            "UPDATE user_mission SET count = ? WHERE id = ?",
+            "UPDATE user_mission SET count = count +  ? WHERE id = ?",
             [exp, ongoingMission.id],
             (err) => {
               if (err) reject(err);
