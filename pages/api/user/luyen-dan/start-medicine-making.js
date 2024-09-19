@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     const createTimeInHours = medicineDetails.create_time;
     let endAt = 0;
     if (userId == 5) {
-      endAt = new Date(createAt.getTime() + 100000);
+      endAt = new Date(createAt.getTime() + 10000);
     } else {
       endAt = new Date(createAt.getTime() + createTimeInHours * 60 * 60 * 1000);
     }
