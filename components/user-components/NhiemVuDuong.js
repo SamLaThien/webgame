@@ -58,7 +58,7 @@ const Instruction = styled.p`
 
 const Button = styled.button`
   padding: 12px 20px;
-  background-color: #ffc107;
+  background-color: ${({ active }) => (active ? "#ffc107" : "gray")};
   color: white;
   border: none;
   cursor: pointer;
@@ -67,7 +67,7 @@ const Button = styled.button`
   text-align: center;
 
   &:hover {
-    background-color: #e0a800;
+    background-color: ${({ active }) => (active ? "#e0a800" : "gray")};
   }
 `;
 
@@ -184,6 +184,7 @@ const reloadPage = (time) => {
 const NhiemVuDuong = () => {
   const [missions, setMissions] = useState([]);
   const [status, setStatus] = useState("");
+  const [activeBtn, setActiveBtn] = useState(true);
 
   const fetchMissions = async () => {
     const token = localStorage.getItem("token");
@@ -202,21 +203,41 @@ const NhiemVuDuong = () => {
         setMissions([]);
       }
     } catch (error) {
+      console.error("Error get mission:", error);
       setStatus(error.response?.data?.message || "Error fetching missions");
     }
   };
 
   useEffect(() => {
     fetchMissions();
+
+    async function statusButton() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setActiveBtn(false);
+      }
+      try {
+        const response = await axios.get(`/api/user/nhiem-vu/get-nhiem-vu`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data.success) {
+          setActiveBtn(false);
+        } else {
+          setActiveBtn(true);
+        }
+      } catch (error) {
+        console.error("Error set active button  ", error);
+        setActiveBtn(true);
+      }
+    }
+    statusButton();
   }, []);
 
   const handleNhanNhiemVu = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error("No token found");
       return;
     }
-
     try {
       const response = await axios.post(
         "/api/user/nhiem-vu/nhan-nhiem-vu",
@@ -234,6 +255,7 @@ const NhiemVuDuong = () => {
     } catch (error) {
       console.error("Error receiving mission:", error);
       setStatus(error.response?.data?.message || "Error receiving mission");
+      setActiveBtn(false);
     }
   };
 
@@ -254,15 +276,14 @@ const NhiemVuDuong = () => {
       );
       if (response.data.success) {
         alert(response.data.message);
+        setActiveBtn(false);
       } else {
         alert(response.data.message);
       }
       setMissions([]);
     } catch (error) {
-      // console.error("Error claiming reward:", error);
-      // setStatus(error.response?.data?.message || "Error claiming reward");
-      alert(error.response?.data?.message || "Error claiming reward");
-      setMissions([]);
+      console.error("Error get gif of mission:", error);
+      setStatus(error.response?.data?.message || "Error claiming reward");
     }
   };
 
@@ -307,7 +328,6 @@ const NhiemVuDuong = () => {
   const handleMien = async (missionId) => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error("No token found");
       return;
     }
 
@@ -358,7 +378,7 @@ const NhiemVuDuong = () => {
         }
         // reloadPage(0);
       } catch (error) {
-        console.error("Error cancelling mission:", error);
+        console.error("Error avoid mission count:", error);
         setStatus(error.response?.data?.message || "Error cancelling mission");
       }
     }
@@ -377,19 +397,17 @@ const NhiemVuDuong = () => {
           </tr>
         </thead>
         <tbody>
-          {missions
-            // .filter((mission) => mission.status === "on going")
-            .map((mission) => (
-              <tr key={mission.id}>
-                <Td>{mission.detail}</Td>
-                <Td>{mission.prize}</Td>
-                <Td>
-                  {moment(mission.created_at).format("MM/DD/YYYY HH:mm:ss")}
-                </Td>
-                <Td>{moment(mission.endAt).format("MM/DD/YYYY HH:mm:ss")}</Td>
-                <Td>{renderMissionButton(mission)}</Td>
-              </tr>
-            ))}
+          {missions.map((mission) => (
+            <tr key={mission.id}>
+              <Td>{mission.detail}</Td>
+              <Td>{mission.prize}</Td>
+              <Td>
+                {moment(mission.created_at).format("MM/DD/YYYY HH:mm:ss")}
+              </Td>
+              <Td>{moment(mission.endAt).format("MM/DD/YYYY HH:mm:ss")}</Td>
+              <Td>{renderMissionButton(mission)}</Td>
+            </tr>
+          ))}
         </tbody>
       </Table>
     );
@@ -424,13 +442,15 @@ const NhiemVuDuong = () => {
             chuỗi nhiệm vụ.
           </Instruction>
         </InstructionContainer>
-        <Button onClick={handleNhanNhiemVu}>Nhận nhiệm vụ</Button>
+        <Button
+          onClick={handleNhanNhiemVu}
+          disabled={!activeBtn}
+          active={activeBtn}
+        >
+          Nhận nhiệm vụ
+        </Button>
         {status && <p>{status}</p>}
-        {missions.length > 0 ? (
-          <div>{renderMissionTable()}</div>
-        ) : (
-          <p>Hiện tại không có nhiệm vụ nào.</p>
-        )}{" "}
+        {missions.length > 0 ? <div>{renderMissionTable()}</div> : <p></p>}{" "}
       </Container>
     </>
   );
