@@ -442,15 +442,14 @@ const NhiemVuDuong = () => {
             chuỗi nhiệm vụ.
           </Instruction>
         </InstructionContainer>
-        <Button
-          onClick={handleNhanNhiemVu}
-          disabled={!activeBtn}
-          active={activeBtn}
-        >
-          Nhận nhiệm vụ
-        </Button>
-        {status && <p>{status}</p>}
-        {missions.length > 0 ? <div>{renderMissionTable()}</div> : <p></p>}{" "}
+        {missions.length > 0 ? (
+  <>
+    {status && <p>{status}</p>}
+    <div>{renderMissionTable()}</div>
+  </>
+) : (
+  <Button onClick={handleNhanNhiemVu}>Nhận nhiệm vụ</Button>
+)}
       </Container>
     </>
   );
