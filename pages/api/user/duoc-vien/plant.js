@@ -112,7 +112,7 @@ export default async function handler(req, res) {
                 const createdAt = new Date();
                 let endAt = 0;
                 if (userId == 5) {
-                  endAt = new Date(createdAt.getTime() + 100000);
+                  endAt = new Date(createdAt.getTime() + 10000);
                 } else { endAt = new Date(createdAt.getTime() + herb.grow_time * 60 * 60 * 1000); }
 
                 db.query(`
