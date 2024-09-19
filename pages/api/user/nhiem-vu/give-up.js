@@ -57,7 +57,8 @@ export default async function handler(req, res) {
     const updateResult = await new Promise((resolve, reject) => {
       db.query(
         `UPDATE user_mission 
-         SET status = 'failed' 
+         SET status = 'failed',
+         endAt = NOW()
          WHERE id = ? AND user_id = ?`,
         [missionId, userId],
         (error, results) => {

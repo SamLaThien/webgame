@@ -91,16 +91,15 @@ export default async function handler(req, res) {
     if (recentMission && recentMission.endAt) {
       const lastMissionEndTime = new Date(recentMission.endAt).getTime();
       const currentTime = new Date().getTime();
-
-      const timeSinceLastMissionEnd =
-        (currentTime - lastMissionEndTime) / (1000 * 60 * 60);
-
+      const timeSinceLastMissionEnd = (currentTime - lastMissionEndTime) / (1000 * 60 * 60);  
+      
       if (timeSinceLastMissionEnd < waitingTimeBetweenMissions) {
         let timeRemaining = (waitingTimeBetweenMissions - timeSinceLastMissionEnd).toFixed(2);
-        const hoursDifference = Math.floor(timeRemaining / 1);
+        
+        let hoursDifference = Math.floor(timeRemaining / 1);
         let time = hoursDifference + " giờ ";
         let temp = timeRemaining;
-        while (temp > 1) {
+        while (temp >= 1) {
           temp--;
         }
         if (temp > 0) {

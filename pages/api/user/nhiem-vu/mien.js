@@ -84,7 +84,7 @@ export default async function handler(req, res) {
 
     await new Promise((resolve, reject) => {
       db.query(
-        'UPDATE user_mission SET status = "by pass", giftReceive = 1 WHERE id = ?',
+        'UPDATE user_mission SET status = "by pass", giftReceive = 1, endAt = NOW() WHERE id = ?',
         [missionId],
         (err) => {
           if (err) reject(err);

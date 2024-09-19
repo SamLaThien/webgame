@@ -55,30 +55,30 @@ export default async function handler(req, res) {
     }
 
 
-    const [levelDetails] = await new Promise((resolve, reject) => {
+    const [timeLimit] = await new Promise((resolve, reject) => {
       db.query(
-        "SELECT thoi_gian_cho_giua_2_nhiem_vu FROM levels WHERE cap_so = ?",
-        [user.level],
+        "SELECT * FROM missions WHERE id = ?",
+        [userMission.mission_id],
         (error, results) => {
           if (error) reject(error);
           resolve(results);
         }
       );
     });
-    if (!levelDetails) {
+
+    if (!timeLimit) {
       return res.status(404).json({ message: "Lỗi không xác định" });
     }
-
-
     const lastMissionStart = new Date(userMission.created_at).getTime();
     const currentTime = new Date().getTime();
     const timeSinceLastMissionEnd =
     (currentTime - lastMissionStart) / (1000 * 60 * 60);
-    if (timeSinceLastMissionEnd > levelDetails.thoi_gian_cho_giua_2_nhiem_vu) {
+    if (timeSinceLastMissionEnd > timeLimit.time_limit) {
       const updateResult = await new Promise((resolve, reject) => {
         db.query(
           `UPDATE user_mission 
-           SET status = 'failed' 
+           SET status = 'failed',
+               endAt = NOW()
            WHERE id = ? AND user_id = ?`,
           [missionId, userId],
           (error, results) => {
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
 
       await new Promise((resolve, reject) => {
         db.query(
-          'UPDATE user_mission SET status = "success", giftReceive = 1 WHERE id = ?',
+          'UPDATE user_mission SET status = "success", giftReceive = 1,endAt = NOW() WHERE id = ?',
           [userMission.id],
           (err) => {
             if (err) reject(err);
