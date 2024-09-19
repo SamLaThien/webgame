@@ -91,13 +91,22 @@ export default async function handler(req, res) {
     if (recentMission && recentMission.endAt) {
       const lastMissionEndTime = new Date(recentMission.endAt).getTime();
       const currentTime = new Date().getTime();
+
       const timeSinceLastMissionEnd =
         (currentTime - lastMissionEndTime) / (1000 * 60 * 60);
+
       if (timeSinceLastMissionEnd < waitingTimeBetweenMissions) {
-        let timeRemaining = (
-          waitingTimeBetweenMissions - timeSinceLastMissionEnd
-        ).toFixed(1);
-        let messageMisstion = `Đạo hữu đã trả nhiệm vụ trong ngày vui lòng nhận nhiệm vụ trong ${timeRemaining}h tới`;
+        let timeRemaining = (waitingTimeBetweenMissions - timeSinceLastMissionEnd).toFixed(2);
+        const hoursDifference = Math.floor(timeRemaining / 1);
+        let time = hoursDifference + " giờ ";
+        let temp = timeRemaining;
+        while (temp > 1) {
+          temp--;
+        }
+        if (temp > 0) {
+          time = time + (temp * 60).toFixed(0) + " phút ";
+        }
+        let messageMisstion = `Đạo hữu đã trả nhiệm vụ trong ngày vui lòng nhận nhiệm vụ trong ${time} tới`;
         return res.status(400).json({ message: messageMisstion });
       }
     }

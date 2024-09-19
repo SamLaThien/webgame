@@ -259,8 +259,10 @@ const NhiemVuDuong = () => {
       }
       setMissions([]);
     } catch (error) {
-      console.error("Error claiming reward:", error);
-      setStatus(error.response?.data?.message || "Error claiming reward");
+      // console.error("Error claiming reward:", error);
+      // setStatus(error.response?.data?.message || "Error claiming reward");
+      alert(error.response?.data?.message || "Error claiming reward");
+      setMissions([]);
     }
   };
 
