@@ -1,5 +1,6 @@
 import db from "@/lib/db";
 import jwt from "jsonwebtoken";
+import { addLogs } from '/home/root1/bot/log.js';
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -31,12 +32,13 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: "Internal server error", error: err.message });
       }
 
-
+      let newKimThuong = 0;
       let useKimThuong = 0;
       if (itemResult.length !== 0) {
+        newKimThuong = itemResult[0].so_luong - 1
         db.query(`
-          UPDATE ruong_do SET so_luong = so_luong - 1 WHERE vat_pham_id = ? AND user_id = 87
-        `, [userId], (err, herbResult) => { });
+          UPDATE ruong_do SET so_luong = ? WHERE vat_pham_id = 87 AND user_id = ?
+        `, [newKimThuong, userId], (err, herbResult) => { });
       } else {
         useKimThuong = 500;
       }
@@ -100,8 +102,11 @@ export default async function handler(req, res) {
               const actionType = "Plant Herb with Shovel";
               let actionDetails = `đã trồng ${herb.name} tốn ${herbPrice} bạc (Còn ${userMoney - herbPrice} bạc).`;
               if (useKimThuong == 0) {
-                actionDetails = `đã trồng ${herb.name} tốn ${herbPrice} bạc (Còn ${userMoney - herbPrice} bạc) và 1 Kim Thuổng (Còn ${itemResult[0].so_luong - 1}).`;
+                actionDetails = `đã trồng ${herb.name} tốn ${herbPrice} bạc (Còn ${userMoney - herbPrice} bạc) và 1 Kim Thuổng (Còn ${newKimThuong}).`;
               }
+
+              let message = `Đạo hữu ${username} (ID ${userId}) ${actionDetails}`;
+              addLogs(message);
               db.query(userActivityQuery, [userId, actionType, actionDetails], (error) => {
                 if (error) {
                   return res.status(500).json({ message: 'Internal server error', error: error.message });
