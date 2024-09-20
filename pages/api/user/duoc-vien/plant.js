@@ -31,17 +31,16 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: "Internal server error", error: err.message });
       }
 
-      if (!itemResult || itemResult.length === 0 || itemResult[0].so_luong <= 0) {
-        return res.status(403).json({ message: "Bạn không có kim thuổng để trồng!" });
-      }
+
       let useKimThuong = 0;
-      if (itemResult[0].so_luong > 0) {
+      if (itemResult.length !== 0) {
         db.query(`
           UPDATE ruong_do SET so_luong = so_luong - 1 WHERE vat_pham_id = ? AND user_id = 87
         `, [userId], (err, herbResult) => { });
       } else {
         useKimThuong = 500;
       }
+
       db.query(`
         SELECT id, name, pham_cap, price, grow_time FROM herbs WHERE id = ?
       `, [herbId], (err, herbResult) => {
@@ -52,7 +51,6 @@ export default async function handler(req, res) {
         if (!herbResult || herbResult.length === 0) {
           return res.status(404).json({ message: "Herb not found." });
         }
-
         const herb = herbResult[0];
 
         db.query(`
@@ -72,7 +70,7 @@ export default async function handler(req, res) {
           const herbPrice = herb.price + additionalPrice + useKimThuong;
 
           db.query(`
-            SELECT tai_san FROM users WHERE id = ?
+            SELECT tai_san, username, ngoai_hieu FROM users WHERE id = ?
           `, [userId], (err, userResult) => {
             if (err) {
               return res.status(500).json({ message: "Internal server error", error: err.message });
@@ -83,7 +81,7 @@ export default async function handler(req, res) {
             }
 
             const userMoney = userResult[0].tai_san;
-
+            const username = userResult[0].ngoai_hieu || userResult[0].username;
             if (userMoney < herbPrice) {
               return res.status(403).json({ message: `Bạn không có đủ bạc để trồng!. Cần thêm ${herbPrice - userMoney} bạc.` });
             }
@@ -116,9 +114,9 @@ export default async function handler(req, res) {
                 } else { endAt = new Date(createdAt.getTime() + herb.grow_time * 60 * 60 * 1000); }
 
                 db.query(`
-                  INSERT INTO user_herbs (user_id, herb_id, name, pham_cap, grow_time, createdAt, endAt, isGrown, isCollected)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, false, false)
-                `, [userId, herb.id, herb.name, herb.pham_cap, herb.grow_time, createdAt, endAt], (err, result) => {
+                  INSERT INTO user_herbs (user_id, herb_id, name, pham_cap, grow_time, createdAt, endAt, isGrown, isCollected, username)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, false, false, ?)
+                `, [userId, herb.id, herb.name, herb.pham_cap, herb.grow_time, createdAt, endAt, username], (err, result) => {
                   if (err) {
                     return res.status(500).json({ message: "Failed to update user herbs.", error: err.message });
                   }
