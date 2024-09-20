@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import db from '@/lib/db';
-import { addLogs } from '/home/root1/bot/log.js';
+import { addLogs } from '/var/www/bot/logs.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
