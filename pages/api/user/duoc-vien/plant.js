@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import jwt from "jsonwebtoken";
-import { addLogs } from '/home/root1/bot/log.js';
+import { addLogs } from '/var/www/bot/logs.js'
 
 export default async function handler(req, res) {
   const { method } = req;
