@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import db from '@/lib/db';
-import { addLogs } from '/home/root1/bot/log.js';
+import { addLogs } from '/var/www/bot/logs.js'
 
 let isProcessing = false;
 
