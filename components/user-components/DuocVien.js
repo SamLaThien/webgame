@@ -266,10 +266,7 @@ const DuocVien = () => {
             <strong>Túi hạt giống:</strong> tùy loại hạt giống và số lượng linh điền đã trồng loại hạt giống đó mà có giá khác nhau, vui lòng xem bên dưới.
           </InfoText>
           <InfoText>
-            <strong>Kim thưởng:</strong> để trồng 1 ô linh điền bạn sẽ mất 1 kim thưởng, hoặc có thể mua hệ thống với giá 500 bạc.
-          </InfoText>
-          <InfoText>
-            <strong>Dùng Hộ Linh Trận</strong> sẽ chặn đứng các tên trộm thảo dược.
+            <strong>Kim Thuổng:</strong> để trồng 1 ô linh điền bạn sẽ mất 1 kim thưởng, hoặc có thể mua hệ thống với giá 500 bạc.
           </InfoText>
         </InfoContainer>
 
