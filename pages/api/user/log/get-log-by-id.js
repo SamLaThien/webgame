@@ -16,11 +16,13 @@ export default async function handler(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
+    // Cập nhật truy vấn để giới hạn kết quả về 100 bản ghi
     const query = `
       SELECT user_id, action_type, action_details, timestamp 
       FROM user_activity_logs 
       WHERE user_id = ? 
-      ORDER BY timestamp DESC
+      ORDER BY timestamp DESC 
+      LIMIT 100
     `;
 
     db.query(query, [userId], (error, results) => {
