@@ -58,7 +58,7 @@ const Instruction = styled.p`
 
 const Button = styled.button`
   padding: 12px 20px;
-  background-color: ${({ active }) => (active ? "#ffc107" : "gray")};
+  background-color: #ffc107;
   color: white;
   border: none;
   cursor: pointer;
@@ -67,50 +67,24 @@ const Button = styled.button`
   text-align: center;
 
   &:hover {
-    background-color: ${({ active }) => (active ? "#e0a800" : "gray")};
+    background-color: #e0a800;
   }
-`;
-
-const Mission = styled.div`
-  font-size: 16px;
-  border: 1px solid #b3d7e8;
-  padding: 10px;
-`;
-
-const MissionDetail = styled.div`
-  display: flex;
-  flex-direction: row;
 `;
 
 const MissionButton = styled.button`
-  width: 80px;
-  background-color: ${({ active }) => (active ? "green" : "gray")};
+  width: 60px;
   padding: 8px 12px;
   color: white;
+  background-color: #ffc107;
   border: none;
-  cursor: ${({ active }) => (active ? "pointer" : "not-allowed")};
+  cursor: pointer;
   font-size: 16px;
   text-align: center;
+  margin-right: 5px;
   margin-bottom: 5px;
   &:hover {
-    background-color: ${({ active }) => (active ? "#e0a800" : "gray")};
+    background-color: darkgreen;
   }
-  @media (max-width: 749px) {
-    width: 60px;
-  }
-`;
-
-const Progress = styled.div`
-  padding: 10px 0;
-`;
-
-const MissionStatus = styled.div`
-  color: ${({ status }) => {
-    if (status === "on going") return "blue";
-    if (status === "failed") return "red";
-    if (status === "success") return "green";
-    return "black";
-  }};
 `;
 
 const MienButton = styled.button`
@@ -138,7 +112,8 @@ const HuyButton = styled.button`
   cursor: pointer;
   font-size: 16px;
   text-align: center;
-
+  margin-right: 5px;
+  margin-bottom: 5px;
   &:hover {
     background-color: darkred;
   }
@@ -156,7 +131,7 @@ const Table = styled.table`
 const Td = styled.td`
   border-bottom: 1px dashed #93b6c8;
   padding: 6px;
-  text-align: left;
+  text-align: center;
 `;
 
 const Th = styled.th`
@@ -175,16 +150,13 @@ const Tr = styled.tr`
 const ButtonRow = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
 `;
-
-const reloadPage = (time) => {
-  window.history.go(time);
-};
 
 const NhiemVuDuong = () => {
   const [missions, setMissions] = useState([]);
+  const [details, setDetails] = useState([]);
   const [status, setStatus] = useState("");
-  const [activeBtn, setActiveBtn] = useState(true);
 
   const fetchMissions = async () => {
     const token = localStorage.getItem("token");
@@ -197,11 +169,13 @@ const NhiemVuDuong = () => {
       const response = await axios.get("/api/user/nhiem-vu/nhiem-vu", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
       if (response.data.missions && response.data.missions.length > 0) {
         setMissions(response.data.missions);
       } else {
         setMissions([]);
       }
+      setDetails(response.data.userDetails);
     } catch (error) {
       console.error("Error get mission:", error);
       setStatus(error.response?.data?.message || "Error fetching missions");
@@ -210,27 +184,6 @@ const NhiemVuDuong = () => {
 
   useEffect(() => {
     fetchMissions();
-
-    async function statusButton() {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setActiveBtn(false);
-      }
-      try {
-        const response = await axios.get(`/api/user/nhiem-vu/get-nhiem-vu`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.data.success) {
-          setActiveBtn(false);
-        } else {
-          setActiveBtn(true);
-        }
-      } catch (error) {
-        console.error("Error set active button  ", error);
-        setActiveBtn(true);
-      }
-    }
-    statusButton();
   }, []);
 
   const handleNhanNhiemVu = async () => {
@@ -251,11 +204,9 @@ const NhiemVuDuong = () => {
       } else {
         alert(response.data.message);
       }
-      reloadPage(0);
     } catch (error) {
       console.error("Error receiving mission:", error);
       setStatus(error.response?.data?.message || "Error receiving mission");
-      setActiveBtn(false);
     }
   };
 
@@ -268,7 +219,7 @@ const NhiemVuDuong = () => {
 
     try {
       const response = await axios.post(
-        `/api/user/nhiem-vu/nhan-qua`,
+        `/api/user/nhiem-vu/tra-nhiem-vu`,
         { missionId },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -276,11 +227,11 @@ const NhiemVuDuong = () => {
       );
       if (response.data.success) {
         alert(response.data.message);
-        setActiveBtn(false);
+        setMissions([]);
       } else {
         alert(response.data.message);
       }
-      setMissions([]);
+
     } catch (error) {
       console.error("Error get gif of mission:", error);
       setStatus(error.response?.data?.message || "Error claiming reward");
@@ -289,7 +240,6 @@ const NhiemVuDuong = () => {
 
   const renderMissionButton = (mission) => {
     const buttonText = mission.giftReceive ? "Đã trả" : "Trả";
-    let isButtonActive = false;
     let time_repeat = mission.time_repeat;
     let count = mission.count;
 
@@ -304,8 +254,7 @@ const NhiemVuDuong = () => {
           color="#ffc107"
           hoverColor="#e0a800"
           onClick={() => handleNhanQua(mission.id)}
-          active={isButtonActive}
-          disabled={!isButtonActive}
+          disabled={isDisabled}
         >
           {buttonText}
         </MissionButton>
@@ -322,9 +271,6 @@ const NhiemVuDuong = () => {
     );
   };
 
-  const formatTimeAgo = (date) => {
-    return moment(date).fromNow();
-  };
   const handleMien = async (missionId) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -400,7 +346,7 @@ const NhiemVuDuong = () => {
           {missions.map((mission) => (
             <tr key={mission.id}>
               <Td>{mission.detail}</Td>
-              <Td>{mission.prize}</Td>
+              <Td>{mission.prize} {mission.money > 0 ? `và ${mission.money} bạc` : ''}</Td>
               <Td>
                 {moment(mission.created_at).format("MM/DD/YYYY HH:mm:ss")}
               </Td>
@@ -423,6 +369,9 @@ const NhiemVuDuong = () => {
       <Container>
         <InstructionContainer>
           <Instruction>
+            - Chuỗi nhiệm vụ hiện tại của đạo hữu là:  {details[0]?.nvd_count}.
+          </Instruction>
+          <Instruction>
             - Tùy vận mà đạo hữu sẽ nhận được nhiệm vụ dễ hay khó.
           </Instruction>
           <Instruction>
@@ -443,13 +392,14 @@ const NhiemVuDuong = () => {
           </Instruction>
         </InstructionContainer>
         {missions.length > 0 ? (
-  <>
-    {status && <p>{status}</p>}
-    <div>{renderMissionTable()}</div>
-  </>
-) : (
-  <Button onClick={handleNhanNhiemVu}>Nhận nhiệm vụ</Button>
-)}
+          <>
+            {status && <p>{status}</p>}
+            <div>{renderMissionTable()}</div>
+          </>
+        ) : (
+          <Button onClick={handleNhanNhiemVu}>Nhận nhiệm vụ</Button>
+        )}
+
       </Container>
     </>
   );
