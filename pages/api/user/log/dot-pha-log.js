@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import db from '@/lib/db';
+import { addLogs } from '/var/www/bot/logs.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -26,6 +27,29 @@ export default async function handler(req, res) {
       INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
       VALUES (?, ?, ?, NOW())
     `;
+
+    const getUserDetailsQuery = `
+      SELECT ngoai_hieu, username FROM users WHERE id = ?
+    `;
+
+    // Sử dụng Promise để chờ kết quả từ truy vấn lấy thông tin người dùng
+    const userResults = await new Promise((resolve, reject) => {
+      db.query(getUserDetailsQuery, [userId], (userError, results) => {
+        if (userError) {
+          return reject(userError);
+        }
+        if (results.length === 0) {
+          return reject(new Error('User not found'));
+        }
+        resolve(results[0]);
+      });
+    });
+
+    const { ngoai_hieu, username } = userResults;
+    const displayName = ngoai_hieu || username;
+
+    let message = `Đạo hữu ${displayName} (ID ${userId}) ${actionDetails}`;
+    await addLogs(message);
     
     db.query(userActivityQuery, [userId, actionType, actionDetails], (error) => {
       if (error) {

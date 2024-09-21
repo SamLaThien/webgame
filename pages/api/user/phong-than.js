@@ -15,10 +15,10 @@ export default async function handler(req, res) {
 
         // Query to get top 10 users based on level
         const getTopUsersByLevel = `
-        SELECT id, username, ngoai_hieu, bang_hoi
+        SELECT id, username, ngoai_hieu, bang_hoi, exp 
         FROM users
         WHERE id > 5
-        ORDER BY level DESC
+        ORDER BY level DESC, exp DESC
         LIMIT 10;`;
 
         // Query to get top 10 users based on tai_san

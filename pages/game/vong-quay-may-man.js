@@ -329,9 +329,7 @@ const VongQuayMayManPage = () => {
         console.error("Error fetching spin token:", error);
         return;
       }
-      //
-      //get tai san
-      let taiSanData;
+
       try {
         const response = await fetch("/api/user/game/vong-quay/tai-san", {
           method: "POST",
@@ -341,11 +339,9 @@ const VongQuayMayManPage = () => {
           },
           body: JSON.stringify({ userId: storedUser.id }),
         });
-
-        taiSanData = await response.json();
-
-        if (!response.ok) {
-          console.error("Error fetching tai san:", taiSanData.message);
+        const taisan = await response.json();
+        if (!taisan.success) {
+          setErrorMessage('Đạo hữu cần có ít nhất 1000 bạc để quay');
           return;
         }
       } catch (error) {
@@ -439,13 +435,11 @@ const VongQuayMayManPage = () => {
             }
             status = true;
             if (selectedSlotNumber === 5 || selectedSlotNumber === 6) {
-              prizeName = `${expData.prize} ${
-                prizes[selectedPrizeIndex].split(" ")[1]
-              } nghiệm`;
+              prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(" ")[1]
+                } nghiệm`;
             } else {
-              prizeName = `${expData.prize} ${
-                prizes[selectedPrizeIndex].split(" ")[1]
-              }`;
+              prizeName = `${expData.prize} ${prizes[selectedPrizeIndex].split(" ")[1]
+                }`;
             }
 
             prizeValue = prizeName;
@@ -459,20 +453,20 @@ const VongQuayMayManPage = () => {
               prize_name: prizeName,
             };
 
-            try {
-              await fetch("/api/user/nhiem-vu/tra-nhiem-vu/vong-quay", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ userId: storedUser.id }),
-              });
-            } catch (error) {
-              console.error("Error calling nhiem-vu API:", error);
-            }
+            //try {
+            //  await fetch("/api/user/nhiem-vu/tra-nhiem-vu/vong-quay", {
+            //    method: "POST",
+            //    headers: {
+            //      "Content-Type": "application/json",
+            //      Authorization: `Bearer ${token}`,
+            //    },
+            //    body: JSON.stringify({ userId: storedUser.id }),
+            //  });
+            //} catch (error) {
+            //  console.error("Error calling nhiem-vu API:", error);
+            //}
 
-            const [nhiemVu] = await fetch("/api/user/game/vong-quay/spin-logs", {
+            await fetch("/api/user/game/vong-quay/spin-logs", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

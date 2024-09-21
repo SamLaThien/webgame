@@ -116,7 +116,7 @@ const HerbItem = styled.div`
 `;
 
 const TimerContainer = styled.div`
-  background: #e0f7fa;
+  background: ${({ isHarvesting }) => (isHarvesting ? '#ffcc80' : '#e0f7fa')}; // Màu vàng cam nếu đang chờ thu hoạch
   border: 1px solid #00796b;
   padding: 10px;
   border-radius: 8px;
@@ -124,7 +124,8 @@ const TimerContainer = styled.div`
   font-size: 16px;
 `;
 
-const CountdownTimer = ({ name, duration, user}) => {
+
+const CountdownTimer = ({ name, duration, user }) => {
   const [timeLeft, setTimeLeft] = useState(Math.floor(duration / 1000));
 
   useEffect(() => {
@@ -153,13 +154,14 @@ const CountdownTimer = ({ name, duration, user}) => {
   };
 
   return (
-    <TimerContainer>
+    <TimerContainer isHarvesting={timeLeft <= 0}>
       <div>{name}</div>
-      <div>{timeLeft > 0 ? `Còn ${formatTime(timeLeft)}` : 'Đang thu hoạch!'}</div>
+      <div>{timeLeft > 0 ? `Còn ${formatTime(timeLeft)}` : 'Chờ thu hoạch!'}</div>
       <div>{user}</div>
     </TimerContainer>
   );
 };
+
 
 const DuocVien = () => {
   const [herbs, setHerbs] = useState([]);
@@ -264,10 +266,7 @@ const DuocVien = () => {
             <strong>Túi hạt giống:</strong> tùy loại hạt giống và số lượng linh điền đã trồng loại hạt giống đó mà có giá khác nhau, vui lòng xem bên dưới.
           </InfoText>
           <InfoText>
-            <strong>Kim thưởng:</strong> để trồng 1 ô linh điền bạn sẽ mất 1 kim thưởng, hoặc có thể mua hệ thống với giá 500 bạc.
-          </InfoText>
-          <InfoText>
-            <strong>Dùng Hộ Linh Trận</strong> sẽ chặn đứng các tên trộm thảo dược.
+            <strong>Kim Thuổng:</strong> để trồng 1 ô linh điền bạn sẽ mất 1 kim thưởng, hoặc có thể mua hệ thống với giá 500 bạc.
           </InfoText>
         </InfoContainer>
 

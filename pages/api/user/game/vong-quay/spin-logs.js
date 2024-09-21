@@ -1,5 +1,6 @@
 import db from '@/lib/db';
 import jwt from 'jsonwebtoken';
+import { addLogs } from '/home/root1/bot/log.js';
 
 export default async function handler(req, res) {
   const { authorization } = req.headers;
@@ -82,7 +83,8 @@ export default async function handler(req, res) {
           } else {
             actionDetails = `vừa chơi Vòng Quay May Mắn tốn 300 bạc (còn ${formatNumber(remainingSilver)} bạc) và nhận được ${prize_name}`;
           }
-
+          let message = `Đạo hữu ${displayName} (ID ${userId}) ${actionDetails}`;
+          addLogs(message);
           const insertActivityLogQuery = `
             INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp)
             VALUES (?, 'Spin', ?, NOW())
@@ -97,6 +99,31 @@ export default async function handler(req, res) {
               }
             });
           });
+          //check nv
+
+          const ongoingMission = await new Promise((resolve, reject) => {
+            db.query(
+              'SELECT * FROM user_mission WHERE user_id = ? AND mission_id = 1 AND status = "on going" AND endAt > NOW()',
+              [userId],
+              (err, results) => {
+                if (err) reject(err);
+                resolve(results[0]);
+              }
+            );
+          });
+
+          if (ongoingMission) {
+            await new Promise((resolve, reject) => {
+              db.query(
+                'UPDATE user_mission SET count = count + 1 WHERE id = ?',
+                [ongoingMission.id],
+                (err) => {
+                  if (err) reject(err);
+                  resolve();
+                }
+              );
+            });
+          }
 
           res.status(200).json({ message: 'Log added successfully' });
         } catch (error) {

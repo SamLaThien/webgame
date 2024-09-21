@@ -1,6 +1,7 @@
 import db from '@/lib/db';
 import jwt from 'jsonwebtoken';
 import { parseName } from '@/utils/dsItem';
+import { addLogs } from '/var/www/bot/logs.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -34,6 +35,7 @@ export default async function handler(req, res) {
       return { itemId, quantity };
     });
 
+    // Check for sufficient quantities of required items
     for (const item of requiredItems) {
       const userItem = await queryDb('SELECT so_luong FROM ruong_do WHERE user_id = ? AND vat_pham_id = ?', [userId, item.itemId]);
       if (!userItem || userItem.so_luong < item.quantity) {
@@ -42,6 +44,7 @@ export default async function handler(req, res) {
       }
     }
 
+    // Update item quantities
     const messages = [];
     for (const item of requiredItems) {
       await queryDb('UPDATE ruong_do SET so_luong = so_luong - ? WHERE user_id = ? AND vat_pham_id = ?', [item.quantity, userId, item.itemId]);
@@ -54,15 +57,15 @@ export default async function handler(req, res) {
 
     const actionDetails = `vừa dùng ${messages.join(', ')} để luyện chế ${parseName(medId)}.`;
     await queryDb('INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Medicine Check", ?, NOW())', [userId, actionDetails]);
+    
+    const user = await queryDb('SELECT ngoai_hieu, username FROM users WHERE id = ?', [userId]);
+    const displayName = user?.ngoai_hieu || user?.username || 'Unknown User';
+    await addLogs(`Đạo hữu ${displayName} (ID ${userId}) ${actionDetails}`);
 
     const createAt = new Date();
     const createTimeInHours = medicineDetails.create_time;
-    let endAt = 0;
-    if (userId == 5) {
-      endAt = new Date(createAt.getTime() + 100000);
-    } else {
-      endAt = new Date(createAt.getTime() + createTimeInHours * 60 * 60 * 1000);
-    }
+    const endAt = new Date(createAt.getTime() + (userId === 5 ? 10000 : createTimeInHours * 60 * 60 * 1000));
+    
     await queryDb('INSERT INTO medicine_making (user_id, med_id, end_at, created_at) VALUES (?, ?, ?, ?)', [userId, medId, endAt, createAt]);
 
     return res.status(200).json({ message: 'Đang luyện đan' });
