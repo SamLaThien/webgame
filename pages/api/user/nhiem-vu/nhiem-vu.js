@@ -1,5 +1,4 @@
 import db from "@/lib/db";
-import { retail } from "googleapis/build/src/apis/retail";
 import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
