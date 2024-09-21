@@ -415,18 +415,6 @@ const DotPha = () => {
         console.log(levels)
         const index = getCapClass(levels);
         if (levelUpResponse.data.message == 'Đột phá thành công') {
-          try {
-            await fetch("/api/user/nhiem-vu/tra-nhiem-vu/dot-pha", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ userId: user.id }),
-            });
-          } catch (error) {
-            console.error("Error calling nhiem-vu API:", error);
-          }
           
           await logUserActivity(
             "Dot Pha Success",
@@ -452,7 +440,7 @@ const DotPha = () => {
           error.response?.data?.message || "Sorry, unexpected error. Please try again later."
         );
       } finally {
-        window.location.reload();
+        //window.location.reload();
       }
     }
   };
