@@ -91,24 +91,17 @@ export default async function handler(req, res) {
     if (recentMission && recentMission.endAt) {
       const lastMissionEndTime = new Date(recentMission.endAt).getTime();
       const currentTime = new Date().getTime();
-      const timeSinceLastMissionEnd = (currentTime - lastMissionEndTime) / (1000 * 60 * 60);  
-      
+      const timeSinceLastMissionEnd = (currentTime - lastMissionEndTime) / (1000 * 60 * 60);
+
       if (timeSinceLastMissionEnd < waitingTimeBetweenMissions) {
-        let timeRemaining = (waitingTimeBetweenMissions - timeSinceLastMissionEnd).toFixed(2);
-        
-        let hoursDifference = Math.floor(timeRemaining / 1);
-        let time = hoursDifference + " giờ ";
-        let temp = timeRemaining;
-        while (temp >= 1) {
-          temp--;
-        }
-        if (temp > 0) {
-          time = time + (temp * 60).toFixed(0) + " phút ";
-        }
-        let messageMisstion = `Đạo hữu đã trả nhiệm vụ trong ngày vui lòng nhận nhiệm vụ trong ${time} tới`;
-        return res.status(400).json({ message: messageMisstion });
+        let timeRemaining = (waitingTimeBetweenMissions - timeSinceLastMissionEnd) * 60; // Chuyển đổi giờ sang phút
+        timeRemaining = Math.floor(timeRemaining); // Làm tròn xuống
+
+        let messageMisstion = `Đạo hữu đã nhận nhiệm vụ trong ngày, vui lòng chờ thêm ${timeRemaining} nhút nữa để nhận nhiệm vụ mới `;
+        return res.status(200).json({ message: messageMisstion });
       }
     }
+
 
     const [mission] = await new Promise((resolve, reject) => {
       db.query(
@@ -191,7 +184,7 @@ export default async function handler(req, res) {
           }
         );
       });
-    } else {
+    } else if (mission.id === 1) {
       await new Promise((resolve, reject) => {
         db.query(
           'INSERT INTO user_mission (user_id, mission_id, count, status, contribution_points, money, type, endAt) VALUES (?, ?, 0, "on going", ?, ?, ?, ?)',
