@@ -1,5 +1,7 @@
 import db from "@/lib/db";
 import jwt from "jsonwebtoken";
+import { checkAccount, addBac } from '/var/www/bot/modules/addBac.js';
+import { addLogs } from '/var/www/bot/logs.js';
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -48,16 +50,16 @@ export default async function handler(req, res) {
     }
 
     const mission = await queryDB("SELECT * FROM missions WHERE id = ?", [userMission[0].mission_id]);
-    if (!mission) {
+    if (!mission.length) {
       return res.status(404).json({ message: "Không tìm thấy nhiệm vụ" });
     }
 
     if (userMission[0].mission_id === 1) {
-      if (userMission[0].count >= mission.time_repeat) {
+      if (userMission[0].count >= mission[0].time_repeat) {
         await updateUserAndMission(userId, mission, userMission[0].id);
         return res.status(200).json({ message: "Chúc mừng đạo hữu đã hoàn thành nhiệm vụ", success: true });
       } else {
-        return res.status(200).json({ message: `Bạn chưa hoàn thành nhiệm vụ. (Vui lòng quay thêm ít nhất ${mission.time_repeat - userMission[0].count} vòng nữa)`, success: false });
+        return res.status(200).json({ message: `Bạn chưa hoàn thành nhiệm vụ. (Vui lòng quay thêm ít nhất ${mission[0].time_repeat - userMission[0].count} vòng nữa)`, success: false });
       }
     } else if (userMission[0].mission_id === 3) {
       const levelData = user[0].level - userMission[0].note;
@@ -65,7 +67,7 @@ export default async function handler(req, res) {
         await updateUserAndMission(userId, mission, userMission[0].id);
         return res.status(200).json({ message: "Chúc mừng đạo hữu đã hoàn thành nhiệm vụ", success: true });
       } else {
-        return res.status(200).json({ message: `Bạn chưa hoàn thành nhiệm vụ.(Vui lòng tăng thêm ít nhất ${1 - levelData} cấp nữa)`, success: false });
+        return res.status(200).json({ message: `Bạn chưa hoàn thành nhiệm vụ. (Vui lòng tăng thêm ít nhất ${1 - levelData} cấp nữa)`, success: false });
       }
     } else if (userMission[0].mission_id === 4) {
       const expData = user[0].exp - userMission[0].note;
@@ -73,7 +75,7 @@ export default async function handler(req, res) {
         await updateUserAndMission(userId, mission, userMission[0].id);
         return res.status(200).json({ message: "Chúc mừng đạo hữu đã hoàn thành nhiệm vụ", success: true });
       } else {
-        return res.status(200).json({ message: `Bạn chưa hoàn thành nhiệm vụ (Vui lòng tăng thêm ít nhất ${5000 - expData} điểm kinh nghiệm nữa.`, success: false });
+        return res.status(200).json({ message: `Bạn chưa hoàn thành nhiệm vụ (Vui lòng tăng thêm ít nhất ${5000 - expData} điểm kinh nghiệm nữa).`, success: false });
       }
     }
 
@@ -93,28 +95,33 @@ function queryDB(query, params) {
 }
 
 async function updateUserAndMission(userId, mission, userMissionId) {
+  const data = await checkAccount(userId);
+  if (!data || data.length === 0) {
+    throw new Error("Account not found.");
+  }
+
+  const { ngoai_hieu, username, nvd_count } = data[0];
+  const chuoi_money = await checkBonus(nvd_count);
+  const new_bac = mission[0].money + chuoi_money;
+
   await updateDB(
     "UPDATE users SET tai_san = tai_san + ?, clan_contribution_points = clan_contribution_points + ?, nvd_count = nvd_count + 1 WHERE id = ?",
-    [mission.money, mission.contribution_points, userId]
+    [new_bac, mission[0].contribution_points, userId]
   );
 
-  await updateDB(
-    'UPDATE user_mission SET status = "success", giftReceive = 1, endAt = NOW() WHERE id = ?',
-    [userMissionId]
-  );
-
-  const user = await queryDB("SELECT ngoai_hieu, username FROM users WHERE id = ?", [userId]);
-  const { ngoai_hieu, username } = user[0];
   const displayName = ngoai_hieu || username;
   const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${displayName}</a>`;
-  const actionDetails = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission.contribution_points} điểm cống hiến`;
+  const actionDetails = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến.`;
+  const action = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`;
+  await logUserActivity(userId, action);
+  await addLogs(`${displayName} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`);
 
   const clanIdResult = await queryDB("SELECT clan_id FROM clan_members WHERE member_id = ?", [userId]);
   if (clanIdResult.length) {
     const clanId = clanIdResult[0].clan_id;
-    await updateDB("UPDATE clans SET contribution_points = contribution_points + ? WHERE id = ?", [mission.contribution_points, clanId]);
+    await updateDB("UPDATE clans SET contribution_points = contribution_points + ? WHERE id = ?", [mission[0].contribution_points, clanId]);
     await logClanActivity(userId, clanId, actionDetails);
-    await logUserActivity(userId, actionDetails);
+
   }
 }
 
@@ -139,4 +146,11 @@ async function logUserActivity(userId, actionDetails) {
     'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Mission Completed", ?, NOW())',
     [userId, actionDetails]
   );
+}
+
+async function checkBonus(n) {
+  if (n > 0 && n % 50 === 0) {
+    return 50000 * (n / 50);
+  }
+  return 0;
 }
