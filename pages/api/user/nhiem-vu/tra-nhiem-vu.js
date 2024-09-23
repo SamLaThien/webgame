@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import jwt from "jsonwebtoken";
-import { checkAccount, addBac } from '/var/www/bot/modules/addBac.js';
+import { checkAccount, addBac } from '/var/www/bot/addBac.js';
 import { addLogs } from '/var/www/bot/logs.js';
 
 export default async function handler(req, res) {
