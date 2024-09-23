@@ -108,7 +108,11 @@ async function updateUserAndMission(userId, mission, userMissionId) {
     "UPDATE users SET tai_san = tai_san + ?, clan_contribution_points = clan_contribution_points + ?, nvd_count = nvd_count + 1 WHERE id = ?",
     [new_bac, mission[0].contribution_points, userId]
   );
-
+  await updateDB(
+    'UPDATE user_mission SET status = "success", giftReceive = 1, endAt = NOW() WHERE id = ?',
+    [userMissionId]
+  );
+  
   const displayName = ngoai_hieu || username;
   const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${displayName}</a>`;
   const actionDetails = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến.`;
