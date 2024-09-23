@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     const logs = await new Promise((resolve, reject) => {
       db.query(
-        'SELECT * FROM clan_activity_logs WHERE clan_id = ? ORDER BY timestamp DESC',
+        'SELECT * FROM clan_activity_logs WHERE clan_id = ? ORDER BY timestamp DESC LIMIT 20', // Giới hạn số lượng bản ghi trả về
         [clanId],
         (error, results) => {
           if (error) {
