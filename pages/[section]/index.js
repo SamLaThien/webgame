@@ -77,7 +77,7 @@ const SectionPage = () => {
     // Thêm interval để tự động refresh token sau mỗi phút
     const intervalId = setInterval(() => {
       validateTokenAndFetchUserData();
-    }, 60000); // 1 phút
+    }, 1000 * 60 * 30); // 1 phút
 
     return () => clearInterval(intervalId);
   }, [section, router]);
