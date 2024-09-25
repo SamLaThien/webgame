@@ -330,18 +330,10 @@ const NghiSuDien = () => {
 
           setUser(userInfo.data);
 
-          // if (
-          //   parseInt(userInfo.data.clan_role) !== 6 &&
-          //   parseInt(userInfo.data.clan_role) !== 7
-          // ) {
-          //   router.push("/ho-so");
-          // }
 
           const membersInfo = await axios.get(`/api/user/clan/members`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-
-          setMembers(membersInfo.data);
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
@@ -353,7 +345,7 @@ const NghiSuDien = () => {
   useEffect(() => {
     const reloadInterval = setInterval(() => {
       router.reload();
-    }, 120000);
+    }, 1000*60*31);
 
     return () => clearInterval(reloadInterval);
   }, [router]);
@@ -365,7 +357,7 @@ const NghiSuDien = () => {
         if (seconds !== 0 && seconds % 1 === 0) {
           updateExp();
         }
-      }, 1000);
+      }, 1000 * 60 * 30);
 
       return () => clearInterval(interval);
     }
@@ -385,15 +377,6 @@ const NghiSuDien = () => {
           },
         }
       );
-
-      if (response.status === 200) {
-        setUser((prevUser) => ({
-          ...prevUser,
-          exp: prevUser.exp + response.data.expAdded,
-        }));
-      } else {
-        console.error("Failed to update exp:", response.data.message);
-      }
     } catch (error) {
       console.error("Error updating exp:", error);
     }
