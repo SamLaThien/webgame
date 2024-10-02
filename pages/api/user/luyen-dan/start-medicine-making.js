@@ -3,7 +3,10 @@ import jwt from 'jsonwebtoken';
 import { parseName } from '@/utils/dsItem';
 import { addLogs } from '/var/www/bot/logs.js'
 
+let idDangClick = false;
 export default async function handler(req, res) {
+  if (idDangClick) return res.status(200).json({ message: 'Đạo hữu đang bấm quá nhanh.' });
+  idDangClick = true;
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -57,7 +60,7 @@ export default async function handler(req, res) {
 
     const actionDetails = `vừa dùng ${messages.join(', ')} để luyện chế ${parseName(medId)}.`;
     await queryDb('INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Medicine Check", ?, NOW())', [userId, actionDetails]);
-    
+
     const user = await queryDb('SELECT ngoai_hieu, username FROM users WHERE id = ?', [userId]);
     const displayName = user?.ngoai_hieu || user?.username || 'Unknown User';
     await addLogs(`Đạo hữu ${displayName} (ID ${userId}) ${actionDetails}`);
@@ -65,13 +68,15 @@ export default async function handler(req, res) {
     const createAt = new Date();
     const createTimeInHours = medicineDetails.create_time;
     const endAt = new Date(createAt.getTime() + (userId === 5 ? 10000 : createTimeInHours * 60 * 60 * 1000));
-    
+
     await queryDb('INSERT INTO medicine_making (user_id, med_id, end_at, created_at) VALUES (?, ?, ?, ?)', [userId, medId, endAt, createAt]);
 
     return res.status(200).json({ message: 'Đang luyện đan' });
   } catch (error) {
     console.error('Error starting medicine making:', error);
     return res.status(500).json({ message: 'Internal server error', error: error.message });
+  } finally {
+    idDangClick = false;
   }
 }
 
