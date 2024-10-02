@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     if (!userMission) {
       return res
         .status(404)
-        .json({ message: "Không timg thấy nhiệm vụ cho tài khoản này" });
+        .json({ message: "Không tim thấy nhiệm vụ cho tài khoản này" });
     }
 
     const updateResult = await new Promise((resolve, reject) => {
@@ -81,8 +81,8 @@ export default async function handler(req, res) {
         'INSERT INTO user_activity_logs (user_id, action_type, action_details, timestamp) VALUES (?, "Mission failed", ?, NOW())',
         [
           userId,
-          `đã huỷ nhiệm vụ đường thành công`,
-          "đã huỷ nhiệm vụ đường thành công",
+          `đã huỷ nhiệm vụ thành công`,
+          "đã huỷ nhiệm vụ thành công",
         ],
         (err) => {
           if (err) reject(err);
@@ -90,18 +90,16 @@ export default async function handler(req, res) {
         }
       );
     });
-
-    const clanIdResult = await new Promise((resolve, reject) => {
-      db.query(
-        "SELECT clan_id FROM clan_members WHERE member_id = ?",
-        [userId],
-        (err, results) => {
-          if (err) reject(err);
-          resolve(results[0]);
-        }
-      );
-    });
-
+    db.query(
+      'UPDATE users set nvd_count = 0 where id = ?',
+      [
+        userId,
+      ],
+      (err) => {
+        if (err) reject(err);
+        resolve();
+      }
+    );
     res.status(200).json({
       success: true,
       message: "Đã huỷ nhiệm vụ thành công",
