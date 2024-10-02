@@ -111,7 +111,7 @@ async function updateUserAndMission(userId, mission, userMissionId) {
   const displayName = ngoai_hieu || username;
   const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${displayName}</a>`;
   const actionDetails = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến.`;
-  const action = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`;
+  const action = `làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`;
   await logUserActivity(userId, action);
   await addLogs(`${displayName} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`);
 
