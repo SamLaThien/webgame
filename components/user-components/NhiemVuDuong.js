@@ -169,7 +169,7 @@ const NhiemVuDuong = () => {
       const response = await axios.get("/api/user/nhiem-vu/nhiem-vu", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (response.data.missions && response.data.missions.length > 0) {
         setMissions(response.data.missions);
       } else {
@@ -207,6 +207,8 @@ const NhiemVuDuong = () => {
     } catch (error) {
       console.error("Error receiving mission:", error);
       setStatus(error.response?.data?.message || "Error receiving mission");
+    } finally {
+      window.location.reload();
     }
   };
 
@@ -235,6 +237,8 @@ const NhiemVuDuong = () => {
     } catch (error) {
       console.error("Error get gif of mission:", error);
       setStatus(error.response?.data?.message || "Error claiming reward");
+    } finally {
+      window.location.reload();
     }
   };
 
@@ -298,6 +302,8 @@ const NhiemVuDuong = () => {
       setStatus(
         error.response?.data?.message || "Error updating mission count"
       );
+    } finally {
+      window.location.reload();
     }
   };
 
@@ -322,10 +328,11 @@ const NhiemVuDuong = () => {
         } else {
           setStatus(response.data.message);
         }
-        // reloadPage(0);
       } catch (error) {
         console.error("Error avoid mission count:", error);
         setStatus(error.response?.data?.message || "Error cancelling mission");
+      } finally {
+        window.location.reload();
       }
     }
   };

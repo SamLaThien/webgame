@@ -26,6 +26,7 @@ const SectionPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isInClan, setIsInClan] = useState(false);
+  const [error, setError] = useState(null);
 
   const validateTokenAndFetchUserData = async () => {
     const token = localStorage.getItem("token");
@@ -43,40 +44,43 @@ const SectionPage = () => {
       });
 
       if (data.isValid) {
+        // Thực hiện 2 request song song
+        const [userInfoResponse, clanResponse] = await Promise.all([
+          axios.get(`/api/user/clan/user-info?userId=${data.userId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          axios.get(`/api/user/clan/check-if-clan-member?userId=${data.userId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
 
-        const userInfoResponse = await axios.get(`/api/user/clan/user-info?userId=${data.userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const clanResponse = await axios.get(`/api/user/clan/check-if-clan-member?userId=${data.userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
         setIsInClan(clanResponse.data.isInClan);
         setUser({ ...userInfoResponse.data, isInClan: clanResponse.data.isInClan });
         setIsLoggedIn(true);
+        setError(null); // Clear error if data fetching is successful
       } else {
         router.push("/login");
       }
     } catch (error) {
       console.error("Error during token validation or fetching user data:", error);
-      // router.push("/login");
+      setError("Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.");
     }
   };
 
   useEffect(() => {
     validateTokenAndFetchUserData();
 
-    // const intervalId = setInterval(() => {
-    //   validateTokenAndFetchUserData();
-    // }, 5000);
+    // Thêm interval để tự động refresh token sau mỗi phút
+    const intervalId = setInterval(() => {
+      validateTokenAndFetchUserData();
+    }, 1000 * 60 * 30); // 1 phút
 
-    // return () => clearInterval(intervalId);
-  }, [router]);
-
+    return () => clearInterval(intervalId);
+  }, [section, router]);
 
   const getCurrentTitle = () => {
     switch (section) {
@@ -112,6 +116,8 @@ const SectionPage = () => {
         return "Chấp Sự Đường";
       case "phong-than-bang":
         return "Phong Thần Bảng";
+      default:
+        return "Trang Không Tồn Tại";
     }
   };
 
@@ -149,7 +155,8 @@ const SectionPage = () => {
         return <LanhSuDuong />;
       case "phong-than-bang":
         return <PhongThanBang />;
-
+      default:
+        return <p>Phần bạn yêu cầu không tồn tại.</p>;
     }
   };
 
@@ -159,7 +166,7 @@ const SectionPage = () => {
         <title>{getCurrentTitle()}</title>
       </Head>
       <Layout isLoggedIn={isLoggedIn} user={user} isInClan={isInClan}>
-        {getCurrentComponent()}
+        {error ? <p>{error}</p> : getCurrentComponent()}
       </Layout>
     </>
   );

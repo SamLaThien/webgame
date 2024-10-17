@@ -440,7 +440,7 @@ const DotPha = () => {
           error.response?.data?.message || "Sorry, unexpected error. Please try again later."
         );
       } finally {
-        //window.location.reload();
+        window.location.reload();
       }
     }
   };

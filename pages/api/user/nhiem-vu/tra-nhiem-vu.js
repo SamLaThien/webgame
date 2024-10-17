@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     }
 
     const [timeLimit] = await queryDB("SELECT * FROM missions WHERE id = ?", [userMission[0].mission_id]);
-
+    
     const lastMissionStart = new Date(userMission[0].created_at).getTime();
     const currentTime = Date.now();
     const timeSinceLastMissionEnd = (currentTime - lastMissionStart) / (1000 * 60 * 60);
@@ -48,7 +48,6 @@ export default async function handler(req, res) {
       );
       return res.status(404).json({ message: "Nhiệm vụ của bạn đã quá hạn" });
     }
-
     const mission = await queryDB("SELECT * FROM missions WHERE id = ?", [userMission[0].mission_id]);
     if (!mission.length) {
       return res.status(404).json({ message: "Không tìm thấy nhiệm vụ" });
@@ -95,12 +94,8 @@ function queryDB(query, params) {
 }
 
 async function updateUserAndMission(userId, mission, userMissionId) {
-  const data = await checkAccount(userId);
-  if (!data || data.length === 0) {
-    throw new Error("Account not found.");
-  }
-
-  const { ngoai_hieu, username, nvd_count } = data[0];
+  const user = await queryDB("SELECT ngoai_hieu, username, nvd_count FROM users WHERE id = ?", [userId]);
+  const { ngoai_hieu, username, nvd_count } = user[0];
   const chuoi_money = await checkBonus(nvd_count);
   const new_bac = mission[0].money + chuoi_money;
 
@@ -112,11 +107,11 @@ async function updateUserAndMission(userId, mission, userMissionId) {
     'UPDATE user_mission SET status = "success", giftReceive = 1, endAt = NOW() WHERE id = ?',
     [userMissionId]
   );
-  
+
   const displayName = ngoai_hieu || username;
   const userLink = `<a href="https://tuchangioi.xyz/member/${userId}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: black; font-weight:500">${displayName}</a>`;
   const actionDetails = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến.`;
-  const action = `${userLink} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`;
+  const action = `làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`;
   await logUserActivity(userId, action);
   await addLogs(`${displayName} làm nhiệm vụ tại Nhiệm Vụ Đường thu được ${mission[0].contribution_points} điểm cống hiến và ${new_bac} bạc`);
 

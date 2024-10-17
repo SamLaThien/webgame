@@ -73,13 +73,13 @@ export default async function handler(req, res) {
     if (ongoingMission) {
       return res.status(400).json({
         message:
-          "Bạn đã có một nhiệm vụ đang thực hiện. Vui lòng hoàn thành nhiệm vụ đó trước khi thực hiện nhiệm vụ mới.",
+          "Vui lòng hoàn thành nhiệm vụ trước khi nhận nhiệm vụ mới.",
       });
     }
 
     const [recentMission] = await new Promise((resolve, reject) => {
       db.query(
-        "SELECT endAt FROM user_mission WHERE user_id = ? ORDER BY endAt DESC LIMIT 1",
+        "SELECT created_at FROM user_mission WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
         [userId],
         (error, results) => {
           if (error) reject(error);
@@ -88,8 +88,8 @@ export default async function handler(req, res) {
       );
     });
 
-    if (recentMission && recentMission.endAt) {
-      const lastMissionEndTime = new Date(recentMission.endAt).getTime();
+    if (recentMission && recentMission.created_at) {
+      const lastMissionEndTime = new Date(recentMission.created_at).getTime();
       const currentTime = new Date().getTime();
       const timeSinceLastMissionEnd = (currentTime - lastMissionEndTime) / (1000 * 60 * 60);
 
